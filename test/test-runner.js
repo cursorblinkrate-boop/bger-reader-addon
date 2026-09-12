@@ -1,20 +1,24 @@
-/* Tests für bger-reader.user.js – Kernlogik gegen echte und synthetische Seiten.
- * Aufruf: node test-runner.js
+/* Tests für den BGer Reader – Kernlogik gegen echte und synthetische Seiten.
+ * Aufruf: node test-runner.js [pfad-zum-skript]
+ *
+ * Standard: testet extension/content.js (Extension-Port); falls nicht vorhanden,
+ * ../bger-reader.user.js (archiviertes Userscript). Beide Pfade werden unterstützt.
  *
  * Voraussetzungen: npm install jsdom
- * Optionale echte Fixtures (verifizieren gegen Produktionsseiten):
- *   curl -s "https://search.bger.ch/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&type=show_document" -o /tmp/bger_test.html
- *   curl -s "https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?highlight_docid=aza%3A%2F%2F14-07-2026-2C_729-2025&lang=de&type=show_document" -o /tmp/bger_aza.html
- *   curl -s "http://relevancy.bger.ch/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F116-IA-359%3Ade&lang=de&type=show_document" -o /tmp/bger_relevancy.html
+ * Echte Fixtures liegen in test/fixtures/ (bger_test.html, bger_aza.html,
+ * bger_relevancy.html); Pfade per BGER_FIXTURE / BGER_AZA_FIXTURE /
+ * BGER_RELEVANCY_FIXTURE ueberschreibbar.
  */
 'use strict';
 const fs = require('fs');
+const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const SCRIPT = fs.readFileSync(
-  process.argv[2] || require('path').join(__dirname, '..', 'bger-reader.user.js'),
-  'utf8'
-);
+const STANDARD_PFAD = fs.existsSync(path.join(__dirname, '..', 'extension', 'content.js'))
+  ? path.join(__dirname, '..', 'extension', 'content.js')
+  : path.join(__dirname, '..', 'bger-reader.user.js');
+
+const SCRIPT = fs.readFileSync(process.argv[2] || STANDARD_PFAD, 'utf8');
 
 let bestanden = 0, fehlgeschlagen = 0;
 function pruefe(name, bedingung, detail) {
@@ -136,10 +140,10 @@ const SYNTHESE = `<!doctype html><html><body><div class="eit">
     !!foldP3 && foldP3.textContent.indexOf('(Ausnahme vom Grundsatz)') !== -1);
 }
 
-/* ---------- 4. Komplettes Skript auf der ECHTEN heruntergeladenen Seite (clir/BGE) ---------- */
-console.log('\n[4] Echte Entscheidseite (BGE 152 IV 1, clir)');
+/* ---------- 4. Komplettes Skript auf der ECHTEN heruntergeladenen Seite ---------- */
+console.log('\n[4] Echte Entscheidseite (BGE 152 IV 1)');
 
-const ECHTE_SEITE = process.env.BGER_FIXTURE || '/tmp/bger_test.html';
+const ECHTE_SEITE = process.env.BGER_FIXTURE || path.join(__dirname, 'fixtures', 'bger_test.html');
 if (fs.existsSync(ECHTE_SEITE)) {
   const html = fs.readFileSync(ECHTE_SEITE, 'utf8');
   const vorher = { links: (html.match(/<a /g) || []).length };
@@ -170,7 +174,7 @@ if (fs.existsSync(ECHTE_SEITE)) {
   const folds = doc.querySelectorAll('.bkl-fold');
   pruefe('Fold-Elemente vorhanden', folds.length === gesamt, folds.length + '/' + gesamt);
 
-  // Jeder Fold-Inhalt muss eine vollständige Klammer sein
+  // Jeder Fold-Inhalt muss ausgeglichene Klammern haben und mit ( beginnen / enden
   let klammernOk = true;
   folds.forEach(function (f) {
     const c = f.querySelector('.bkl-fold-content');
@@ -183,7 +187,7 @@ if (fs.existsSync(ECHTE_SEITE)) {
   const linksNachher = doc.querySelectorAll('a').length;
   pruefe('kein Link ging verloren', linksNachher >= vorher.links, linksNachher + '/' + vorher.links);
 
-  // Modus „alle": findet mindestens so viele wie der Literatur-Modus
+  // Modus „alle": strengere, längere Klammern
   R.allesAufklappenUndEntfernen();
   let gesamtAlle = 0;
   bloecke.forEach(function (b) { gesamtAlle += R.blockVerarbeiten(b, 'alle', 80); });
@@ -196,7 +200,7 @@ if (fs.existsSync(ECHTE_SEITE)) {
   const textNachher = doc.querySelector('div.eit').textContent;
   pruefe('Roundtrip: Gesamttext nach Entfernen identisch', textVorher.replace(/[▸▾]/g, '') === textNachher);
 } else {
-  console.log('  ⚠️  Echte Seite nicht gefunden (siehe Kopfkommentar für curl-Befehle), Block übersprungen.');
+  console.log('  ⚠️  Echte Seite nicht gefunden (curl zuerst ausführen), Block übersprungen.');
 }
 
 /* ---------- 5. UI-Integration: Lesemodus einschalten via Panel ---------- */
@@ -231,7 +235,7 @@ console.log('\n[5] UI-Integration');
 /* ---------- 6. Weitere Seitentypen: aza (Weitere Urteile ab 2000) & relevancy ---------- */
 console.log('\n[6] aza- und relevancy-Seiten');
 
-const AZA_FIXTURE = process.env.BGER_AZA_FIXTURE || '/tmp/bger_aza.html';
+const AZA_FIXTURE = process.env.BGER_AZA_FIXTURE || path.join(__dirname, 'fixtures', 'bger_aza.html');
 if (fs.existsSync(AZA_FIXTURE)) {
   const html = fs.readFileSync(AZA_FIXTURE, 'utf8');
   const dom = domMitScript(html, 'https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?type=show_document');
@@ -252,7 +256,7 @@ if (fs.existsSync(AZA_FIXTURE)) {
   console.log('  ⚠️  aza-Fixture nicht gefunden, übersprungen.');
 }
 
-const RELEVANCY_FIXTURE = process.env.BGER_RELEVANCY_FIXTURE || '/tmp/bger_relevancy.html';
+const RELEVANCY_FIXTURE = process.env.BGER_RELEVANCY_FIXTURE || path.join(__dirname, 'fixtures', 'bger_relevancy.html');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
   const html = fs.readFileSync(RELEVANCY_FIXTURE, 'utf8');
   const dom = domMitScript(html, 'http://relevancy.bger.ch/php/clir/http/index.php?type=show_document');
@@ -289,6 +293,63 @@ console.log('\n[7] Spaltenbreite');
 
   pruefe('Seiten-CSS enthält Spaltenbreite-Regel für div.eit .middle',
     /html\.bkl-aktiv div\.eit \.middle\s*\{[^}]*var\(--bkl-spalte\)/.test(dom.window.eval('document.getElementById("bkl-style").textContent')));
+}
+
+/* ---------- 8. Extension-Speicher (chrome.storage.local, asynchroner Pfad) ---------- */
+console.log('\n[8] Extension-Speicher (chrome.storage.local)');
+{
+  // Mock der chrome-API: synchroner In-Memory-Speicher (bleibt offline, kein Netz).
+  const dom = new JSDOM(
+    '<!doctype html><html><body><div class="eit"><div class="paraatf">Test</div></div></body></html>',
+    { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true }
+  );
+  const SPEICHER_SCHLUESSEL = 'bger-reader-einstellungen-v2';
+  const speicher = {};
+  speicher[SPEICHER_SCHLUESSEL] = { schriftgroesse: 22, aktiv: true }; // vorgespeicherte Einstellung
+  dom.window.chrome = {
+    storage: {
+      local: {
+        get: function (key, cb) {
+          const out = {};
+          if (speicher[key]) out[key] = speicher[key];
+          cb(out);
+        },
+        set: function (paket) {
+          Object.keys(paket).forEach(function (k) { speicher[k] = paket[k]; });
+        }
+      }
+    }
+  };
+  dom.window.eval(SCRIPT);
+
+  const doc = dom.window.document;
+  const nutztExtensionSpeicher = /chrome\.storage\.local/.test(SCRIPT);
+
+  if (nutztExtensionSpeicher) {
+    pruefe('gespeicherte Schriftgrösse 22px aus chrome.storage.local geladen (nicht Standard 18px)',
+      doc.documentElement.style.getPropertyValue('--bkl-size') === '22px',
+      'war ' + doc.documentElement.style.getPropertyValue('--bkl-size'));
+    pruefe('Lesemodus aus chrome.storage.local geladen (aktiv)',
+      doc.documentElement.classList.contains('bkl-aktiv'));
+
+    // Änderung über das Panel muss in chrome.storage.local landen …
+    const host = doc.getElementById('bkl-panel-host');
+    const groesse = host.shadowRoot.getElementById('bkl-groesse');
+    groesse.value = '25';
+    groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    pruefe('Panel-Änderung wird in chrome.storage.local gespeichert',
+      speicher[SPEICHER_SCHLUESSEL] && speicher[SPEICHER_SCHLUESSEL].schriftgroesse === 25,
+      JSON.stringify(speicher[SPEICHER_SCHLUESSEL]));
+
+    // … und NICHT im localStorage der Seite (domain-übergreifend, kein Seiten-Zugriff).
+    pruefe('localStorage der Seite bleibt unberührt',
+      dom.window.localStorage.getItem(SPEICHER_SCHLUESSEL) === null);
+  } else {
+    // Archiviertes Userscript: nutzt localStorage, ignoriert die chrome-API.
+    pruefe('Userscript-Pfad: localStorage-Fallback aktiv (chrome-API ignoriert)',
+      doc.documentElement.style.getPropertyValue('--bkl-size') === '18px',
+      'war ' + doc.documentElement.style.getPropertyValue('--bkl-size'));
+  }
 }
 
 /* ---------- Ergebnis ---------- */
