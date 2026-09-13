@@ -1,8 +1,8 @@
 # bger-reader
 
-- Browser-Extension für Chrome/Firefox/Edge 
 - Barrierefreie Bundesgerichtsentscheide 
 - Accessibility tool for Swiss Federal Supreme Court decisions 
+- one-click-install Browser-Extension für Chrome/Firefox/Edge
 
 
 ## Unterstützte Seiten / Supported Pages
