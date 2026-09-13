@@ -457,6 +457,124 @@ console.log('\n[9] Panel neu (Pink-Button, Detail-Bereich) und Layout-/Farbschem
     !doc.documentElement.classList.contains('bkl-breite'));
 }
 
+/* ---------- 10. Gebündelte Fonts: Dateien, Manifest, @font-face, Fallback ---------- */
+console.log('\n[10] Gebündelte Fonts (WOFF2, Offline)');
+
+const SKRIPT_PFAD = process.argv[2] || STANDARD_PFAD;
+const IST_EXTENSION = /extension[\/\\]content\.js$/.test(SKRIPT_PFAD);
+
+if (IST_EXTENSION) {
+  const FONTS_DIR = path.join(__dirname, '..', 'extension', 'fonts');
+  const ERWARTETE_WOFF2 = [
+    'atkinson-hyperlegible-next-latin-400.woff2', 'atkinson-hyperlegible-next-latin-700.woff2',
+    'eb-garamond-latin-400.woff2', 'eb-garamond-latin-700.woff2',
+    'comic-neue-latin-400.woff2', 'comic-neue-latin-700.woff2',
+    'opendyslexic-latin-400.woff2', 'opendyslexic-latin-700.woff2',
+    'liberation-serif-latin-400.woff2', 'liberation-serif-latin-700.woff2',
+    'liberation-sans-latin-400.woff2', 'liberation-sans-latin-700.woff2'
+  ];
+
+  // (a) Dateien vorhanden, je < 80 KB, gesamt < 300 KB
+  const vorhanden = fs.existsSync(FONTS_DIR)
+    ? fs.readdirSync(FONTS_DIR).filter(function (f) { return f.endsWith('.woff2'); })
+    : [];
+  pruefe('alle 12 WOFF2-Dateien vorhanden',
+    ERWARTETE_WOFF2.every(function (f) { return vorhanden.indexOf(f) !== -1; }),
+    'gefunden: ' + vorhanden.length);
+  const LIMIT_EINZEL = 80 * 1024, LIMIT_GESAMT = 300 * 1024;
+  let gesamtBytes = 0, zuGross = [];
+  vorhanden.forEach(function (f) {
+    const b = fs.statSync(path.join(FONTS_DIR, f)).size;
+    gesamtBytes += b;
+    if (b >= LIMIT_EINZEL) zuGross.push(f + ' (' + Math.round(b / 1024) + ' KB)');
+  });
+  pruefe('jede Font-Datei < 80 KB', zuGross.length === 0, zuGross.join(','));
+  pruefe('Fonts gesamt < 300 KB', gesamtBytes < LIMIT_GESAMT, Math.round(gesamtBytes / 1024) + ' KB');
+
+  // (b) manifest.json: web_accessible_resources mit den drei bger.ch-Patterns
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'extension', 'manifest.json'), 'utf8'));
+  const war = (manifest.web_accessible_resources || [])[0] || {};
+  pruefe('Manifest: web_accessible_resources für fonts/*.woff2',
+    (war.resources || []).indexOf('fonts/*.woff2') !== -1,
+    JSON.stringify(war.resources));
+  const BGER_PATTERNS = ['https://search.bger.ch/*', 'https://relevancy.bger.ch/*', 'http://relevancy.bger.ch/*'];
+  pruefe('Manifest: WAR-matches decken alle drei bger.ch-Patterns ab',
+    BGER_PATTERNS.every(function (m) { return (war.matches || []).indexOf(m) !== -1; }),
+    JSON.stringify(war.matches));
+
+  // (c) @font-face: ohne chrome.runtime (jsdom) keine Regeln, aber kein Abbruch
+  {
+    const dom = domMitScript(SYNTHESE);
+    const doc = dom.window.document;
+    const stil = doc.getElementById('bkl-style');
+    pruefe('jsdom ohne chrome.runtime: Skript läuft, Style-Element vorhanden', !!stil);
+    pruefe('jsdom ohne chrome.runtime: keine @font-face-Regeln injiziert',
+      !!stil && stil.textContent.indexOf('@font-face') === -1);
+
+    const optionen = Array.prototype.map.call(
+      doc.getElementById('bkl-panel-host').shadowRoot.getElementById('bkl-art').querySelectorAll('option'),
+      function (o) { return o.value; });
+    const ERWARTETE_WERTE = ['serif', 'sans', 'atkinson', 'garamond', 'opendyslexic', 'comicneue', 'liberation-serif', 'liberation-sans'];
+    pruefe('Schriftart-Select enthält alle 8 Font-Optionen',
+      ERWARTETE_WERTE.every(function (v) { return optionen.indexOf(v) !== -1; }),
+      optionen.join(','));
+  }
+
+  // (c2) Mit Extension-API: @font-face-Regeln mit chrome.runtime.getURL + font-display: swap
+  {
+    const dom = new JSDOM(SYNTHESE, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+    dom.window.chrome = {
+      runtime: { getURL: function (p) { return 'chrome-extension://testid/' + p; } },
+      storage: { local: { get: function (k, cb) { cb({}); }, set: function () {} } }
+    };
+    dom.window.eval(SCRIPT);
+    const css = dom.window.document.getElementById('bkl-style').textContent;
+    const anzahlFaces = (css.match(/@font-face/g) || []).length;
+    pruefe('12 @font-face-Regeln injiziert (6 Fonts x 2 Schnitte)', anzahlFaces === 12, anzahlFaces + ' gefunden');
+    pruefe('@font-face nutzt chrome.runtime.getURL-URL',
+      css.indexOf('chrome-extension://testid/fonts/atkinson-hyperlegible-next-latin-400.woff2') !== -1);
+    pruefe('@font-face mit font-display: swap', /font-display:\s*swap/.test(css));
+  }
+
+  // (d) Unbekannter gespeicherter schriftart-Wert fällt auf Standard (serif) zurück
+  {
+    const dom = new JSDOM(SYNTHESE, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+    const SCHLUESSEL = 'bger-reader-einstellungen-v2';
+    const speicher = {};
+    speicher[SCHLUESSEL] = { schriftart: 'gibts-nicht-mehr-v0.1', aktiv: true };
+    dom.window.chrome = {
+      storage: {
+        local: {
+          get: function (key, cb) { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); },
+          set: function () {}
+        }
+      }
+    };
+    dom.window.eval(SCRIPT);
+    const doc = dom.window.document;
+    const fontVar = doc.documentElement.style.getPropertyValue('--bkl-font');
+    pruefe('unbekannter schriftart-Wert -> System-Serif-Fallback',
+      /Georgia/.test(fontVar), JSON.stringify(fontVar));
+    const selectWert = doc.getElementById('bkl-panel-host').shadowRoot.getElementById('bkl-art').value;
+    pruefe('Select zeigt nach Fallback den Standardwert', selectWert === 'serif', selectWert);
+  }
+
+  // Neue Schriftart anwenden: Stack beginnt mit der Custom-Font
+  {
+    const dom = domMitScript(SYNTHESE);
+    const doc = dom.window.document;
+    const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+    const art = shadow.getElementById('bkl-art');
+    art.value = 'garamond';
+    art.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    pruefe('EB Garamond: Stack beginnt mit Custom-Font, System-Fallback dahinter',
+      /^"EB Garamond", Georgia/.test(doc.documentElement.style.getPropertyValue('--bkl-font')),
+      doc.documentElement.style.getPropertyValue('--bkl-font'));
+  }
+} else {
+  console.log('  ⚠️  Kein Extension-Skript getestet, Font-Block übersprungen.');
+}
+
 /* ---------- Ergebnis ---------- */
 console.log('\n========================================');
 console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
