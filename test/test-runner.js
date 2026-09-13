@@ -291,8 +291,8 @@ console.log('\n[7] Spaltenbreite');
   pruefe('Spaltenbreite auf 900px änderbar',
     doc.documentElement.style.getPropertyValue('--bkl-spalte') === '900px');
 
-  pruefe('Seiten-CSS enthält Spaltenbreite-Regel für div.eit .middle',
-    /html\.bkl-aktiv div\.eit \.middle\s*\{[^}]*var\(--bkl-spalte\)/.test(dom.window.eval('document.getElementById("bkl-style").textContent')));
+  pruefe('Seiten-CSS enthält Spaltenbreite-Regel für div.eit .middle (nur unter bkl-breite)',
+    /html\.bkl-aktiv\.bkl-breite div\.eit \.middle\s*\{[^}]*var\(--bkl-spalte\)/.test(dom.window.eval('document.getElementById("bkl-style").textContent')));
 }
 
 /* ---------- 8. Extension-Speicher (chrome.storage.local, asynchroner Pfad) ---------- */
@@ -350,6 +350,111 @@ console.log('\n[8] Extension-Speicher (chrome.storage.local)');
       doc.documentElement.style.getPropertyValue('--bkl-size') === '18px',
       'war ' + doc.documentElement.style.getPropertyValue('--bkl-size'));
   }
+}
+
+/* ---------- 9. Panel neu: Pink-Button, Öffnen/Schliessen, Details, CSS-Fixes ---------- */
+console.log('\n[9] Panel neu (Pink-Button, Detail-Bereich) und Layout-/Farbschema-Fixes');
+{
+  const dom = domMitScript(SYNTHESE);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+
+  // (a) Pink-Button statt minimiertem Balken, Panel initial geschlossen
+  const knopf = shadow.getElementById('bkl-button');
+  pruefe('Pink-Button #bkl-button existiert', !!knopf);
+  pruefe('Pink-Button mit Inline-SVG (Lupe), kein externer Icon-Font',
+    !!knopf && !!knopf.querySelector('svg'));
+  pruefe('Pink-Button hat title und aria-label',
+    !!knopf && !!knopf.getAttribute('title') && !!knopf.getAttribute('aria-label'));
+  const panel = shadow.getElementById('bkl-panel');
+  pruefe('Panel anfangs geschlossen (hidden)', !!panel && panel.hidden === true);
+  pruefe('alter Minimieren-Mechanismus entfernt (kein #bkl-titel/#bkl-inhalt mehr)',
+    !shadow.getElementById('bkl-titel') && !shadow.getElementById('bkl-inhalt'));
+
+  // (b) Öffnen/Schliessen per Klick und Escape, Fokus-Management
+  knopf.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  pruefe('Klick auf Pink-Button öffnet Panel', panel.hidden === false);
+  pruefe('Pink-Button bei offenem Panel verborgen', knopf.hidden === true);
+  pruefe('Fokus nach dem Öffnen im Panel',
+    !!shadow.activeElement && panel.contains(shadow.activeElement),
+    String(shadow.activeElement && shadow.activeElement.id));
+  const schliessen = shadow.getElementById('bkl-schliessen');
+  pruefe('Schliessen-Knopf (X) vorhanden, mit title und aria-label',
+    !!schliessen && !!schliessen.getAttribute('title') && !!schliessen.getAttribute('aria-label'));
+  schliessen.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  pruefe('Schliessen-Knopf schliesst Panel', panel.hidden === true && knopf.hidden === false);
+  pruefe('Fokus zurück auf Pink-Button', shadow.activeElement === knopf);
+  knopf.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  doc.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+  pruefe('Escape schliesst Panel', panel.hidden === true);
+  pruefe('Fokus nach Escape zurück auf Pink-Button', shadow.activeElement === knopf);
+
+  // (c) Detail-Bereich: initial eingeklappt, Toggle funktioniert
+  const detailsToggle = shadow.getElementById('bkl-details-toggle');
+  const details = shadow.getElementById('bkl-details');
+  pruefe('Detail-Toggle ist ein echter <button>', !!detailsToggle && detailsToggle.tagName === 'BUTTON');
+  pruefe('Detail-Bereich initial eingeklappt (aria-expanded="false", hidden)',
+    !!details && details.hidden === true && detailsToggle.getAttribute('aria-expanded') === 'false');
+  pruefe('Detail-Toggle verweist per aria-controls auf den Bereich',
+    detailsToggle.getAttribute('aria-controls') === 'bkl-details');
+  detailsToggle.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  pruefe('Detail-Toggle klappt aus (aria-expanded="true", sichtbar)',
+    details.hidden === false && detailsToggle.getAttribute('aria-expanded') === 'true');
+  detailsToggle.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  pruefe('Detail-Toggle klappt wieder ein',
+    details.hidden === true && detailsToggle.getAttribute('aria-expanded') === 'false');
+
+  // Alle Controls haben title-Tooltip und aria-label
+  const kontrollenOhneTooltip = [];
+  shadow.querySelectorAll('#bkl-panel input, #bkl-panel select, #bkl-panel button').forEach(function (el) {
+    if (!el.getAttribute('title') || !el.getAttribute('aria-label')) kontrollenOhneTooltip.push(el.id);
+  });
+  pruefe('alle Panel-Controls mit title UND aria-label', kontrollenOhneTooltip.length === 0,
+    kontrollenOhneTooltip.join(','));
+
+  // (d) Farbschema-Regeln für die Seiten-Boxen (rechte Spalte: Inhalt/Referenzen/Navigation)
+  const cssText = doc.getElementById('bkl-style').textContent;
+  pruefe('CSS: Boxen (div.eit .box) bekommen Schema-Hintergrund/Textfarbe',
+    /html\.bkl-aktiv div\.eit \.box[^{]*\{[^}]*var\(--bkl-bg\)/.test(cssText) &&
+    /html\.bkl-aktiv div\.eit \.box[^{]*\{[^}]*var\(--bkl-fg\)/.test(cssText));
+  pruefe('CSS: Box-Inhalt (div.eit .box .content) eingefärbt',
+    /html\.bkl-aktiv div\.eit \.box \.content\s*\{[^}]*var\(--bkl-bg\)/.test(cssText) ||
+    /\.box,\s*html\.bkl-aktiv div\.eit \.box \.content\s*\{[^}]*var\(--bkl-bg\)/.test(cssText));
+  pruefe('CSS: Links in Boxen bekommen Schema-Linkfarbe',
+    /html\.bkl-aktiv div\.eit \.box a\s*\{[^}]*var\(--bkl-link\)/.test(cssText));
+
+  // (e) Layout-Neutralität: bedingte Regeln statt Dauer-Breiten
+  pruefe('CSS: max-width/margin-auto nur unter Klasse bkl-maxw',
+    /html\.bkl-aktiv\.bkl-maxw div\.paraatf,\s*html\.bkl-aktiv\.bkl-maxw div\.para\s*\{[^}]*margin-left:\s*auto/.test(cssText));
+  pruefe('CSS: Breiten-Überschreibungen nur unter Klasse bkl-breite',
+    /html\.bkl-aktiv\.bkl-breite div\.eit \.middle\s*\{[^}]*var\(--bkl-spalte\)/.test(cssText));
+  pruefe('CSS: Basisregel der Entscheidabsätze enthält kein margin/max-width',
+    !/html\.bkl-aktiv div\.paraatf,\s*html\.bkl-aktiv div\.para\s*\{[^}]*(?:margin|max-width)/.test(cssText));
+
+  // Verhalten: im Standard (625px, Zeilenlänge 0) keine Layout-Klassen auf <html>
+  const aktiv2 = shadow.getElementById('bkl-aktiv');
+  aktiv2.checked = true;
+  aktiv2.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Standard: keine bkl-maxw-Klasse auf <html>', !doc.documentElement.classList.contains('bkl-maxw'));
+  pruefe('Standard: keine bkl-breite-Klasse auf <html>', !doc.documentElement.classList.contains('bkl-breite'));
+
+  const laenge = shadow.getElementById('bkl-laenge');
+  laenge.value = '80';
+  laenge.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  pruefe('Zeilenlänge 80 -> bkl-maxw-Klasse aktiv', doc.documentElement.classList.contains('bkl-maxw'));
+  laenge.value = '0';
+  laenge.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  pruefe('Zeilenlänge zurück auf 0 -> bkl-maxw-Klasse entfernt',
+    !doc.documentElement.classList.contains('bkl-maxw'));
+
+  const spalte2 = shadow.getElementById('bkl-spalte');
+  spalte2.value = '900';
+  spalte2.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  pruefe('Spaltenbreite 900 -> bkl-breite-Klasse aktiv', doc.documentElement.classList.contains('bkl-breite'));
+  spalte2.value = '625';
+  spalte2.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  pruefe('Spaltenbreite zurück auf 625 -> bkl-breite-Klasse entfernt',
+    !doc.documentElement.classList.contains('bkl-breite'));
 }
 
 /* ---------- Ergebnis ---------- */
