@@ -1,8 +1,8 @@
 # BGE-Reader
 
-Browser-Extension für Chrome/Firefox/Edge 
-Barrierefreie Bundesgerichtsentscheide 
-Accessibility tool for Swiss Federal Supreme Court decisions 
+- Browser-Extension für Chrome/Firefox/Edge 
+- Barrierefreie Bundesgerichtsentscheide 
+- Accessibility tool for Swiss Federal Supreme Court decisions 
 
 
 ## Unterstützte Seiten / Supported Pages
