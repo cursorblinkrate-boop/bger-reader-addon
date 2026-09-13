@@ -225,7 +225,7 @@
   const STANDARDS = {
     aktiv: false,               // Lesemodus ein/aus
     schriftgroesse: 18,         // px
-    schriftart: 'serif',        // serif | sans
+    schriftart: 'serif',        // serif | sans | atkinson | garamond | opendyslexic | comicneue | liberation-serif | liberation-sans
     schriftstaerke: 'normal',   // normal | fett
     zeilenabstand: 1.6,         // Faktor
     buchstabenabstand: 0,       // px
@@ -377,18 +377,64 @@
     }
   `;
 
+  /* ---------- Lokal gebündelte Fonts (WOFF2, Latin-Subset, OFL) ---------- */
+  // @font-face muss chrome.runtime.getURL() verwenden (Content-Script-Kontext:
+  // relative Pfade würden auf die Seite zeigen, nicht auf die Extension).
+  // In der jsdom-Testumgebung gibt es chrome.runtime nicht -> keine
+  // @font-face-Regeln injizieren (SCHRIFTARTEN-Stacks fallen auf System-
+  // Schriften zurück, nichts bricht).
+  const FONT_DATEIEN = [
+    { familie: 'Atkinson Hyperlegible Next', basis: 'atkinson-hyperlegible-next' },
+    { familie: 'EB Garamond',                basis: 'eb-garamond' },
+    { familie: 'Dyslexie-Leseschrift',       basis: 'opendyslexic' },
+    { familie: 'Comic Neue',                 basis: 'comic-neue' },
+    { familie: 'BGEReader Serif',            basis: 'liberation-serif' },
+    { familie: 'BGEReader Sans',             basis: 'liberation-sans' }
+  ];
+
+  function fontFaceCss() {
+    const hatGetURL = (
+      typeof chrome !== 'undefined' &&
+      !!chrome.runtime &&
+      typeof chrome.runtime.getURL === 'function'
+    );
+    if (!hatGetURL) return ''; // z. B. jsdom-Tests ohne Extension-API
+    let css = '';
+    FONT_DATEIEN.forEach(function (f) {
+      [400, 700].forEach(function (w) {
+        css += '@font-face {\n' +
+          '  font-family: "' + f.familie + '";\n' +
+          '  font-style: normal;\n' +
+          '  font-weight: ' + w + ';\n' +
+          '  font-display: swap;\n' +
+          '  src: url("' + chrome.runtime.getURL('fonts/' + f.basis + '-latin-' + w + '.woff2') + '") format("woff2");\n' +
+          '}\n';
+      });
+    });
+    return css;
+  }
+
   const styleEl = document.createElement('style');
   styleEl.id = 'bkl-style';
-  styleEl.textContent = seitenCss;
+  styleEl.textContent = fontFaceCss() + seitenCss;
   document.head.appendChild(styleEl);
 
   /* ================================================================== */
   /* STILE ANWENDEN                                                       */
   /* ================================================================== */
 
+  /* Schriftarten: lokal gebündelte FOSS-Fonts (WOFF2, siehe @font-face oben)
+     jeweils mit System-Fallback im Stack; 'serif'/'sans' sind die reinen
+     System-Fallbacks ohne Font-Datei (abwärtskompatibel zu v0.2.0). */
   const SCHRIFTARTEN = {
     serif: 'Georgia, "Times New Roman", Times, serif',
-    sans: 'Verdana, Arial, Helvetica, sans-serif'
+    sans: 'Verdana, Arial, Helvetica, sans-serif',
+    atkinson: '"Atkinson Hyperlegible Next", Verdana, Arial, Helvetica, sans-serif',
+    garamond: '"EB Garamond", Georgia, "Times New Roman", Times, serif',
+    opendyslexic: '"Dyslexie-Leseschrift", Verdana, Arial, Helvetica, sans-serif',
+    comicneue: '"Comic Neue", "Comic Sans MS", Verdana, sans-serif',
+    'liberation-serif': '"BGEReader Serif", "Times New Roman", Times, serif',
+    'liberation-sans': '"BGEReader Sans", Arial, Helvetica, sans-serif'
   };
 
   const FARBSCHEMATA = {
@@ -402,6 +448,13 @@
     const html = document.documentElement;
     const e = einstellungen;
     const farben = FARBSCHEMATA[e.farbschema] || FARBSCHEMATA.hell;
+
+    /* Abwärtskompatibilität/Defensive: unbekannte gespeicherte Werte
+       (z. B. aus älteren Versionen) auf den Standard zurückfallen lassen,
+       statt mit undefined-CSS zu crashen. */
+    if (!SCHRIFTARTEN[einstellungen.schriftart]) {
+      einstellungen.schriftart = STANDARDS.schriftart;
+    }
 
     html.classList.toggle('bkl-aktiv', e.aktiv);
     /* Layout-Neutralität: Breiten-Regeln nur bei Abweichung vom Standard
@@ -677,8 +730,14 @@
           <span class="bkl-icon">${svgIcon(ICONS.art)}</span>
           <label for="bkl-art">Schriftart</label>
           <select id="bkl-art" title="Schriftart wählen" aria-label="Schriftart wählen">
-            <option value="serif">Serif (klassisch)</option>
-            <option value="sans">Serifenlos (Sans)</option>
+            <option value="serif">System Serif</option>
+            <option value="sans">System Sans</option>
+            <option value="atkinson">Atkinson Hyperlegible (gut lesbar)</option>
+            <option value="garamond">EB Garamond (Buchschrift)</option>
+            <option value="opendyslexic">OpenDyslexic</option>
+            <option value="comicneue">Comic Neue</option>
+            <option value="liberation-serif">Liberation Serif (Times-ähnlich)</option>
+            <option value="liberation-sans">Liberation Sans (Arial-ähnlich)</option>
           </select>
         </div>
         <div class="bkl-zeile">
