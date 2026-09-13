@@ -301,22 +301,47 @@
       word-spacing: var(--bkl-ws) !important;
       color: var(--bkl-fg) !important;
       background-color: var(--bkl-bg) !important;
-      max-width: var(--bkl-maxw) !important;
-      margin-left: auto !important;
-      margin-right: auto !important;
       hyphens: var(--bkl-hyphens) !important;
     }
     html.bkl-aktiv div.paraatf a,
     html.bkl-aktiv div.para a { color: var(--bkl-link) !important; }
 
-    /* Spaltenbreite (Haarlinien-Box): das Seiten-CSS fixiert div.eit .middle auf 625px;
-       wir überschreiben mit einstellbarer Breite und passen den Page-Rahmen an. */
-    html.bkl-aktiv div.eit .middle {
+    /* Seiten-Boxen der Entscheidseite (Fixture bger_test.html):
+       div.eit .box = Inhaltsbox (#highlight_content) und rechte Spalte
+       (#highlight_index = Inhalt, #highlight_references = Referenzen,
+       #highlight_navigation = Navigation, jeweils mit .content/h3/p).
+       Diese Boxen blieben sonst weiss auf gefärbtem Grund. */
+    html.bkl-aktiv div.eit .box,
+    html.bkl-aktiv div.eit .box .content {
+      background-color: var(--bkl-bg) !important;
+      color: var(--bkl-fg) !important;
+    }
+    html.bkl-aktiv div.eit .box h3,
+    html.bkl-aktiv div.eit .box p {
+      background-color: var(--bkl-bg) !important;
+      color: var(--bkl-fg) !important;
+    }
+    html.bkl-aktiv div.eit .box a { color: var(--bkl-link) !important; }
+
+    /* Zeilenlänge begrenzen: NUR wenn eingestellt (> 0 Zeichen), Klasse bkl-maxw
+       auf <html>. Im Standard bleibt der Text pixel-identisch an seiner
+       Originalposition (kein margin:auto, kein max-width). */
+    html.bkl-aktiv.bkl-maxw div.paraatf,
+    html.bkl-aktiv.bkl-maxw div.para {
+      max-width: var(--bkl-maxw) !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* Spaltenbreite (Haarlinien-Box): das Seiten-CSS fixiert div.eit .middle auf 625px.
+       Überschrieben wird NUR bei Abweichung vom Seiten-Standard 625px,
+       Klasse bkl-breite auf <html>. */
+    html.bkl-aktiv.bkl-breite div.eit .middle {
       width: var(--bkl-spalte) !important;
     }
-    html.bkl-aktiv div.eit .main,
-    html.bkl-aktiv div.eit .top,
-    html.bkl-aktiv div.eit .bottom {
+    html.bkl-aktiv.bkl-breite div.eit .main,
+    html.bkl-aktiv.bkl-breite div.eit .top,
+    html.bkl-aktiv.bkl-breite div.eit .bottom {
       width: calc(var(--bkl-spalte) + 280px) !important;
     }
     /* Haarlinien-Farbe ans Farbschema anpassen */
@@ -379,6 +404,10 @@
     const farben = FARBSCHEMATA[e.farbschema] || FARBSCHEMATA.hell;
 
     html.classList.toggle('bkl-aktiv', e.aktiv);
+    /* Layout-Neutralität: Breiten-Regeln nur bei Abweichung vom Standard
+       (625px Spalte, keine Zeilenlängen-Begrenzung) aktivieren. */
+    html.classList.toggle('bkl-maxw', e.aktiv && e.zeilenlaenge > 0);
+    html.classList.toggle('bkl-breite', e.aktiv && e.spaltenbreite !== STANDARDS.spaltenbreite);
     html.style.setProperty('--bkl-font', SCHRIFTARTEN[e.schriftart]);
     html.style.setProperty('--bkl-size', e.schriftgroesse + 'px');
     html.style.setProperty('--bkl-lh', e.zeilenabstand);
@@ -440,14 +469,67 @@
 
   const shadow = host.attachShadow({ mode: 'open' });
 
+  /* Inline-SVG-Icons (selbst gezeichnet, einfache Pfade, kein Icon-Font,
+     keine externe Ressource). stroke="currentColor" -> färbt sich mit dem Text. */
+  function svgIcon(pfad) {
+    return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" ' +
+      'stroke="currentColor" stroke-width="1.6" stroke-linecap="square" ' +
+      'aria-hidden="true" focusable="false"><path d="' + pfad + '"/></svg>';
+  }
+
+  const ICONS = {
+    lupe:        'M14 14 L10.2 10.2 M11.5 6.75 a4.75 4.75 0 1 1 -9.5 0 a4.75 4.75 0 1 1 9.5 0 M6.75 4.5 v4.5 M4.5 6.75 h4.5',
+    schliessen:  'M3 3 L13 13 M13 3 L3 13',
+    buch:        'M2 4 c2 -1.3 4 -1.3 6 0 c2 -1.3 4 -1.3 6 0 v9 c-2 -1.3 -4 -1.3 -6 0 c-2 -1.3 -4 -1.3 -6 0 z M8 4 v9',
+    groesse:     'M2 12.5 L5.5 3.5 L9 12.5 M3.4 9.5 h4.2 M12.5 3.5 v9 M12.5 3.5 l-1.5 2 M12.5 3.5 l1.5 2 M12.5 12.5 l-1.5 -2 M12.5 12.5 l1.5 -2',
+    art:         'M1.5 12.5 L4 4.5 L6.5 12.5 M2.6 10 h2.8 M9 12.5 v-5 a2.5 2.5 0 0 1 5 0 v5 M9 10.5 h5',
+    farbe:       'M8 2 C8 2 3.5 7.5 3.5 10 a4.5 4.5 0 0 0 9 0 C12.5 7.5 8 2 8 2 z',
+    staerke:     'M4.5 2.5 h3.5 a3 3 0 0 1 0 6 h-3.5 z M4.5 8.5 h4.5 a3 3 0 0 1 0 6 h-4.5 z',
+    zeilen:      'M6 4 h8 M6 8 h8 M6 12 h8 M2.5 3 v10 M2.5 3 L1 4.5 M2.5 3 L4 4.5 M2.5 13 L1 11.5 M2.5 13 L4 11.5',
+    buchstaben:  'M1 12.5 L3.5 4.5 L6 12.5 M2 10 h3 M10 12.5 L12.5 4.5 L15 12.5 M11 10 h3 M6.8 8.5 h2.4',
+    worte:       'M1 5 h5 M1 9 h5 M10 5 h5 M10 9 h5 M7 7 h2 M7 7 l1 -1.2 M7 7 l1 1.2 M9 7 l-1 -1.2 M9 7 l-1 1.2',
+    laenge:      'M2 4 h12 M2 8 h8 M2 12 h10',
+    spalte:      'M2 3 h12 v10 h-12 z M5.5 3 v10 M10.5 3 v10',
+    silben:      'M2 4 h12 M2 8 h5 M9 8 h5 M2 12 h12',
+    klammer:     'M6 3 c-2 1 -2.5 3 -2.5 5 s0.5 4 2.5 5 M10 3 c2 1 2.5 3 2.5 5 s-0.5 4 -2.5 5',
+    min:         'M2 5 h12 v6 h-12 z M5 5 v3 M8 5 v4 M11 5 v3',
+    pfeil:       'M6 4 L10 8 L6 12'
+  };
+
   const panelCss = `
     :host { all: initial; }
+
+    /* Geschlossener Zustand: kleiner runder Pink-Button oben rechts */
+    #bkl-button {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 2147483647;
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      border-radius: 50%;
+      border: 2px solid #a61e63;
+      background: #d63384;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    #bkl-button:hover { background: #e64980; }
+
+    /* Offener Zustand: annähernd quadratisches Panel, scrollbar bei kleinem Bildschirm */
     #bkl-panel {
       position: fixed;
       top: 12px;
       right: 12px;
       z-index: 2147483647;
-      width: 280px;
+      width: 340px;
+      max-width: calc(100vw - 24px);
+      max-height: calc(100vh - 24px);
+      overflow: auto;
       font-family: -apple-system, "Segoe UI", Arial, sans-serif;
       font-size: 14px;
       line-height: 1.35;
@@ -458,30 +540,88 @@
       box-shadow: 0 4px 16px rgba(0,0,0,.25);
       padding: 10px 12px;
     }
-    #bkl-panel.bkl-minimiert #bkl-inhalt { display: none; }
-    h2 {
-      font-size: 15px;
-      font-weight: bold;
-      margin: 0 0 8px 0;
+    #bkl-panel[hidden],
+    #bkl-button[hidden] { display: none; }
+
+    #bkl-kopf {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      cursor: pointer;
-      user-select: none;
-      color: #222222;
+      margin-bottom: 4px;
     }
+    h2 {
+      font-size: 15px;
+      font-weight: bold;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #d63384;
+    }
+    #bkl-schliessen {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      background: #f4f4f4;
+      color: #222222;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #bkl-schliessen:hover { background: #e6e6e6; }
+
+    .bkl-bereich-titel {
+      font-size: 13px;
+      font-weight: bold;
+      color: #555555;
+      margin: 8px 0 2px 0;
+      padding-bottom: 2px;
+      border-bottom: 1px solid #dddddd;
+    }
+
     .bkl-zeile {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 8px;
       margin: 6px 0;
     }
+    .bkl-icon {
+      flex: 0 0 16px;
+      display: inline-flex;
+      color: #444444;
+    }
     label { flex: 1; color: #222222; }
     input[type="range"] { width: 110px; }
-    select { width: 110px; font-size: 13px; }
-    input[type="checkbox"] { width: 16px; height: 16px; }
-    .bkl-wert { width: 38px; text-align: right; color: #555; }
+    select { width: 124px; font-size: 13px; }
+    input[type="checkbox"] { width: 18px; height: 18px; }
+    .bkl-wert { width: 42px; text-align: right; color: #555555; }
+
+    /* Toggle für den Detail-Bereich (echter Button, aria-expanded) */
+    #bkl-details-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 7px 8px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      background: #f4f4f4;
+      color: #222222;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: left;
+    }
+    #bkl-details-toggle:hover { background: #e6e6e6; }
+    #bkl-details-toggle .bkl-pfeil { display: inline-flex; }
+    /* statische Drehung, absichtlich ohne Transition/Animation */
+    #bkl-details-toggle[aria-expanded="true"] .bkl-pfeil svg { transform: rotate(90deg); }
+    #bkl-details[hidden] { display: none; }
+
     .bkl-knopfreihe { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     button.bkl-aktion {
       border: 1px solid #bbb;
@@ -493,86 +633,126 @@
       font-size: 13px;
     }
     button.bkl-aktion:hover { background: #e6e6e6; }
-    button.bkl-aktion:focus-visible, h2:focus-visible { outline: 2px solid #1a56cc; outline-offset: 1px; }
-    .bkl-hinweis { font-size: 12px; color: #666; margin-top: 6px; }
+
+    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung */
+    #bkl-button:focus-visible,
+    #bkl-schliessen:focus-visible,
+    #bkl-details-toggle:focus-visible,
+    button.bkl-aktion:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #1a56cc;
+      outline-offset: 1px;
+    }
+
+    .bkl-hinweis { font-size: 12px; color: #666666; margin-top: 6px; }
   `;
 
   shadow.innerHTML = `
     <style>${panelCss}</style>
-    <div id="bkl-panel" role="group" aria-label="BGer Reader Einstellungen">
-      <h2 id="bkl-titel" tabindex="0"><span>📖 BGer Reader</span><span id="bkl-minus" aria-hidden="true">–</span></h2>
-      <div id="bkl-inhalt">
+    <button type="button" id="bkl-button"
+            title="BGer Reader Einstellungen öffnen"
+            aria-label="BGer Reader Einstellungen öffnen">${svgIcon(ICONS.lupe)}</button>
+    <div id="bkl-panel" role="region" aria-label="BGer Reader Einstellungen" hidden>
+      <div id="bkl-kopf">
+        <h2>${svgIcon(ICONS.lupe)} BGer Reader</h2>
+        <button type="button" id="bkl-schliessen"
+                title="Einstellungen schliessen (Escape)"
+                aria-label="Einstellungen schliessen">${svgIcon(ICONS.schliessen)}</button>
+      </div>
+
+      <div class="bkl-bereich" id="bkl-allgemein">
+        <h3 class="bkl-bereich-titel">Allgemein</h3>
         <div class="bkl-zeile">
-          <label for="bkl-aktiv">Lesemodus einschalten</label>
-          <input type="checkbox" id="bkl-aktiv">
+          <span class="bkl-icon">${svgIcon(ICONS.buch)}</span>
+          <label for="bkl-aktiv">Lesemodus</label>
+          <input type="checkbox" id="bkl-aktiv" title="Lesemodus ein-/ausschalten" aria-label="Lesemodus ein-/ausschalten">
         </div>
         <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.groesse)}</span>
           <label for="bkl-groesse">Schriftgrösse</label>
-          <input type="range" id="bkl-groesse" min="12" max="30" step="1"><span class="bkl-wert" id="bkl-groesse-w"></span>
+          <input type="range" id="bkl-groesse" min="12" max="30" step="1" title="Schriftgrösse in Pixel" aria-label="Schriftgrösse in Pixel"><span class="bkl-wert" id="bkl-groesse-w"></span>
         </div>
         <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.art)}</span>
           <label for="bkl-art">Schriftart</label>
-          <select id="bkl-art">
+          <select id="bkl-art" title="Schriftart wählen" aria-label="Schriftart wählen">
             <option value="serif">Serif (klassisch)</option>
             <option value="sans">Serifenlos (Sans)</option>
           </select>
         </div>
         <div class="bkl-zeile">
-          <label for="bkl-staerke">Schriftstärke</label>
-          <select id="bkl-staerke">
-            <option value="normal">normal</option>
-            <option value="fett">fett</option>
-          </select>
-        </div>
-        <div class="bkl-zeile">
-          <label for="bkl-zeilenabstand">Zeilenabstand</label>
-          <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
-        </div>
-        <div class="bkl-zeile">
-          <label for="bkl-buchstaben">Buchstabenabstand</label>
-          <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.5"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
-        </div>
-        <div class="bkl-zeile">
-          <label for="bkl-worte">Wortabstand</label>
-          <input type="range" id="bkl-worte" min="0" max="10" step="1"><span class="bkl-wert" id="bkl-worte-w"></span>
-        </div>
-        <div class="bkl-zeile">
-          <label for="bkl-laenge">Zeilenlänge begrenzen</label>
-          <input type="range" id="bkl-laenge" min="0" max="120" step="10"><span class="bkl-wert" id="bkl-laenge-w"></span>
-        </div>
-        <div class="bkl-zeile">
-          <label for="bkl-spalte">Spaltenbreite (Rahmen)</label>
-          <input type="range" id="bkl-spalte" min="400" max="1400" step="25"><span class="bkl-wert" id="bkl-spalte-w"></span>
-        </div>
-        <div class="bkl-zeile">
-          <label for="bkl-silben">Silbentrennung</label>
-          <input type="checkbox" id="bkl-silben">
-        </div>
-        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.farbe)}</span>
           <label for="bkl-farbe">Farbschema</label>
-          <select id="bkl-farbe">
+          <select id="bkl-farbe" title="Farbschema wählen" aria-label="Farbschema wählen">
             <option value="hell">Weiss</option>
             <option value="sepia">Sepia</option>
             <option value="dunkel">Dunkel</option>
             <option value="kontrast">Hoher Kontrast</option>
           </select>
         </div>
-        <hr>
+      </div>
+
+      <button type="button" id="bkl-details-toggle" aria-expanded="false" aria-controls="bkl-details"
+              title="Weitere Einstellungen ein-/ausblenden" aria-label="Detaillierte Einstellungen ein-/ausblenden">
+        <span class="bkl-pfeil">${svgIcon(ICONS.pfeil)}</span>Detaillierte Einstellungen
+      </button>
+      <div class="bkl-bereich" id="bkl-details" hidden>
         <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.staerke)}</span>
+          <label for="bkl-staerke">Schriftstärke</label>
+          <select id="bkl-staerke" title="Schriftstärke wählen" aria-label="Schriftstärke wählen">
+            <option value="normal">normal</option>
+            <option value="fett">fett</option>
+          </select>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.zeilen)}</span>
+          <label for="bkl-zeilenabstand">Zeilenabstand</label>
+          <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1" title="Zeilenabstand (Faktor)" aria-label="Zeilenabstand (Faktor)"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.buchstaben)}</span>
+          <label for="bkl-buchstaben">Buchstabenabstand</label>
+          <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.5" title="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.worte)}</span>
+          <label for="bkl-worte">Wortabstand</label>
+          <input type="range" id="bkl-worte" min="0" max="10" step="1" title="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.laenge)}</span>
+          <label for="bkl-laenge">Zeilenlänge</label>
+          <input type="range" id="bkl-laenge" min="0" max="120" step="10" title="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.spalte)}</span>
+          <label for="bkl-spalte">Spaltenbreite</label>
+          <input type="range" id="bkl-spalte" min="400" max="1400" step="25" title="Spaltenbreite des Rahmens in Pixel (Seiten-Standard: 625)" aria-label="Spaltenbreite des Rahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.silben)}</span>
+          <label for="bkl-silben">Silbentrennung</label>
+          <input type="checkbox" id="bkl-silben" title="Silbentrennung ein-/ausschalten" aria-label="Silbentrennung ein-/ausschalten">
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.klammer)}</span>
           <label for="bkl-klammer-modus">Klammern einklappen</label>
-          <select id="bkl-klammer-modus">
+          <select id="bkl-klammer-modus" title="Klammer-Modus wählen" aria-label="Klammer-Modus wählen">
             <option value="literatur">nur wahrscheinliche Literaturhinweise</option>
             <option value="alle">alle Klammern ab Mindestlänge</option>
           </select>
         </div>
         <div class="bkl-zeile">
-          <label for="bkl-klammer-min">Mindestlänge (Zeichen)</label>
-          <input type="range" id="bkl-klammer-min" min="40" max="400" step="10"><span class="bkl-wert" id="bkl-klammer-min-w"></span>
+          <span class="bkl-icon">${svgIcon(ICONS.min)}</span>
+          <label for="bkl-klammer-min">Mindestlänge</label>
+          <input type="range" id="bkl-klammer-min" min="40" max="400" step="10" title="Mindestlänge für Klammern in Zeichen" aria-label="Mindestlänge für Klammern in Zeichen"><span class="bkl-wert" id="bkl-klammer-min-w"></span>
         </div>
         <div class="bkl-knopfreihe">
-          <button class="bkl-aktion" id="bkl-alle-auf">Alle Klammern auf</button>
-          <button class="bkl-aktion" id="bkl-alle-zu">Alle zu</button>
-          <button class="bkl-aktion" id="bkl-reset">Zurücksetzen</button>
+          <button class="bkl-aktion" id="bkl-alle-auf" title="Alle eingeklappten Klammerbemerkungen aufklappen" aria-label="Alle eingeklappten Klammerbemerkungen aufklappen">Alle Klammern auf</button>
+          <button class="bkl-aktion" id="bkl-alle-zu" title="Alle Klammerbemerkungen einklappen" aria-label="Alle Klammerbemerkungen einklappen">Alle zu</button>
+          <button class="bkl-aktion" id="bkl-reset" title="Alle Einstellungen auf Standard zurücksetzen" aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
         </div>
         <div class="bkl-hinweis" id="bkl-zaehler"></div>
       </div>
@@ -580,15 +760,34 @@
   `;
 
   const panel = shadow.getElementById('bkl-panel');
+  const pinkKnopf = shadow.getElementById('bkl-button');
 
-  // Panel ein-/ausklappen (Titelzeile bleibt) – Maus und Tastatur
-  function panelUmschalten() {
-    panel.classList.toggle('bkl-minimiert');
-    shadow.getElementById('bkl-minus').textContent = panel.classList.contains('bkl-minimiert') ? '+' : '–';
+  /* Öffnen/Schliessen: Pink-Button öffnet, X-Knopf oder Escape schliesst.
+     Fokus-Management: beim Öffnen Fokus ins Panel (Schliessen-Knopf),
+     beim Schliessen zurück auf den Pink-Button. */
+  function panelOeffnen() {
+    panel.hidden = false;
+    pinkKnopf.hidden = true;
+    shadow.getElementById('bkl-schliessen').focus();
   }
-  shadow.getElementById('bkl-titel').addEventListener('click', panelUmschalten);
-  shadow.getElementById('bkl-titel').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); panelUmschalten(); }
+  function panelSchliessen() {
+    panel.hidden = true;
+    pinkKnopf.hidden = false;
+    pinkKnopf.focus();
+  }
+  pinkKnopf.addEventListener('click', panelOeffnen);
+  shadow.getElementById('bkl-schliessen').addEventListener('click', panelSchliessen);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !panel.hidden) panelSchliessen();
+  });
+
+  /* Detail-Bereich ein-/ausklappen (echter Button, aria-expanded) */
+  const detailsToggle = shadow.getElementById('bkl-details-toggle');
+  const details = shadow.getElementById('bkl-details');
+  detailsToggle.addEventListener('click', function () {
+    const offen = details.hidden;
+    details.hidden = !offen;
+    detailsToggle.setAttribute('aria-expanded', offen ? 'true' : 'false');
   });
 
   function aktualisiereAnzeige() {
