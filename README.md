@@ -1,6 +1,6 @@
 # BGE-Reader
 
-**Barrierefreie Bundesgerichtsentscheinde.** / **Accessibility tool for Swiss Federal Supreme Court decisions.**
+**Barrierefreie Bundesgerichtsentscheide.** / **Accessibility tool for Swiss Federal Supreme Court decisions.**
 
 ## Anleitung 
 Skript läuft über die kostenlose Browser-Erweiterung **Tampermonkey**
@@ -10,9 +10,9 @@ Skript läuft über die kostenlose Browser-Erweiterung **Tampermonkey**
    - Firefox: https://addons.mozilla.org/de/firefox/addon/tampermonkey/
    - Chrome/Edge/Brave: https://www.tampermonkey.net/
 2. Tampermonkey-Symbol in der Symbolleiste anklicken → **„Neues Skript erstellen"**
-3. reinklicken (cmd + a) ganzen Text markieren und löschen.
+3. Reinklicken, ganzen Text markieren (**Cmd+A** / **Strg+A**) und löschen.
 4. Inhalt von [`bger-reader.user.js`](bger-reader.user.js) in die Zwischenablage kopieren
-5. Inhalt bei Tampermonkey einfügen. (cmd + c / cmd + v)
+5. Inhalt bei Tampermonkey einfügen. (**Cmd+C** / **Strg+C** und **Cmd+V** / **Strg+V**)
 6. **Strg+S** / **Cmd+S**– fertig!
 7. Darauf achten, dass Tampermonkey aktiv ist (grünes Häkchen) -> Skript startet automatisch beim Besuch von search.bger.ch/* 
 
@@ -51,9 +51,9 @@ The script runs via the free **Tampermonkey** browser extension
    * Firefox: https://addons.mozilla.org/de/firefox/addon/tampermonkey/
    * Chrome/Edge/Brave: https://www.tampermonkey.net/
 2. Click the Tampermonkey icon in the browser toolbar → **“Create a new script”**
-3. Click inside the editor, select all text (**Cmd+A**), and delete it.
+3. Click inside the editor, select all text (**Cmd+A** / **Ctrl+A**), and delete it.
 4. Copy the contents of [`bger-reader.user.js`](bger-reader.user.js) to the clipboard.
-5. Paste the contents into Tampermonkey (**Cmd+V**).
+5. Paste the contents into Tampermonkey (**Cmd+V** / **Ctrl+V**).
 6. Press **Ctrl+S** / **Cmd+S** — done!
 7. Make sure Tampermonkey is enabled (green check mark). The script will start automatically whenever you visit `search.bger.ch/*`.
 
