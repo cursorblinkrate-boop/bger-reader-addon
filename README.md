@@ -1,4 +1,4 @@
-# BGE-Reader
+# bger-reader
 
 - Browser-Extension für Chrome/Firefox/Edge 
 - Barrierefreie Bundesgerichtsentscheide 
