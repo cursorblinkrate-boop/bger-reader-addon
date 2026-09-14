@@ -1,4 +1,3 @@
-# bger-reader
 
 - Barrierefreie Bundesgerichtsentscheide 
 - Accessibility tool for Swiss Federal Supreme Court decisions 
