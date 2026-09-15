@@ -1,8 +1,8 @@
+# Barrierefreie Bundesgerichtsentscheide
+# Accessibility tool for Swiss Federal Supreme Court decisions
+# Browser-Extension for Chrome / Brave
 
-- Barrierefreie Bundesgerichtsentscheide 
-- Accessibility tool for Swiss Federal Supreme Court decisions 
-- one-click-install Browser-Extension für Chrome/Firefox/Edge
-
+*(Firefox / Edge) in Planung...)*
 
 ## Unterstützte Seiten / Supported Pages
 
