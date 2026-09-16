@@ -3,7 +3,7 @@
  *
  * Browser-Extension (Manifest V3), Content Script.
  * Läuft zu 100 % offline: keine Netzwerkzugriffe, keine Datenübertragung,
- * Einstellungen liegen in chrome.storage.local auf dem eigenen Gerät.
+ * Einstellungen liegen in browser.storage.local bzw. chrome.storage.local auf dem eigenen Gerät.
  *
  * Architektur:
  *   1. Kernlogik (BGerReader): reine DOM-Funktionen ohne Browser-Abhängigkeit –
@@ -11,8 +11,8 @@
  *      Ein-/Ausklappen (reversibel, Links und Formatierungen bleiben erhalten).
  *   2. UI: Shadow-DOM-Panel (das Seiten-CSS kann es nicht zerstören und umgekehrt).
  *   3. Styles: nur per Klasse + CSS-Variablen auf dem Entscheidcontainer, keine Inline-Hacks.
- *   4. Speicher: chrome.storage.local (domain-übergreifend, offline).
- *      localStorage-Fallback nur für die jsdom-Testumgebung ohne chrome-API.
+ *   4. Speicher: WebExtensions storage.local (domain-übergreifend, offline).
+ *      localStorage-Fallback nur für die jsdom-Testumgebung ohne Extension-API.
  */
 
 (function () {
@@ -239,25 +239,34 @@
   };
 
   /* Speicher-Strategie (Privacy: 100 % offline, nichts verlässt das Gerät):
-   * – Extension: chrome.storage.local → Einstellungen gelten domain-übergreifend
+   * – Extension: browser.storage.local / chrome.storage.local → Einstellungen gelten domain-übergreifend
    *   (search.bger.ch UND relevancy.bger.ch), bleiben aber lokal.
-   * – Testumgebung (jsdom, keine chrome-API): localStorage-Fallback.
-   * Laden ist bei chrome.storage asynchron → Callback-Muster.
+   * – Testumgebung (jsdom, keine Extension-API): localStorage-Fallback.
+   * browser verwendet Promises, chrome unterstützt Callbacks.
    */
-  const hatExtensionStorage = (
-    typeof chrome !== 'undefined' &&
-    !!chrome.storage &&
-    !!chrome.storage.local
-  );
+  const extensionApi = typeof browser !== 'undefined' && browser.storage && browser.storage.local
+    ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+  const verwendetPromises = typeof browser !== 'undefined' && extensionApi === browser;
+  const extensionStorage = extensionApi && extensionApi.storage && extensionApi.storage.local;
 
   let einstellungen = Object.assign({}, STANDARDS);
 
   function ladeEinstellungen(fertig) {
-    if (hatExtensionStorage) {
-      chrome.storage.local.get(STORAGE_KEY, function (res) {
+    function uebernehmen(res) {
         einstellungen = Object.assign({}, STANDARDS, (res && res[STORAGE_KEY]) || {});
         fertig();
-      });
+    }
+    if (extensionStorage) {
+      try {
+        if (verwendetPromises) {
+          extensionStorage.get(STORAGE_KEY).then(uebernehmen, function () { fertig(); });
+        } else {
+          extensionStorage.get(STORAGE_KEY, function (res) {
+            if (extensionApi.runtime && extensionApi.runtime.lastError) { fertig(); return; }
+            uebernehmen(res);
+          });
+        }
+      } catch (e) { fertig(); }
       return;
     }
     try {
@@ -269,10 +278,18 @@
 
   function speichereEinstellungen() {
     try {
-      if (hatExtensionStorage) {
+      if (extensionStorage) {
         const paket = {};
         paket[STORAGE_KEY] = einstellungen;
-        chrome.storage.local.set(paket);
+        if (verwendetPromises) {
+          extensionStorage.set(paket).catch(function () {});
+        } else {
+          extensionStorage.set(paket, function () {
+            // lastError innerhalb des Callbacks lesen, damit ein Speicherfehler
+            // keine unbehandelte API-Fehlermeldung erzeugt.
+            if (extensionApi.runtime && extensionApi.runtime.lastError) return;
+          });
+        }
       } else {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(einstellungen));
       }
@@ -378,9 +395,9 @@
   `;
 
   /* ---------- Lokal gebündelte Fonts (WOFF2, Latin-Subset, OFL) ---------- */
-  // @font-face muss chrome.runtime.getURL() verwenden (Content-Script-Kontext:
+  // @font-face muss runtime.getURL() der Extension verwenden (Content-Script-Kontext:
   // relative Pfade würden auf die Seite zeigen, nicht auf die Extension).
-  // In der jsdom-Testumgebung gibt es chrome.runtime nicht -> keine
+  // In der jsdom-Testumgebung gibt es runtime nicht -> keine
   // @font-face-Regeln injizieren (SCHRIFTARTEN-Stacks fallen auf System-
   // Schriften zurück, nichts bricht).
   const FONT_DATEIEN = [
@@ -394,9 +411,8 @@
 
   function fontFaceCss() {
     const hatGetURL = (
-      typeof chrome !== 'undefined' &&
-      !!chrome.runtime &&
-      typeof chrome.runtime.getURL === 'function'
+      extensionApi && extensionApi.runtime &&
+      typeof extensionApi.runtime.getURL === 'function'
     );
     if (!hatGetURL) return ''; // z. B. jsdom-Tests ohne Extension-API
     let css = '';
@@ -407,7 +423,7 @@
           '  font-style: normal;\n' +
           '  font-weight: ' + w + ';\n' +
           '  font-display: swap;\n' +
-          '  src: url("' + chrome.runtime.getURL('fonts/' + f.basis + '-latin-' + w + '.woff2') + '") format("woff2");\n' +
+          '  src: url("' + extensionApi.runtime.getURL('fonts/' + f.basis + '-latin-' + w + '.woff2') + '") format("woff2");\n' +
           '}\n';
       });
     });
@@ -907,7 +923,13 @@
   /* START                                                                */
   /* ================================================================== */
 
-  // Gespeicherte Einstellungen laden (bei chrome.storage asynchron),
+  // Gespeicherte Einstellungen laden (Extension-Speicher ist asynchron),
   // erst danach Stile/Klammern/Panel-Anzeige anwenden.
-  ladeEinstellungen(allesAnwenden);
+  ladeEinstellungen(function () {
+    wendeStileAn();
+    verarbeiteKlammern();
+    aktualisiereAnzeige();
+    // Beim Start nur lesen: Ein Ladefehler darf gespeicherte Werte nicht
+    // durch Standardwerte überschreiben. Gespeichert wird bei Bedienung.
+  });
 })();
