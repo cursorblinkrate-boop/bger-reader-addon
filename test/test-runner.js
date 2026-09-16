@@ -621,6 +621,29 @@ if (IST_EXTENSION) {
     BGER_PATTERNS.every(function (m) { return (war.matches || []).indexOf(m) !== -1; }),
     JSON.stringify(war.matches));
 
+  // (b2) icons/: 16/48/128 px als echte PNGs vorhanden, Manifest-Eintrag zeigt auf existierende Dateien
+  {
+    const ICONS_DIR = path.join(__dirname, '..', 'extension', 'icons');
+    const ERWARTETE_ICONS = ['icon16.png', 'icon48.png', 'icon128.png'];
+    const iconsVorhanden = fs.existsSync(ICONS_DIR) ? fs.readdirSync(ICONS_DIR) : [];
+    pruefe('alle 3 Icon-Dateien vorhanden (16/48/128 px)',
+      ERWARTETE_ICONS.every(function (f) { return iconsVorhanden.indexOf(f) !== -1; }),
+      'gefunden: ' + iconsVorhanden.join(','));
+    const PNG_SIGNATUR = Buffer.from([0x89, 0x50, 0x4E, 0x47]);
+    const alleEchtePngs = ERWARTETE_ICONS.every(function (f) {
+      const p = path.join(ICONS_DIR, f);
+      return fs.existsSync(p) && fs.readFileSync(p).slice(0, 4).equals(PNG_SIGNATUR);
+    });
+    pruefe('Icon-Dateien sind valide PNGs', alleEchtePngs);
+    const iconEintraege = manifest.icons || {};
+    pruefe('Manifest: icons-Eintrag (16/48/128) zeigt auf existierende Dateien',
+      ['16', '48', '128'].every(function (g) {
+        const ziel = iconEintraege[g];
+        return typeof ziel === 'string' && fs.existsSync(path.join(__dirname, '..', 'extension', ziel));
+      }),
+      JSON.stringify(iconEintraege));
+  }
+
   // (c) @font-face: ohne chrome.runtime (jsdom) keine Regeln, aber kein Abbruch
   {
     const dom = domMitScript(SYNTHESE);
