@@ -372,7 +372,7 @@ if (fs.existsSync(RELEVANCY_FIXTURE)) {
 
 /* ---------- 7. Spaltenbreite (Haarlinien) ---------- */
 console.log('\n[7] Spaltenbreite');
-{
+if (fs.existsSync(RELEVANCY_FIXTURE)) {
   const html = fs.readFileSync(RELEVANCY_FIXTURE, 'utf8');
   const dom = domMitScript(html);
   const doc = dom.window.document;
@@ -394,6 +394,8 @@ console.log('\n[7] Spaltenbreite');
 
   pruefe('Seiten-CSS enthält Spaltenbreite-Regel für div.eit .middle (nur unter bkl-breite)',
     /html\.bkl-aktiv\.bkl-breite div\.eit \.middle\s*\{[^}]*var\(--bkl-spalte\)/.test(dom.window.eval('document.getElementById("bkl-style").textContent')));
+} else {
+  console.log('  ⚠️  relevancy-Fixture nicht gefunden, übersprungen.');
 }
 
 /* ---------- 8. Extension-Speicher (chrome.storage.local, asynchroner Pfad) ---------- */
