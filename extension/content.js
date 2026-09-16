@@ -1,19 +1,4 @@
-/*
- * BGer Reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden.
- *
- * Browser-Extension (Manifest V3), Content Script.
- * Läuft zu 100 % offline: keine Netzwerkzugriffe, keine Datenübertragung,
- * Einstellungen liegen in browser.storage.local bzw. chrome.storage.local auf dem eigenen Gerät.
- *
- * Architektur:
- *   1. Kernlogik (BGerReader): reine DOM-Funktionen ohne Browser-Abhängigkeit –
- *      Bracket-Stack über Textknoten, konservative Literatur-Heuristik, Range-basiertes
- *      Ein-/Ausklappen (reversibel, Links und Formatierungen bleiben erhalten).
- *   2. UI: Shadow-DOM-Panel (das Seiten-CSS kann es nicht zerstören und umgekehrt).
- *   3. Styles: nur per Klasse + CSS-Variablen auf dem Entscheidcontainer, keine Inline-Hacks.
- *   4. Speicher: WebExtensions storage.local (domain-übergreifend, offline).
- *      localStorage-Fallback nur für die jsdom-Testumgebung ohne Extension-API.
- */
+// BGer Reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung.
 
 (function () {
   'use strict';
