@@ -32,25 +32,32 @@ function domMitScript(html, url) {
   return dom;
 }
 
-/* ---------- 1. Easy-Regel: Einzelfälle ---------- */
-console.log('\n[1] Easy-Regel (Einzelfälle)');
+/* ---------- 1. Einklapp-Regeln: Einzelfälle ---------- */
+console.log('\n[1] Einklapp-Regeln (Einzelfälle)');
 
 const EASY_FAELLE = [
   // [Klammerinhalt, erwartet eingeklappt]
-  ['in: Kramer, Das Recht, N. 12 ff.; BGE 135 II 45', true],
-  ['vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45', true],
-  ['ATF 143 IV 27 consid. 2.5; JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP', true], // nur 1 Art.-Verweis -> klappt ein
+  ['in: Kramer, Das Recht, N. 12 ff.; BGE 135 II 45', true],      // Literatur-Signal „in:"
+  ['vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45', true], // „vgl."
+  ['ATF 143 IV 27 consid. 2.5; JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP', true], // Rest nach Gesetz-Strip zu lang, „in:"/„Commentaire"
   ['BGE 123 II 45', false],                                   // zu kurz (< 30)
-  ['Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann', false], // keine Ziffern
+  ['Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann', false], // 30–100, keine Ziffern, kein Signal
   ['29. März 2021', false],                                   // zu kurz
   ['6B_94/2024', false],                                      // zu kurz
   ['Art. 298b al. 1 CPP', false],                             // zu kurz
-  ['wegen versuchter ehebrecherischer Beziehung', false],     // keine Ziffern
-  ['Rz. 45', false],                                          // zu kurz
-  ['Art. 8 BV, Art. 13 BV, Art. 29 BV', false],               // Art.-Liste: Ausnahme trotz 6 Ziffern
-  ['gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung', false], // Art.-Liste
-  ['dazu BGE 141 IV 234 E. 3.2 sowie Urteil 4A_12/2020 vom 5. Mai 2020', true],
-  ['reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60), true] // > 300 Zeichen
+  ['wegen versuchter ehebrecherischer Beziehung', false],     // keine Ziffern, kein Signal
+  ['Rz. 45', false],                                          // zu kurz (Regel 1 vor Literatur-Signal)
+  ['Art. 8 BV, Art. 13 BV, Art. 29 BV', false],               // nur Gesetzesverweise (Regel 3)
+  ['gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung', false], // Verweise + Füllwörter (Regel 3)
+  ['dazu BGE 141 IV 234 E. 3.2 sowie Urteil 4A_12/2020 vom 5. Mai 2020', true], // „Urteil"
+  ['reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60), true], // > 100 Zeichen (Regel 5, neu bereits ab 100 statt 300)
+  // Neue Fälle des Regelsatzes (v0.5.0):
+  ['in Verbindung mit Art. 97 Abs. 2', false],                // nur Verweis + Füllwort (Regel 3)
+  ['Art. 97 Abs. 2 und Art. 105 Abs. 3 BGG Umkehrschluss; vgl. BGE 135 V 412', true], // Rest zu lang für Regel 3, „vgl."
+  ['nullum crimen sine lege', false],                         // Latinismus (und < 30)
+  ['Gattungsschuld', false],                                  // inhaltliche Bemerkung (< 30)
+  ['ne bis in idem, so BGE 141 IV 234 E. 3.2', false],        // Latinismus schlägt Ziffern-Regel (Regel 2 vor 6)
+  ['BGE 141 IV 234 E. 3.2 und 6B_12/2020 vom 5. Mai', true]   // 30–100 Zeichen, >= 3 Ziffern, kein Signal (Regel 6)
 ];
 
 {
@@ -145,6 +152,68 @@ const SYNTHESE = `<!doctype html><html><body><div class="eit">
     !!foldP3 && foldP3.textContent.indexOf('(Ausnahme vom Grundsatz)') !== -1);
 }
 
+/* ---------- 3b. Seitenwechsel (pagebreak) mitten in Klammern ---------- */
+console.log('\n[3b] Seitenwechsel in Klammern');
+
+const PAGEBREAK_SEITE = `<!doctype html><html><body><div class="eit">
+  <div class="paraatf" id="pb1">4.2 Die Sache wird ausführlich begründet (vgl. MEIER, in: Kommentar zum Strafrecht, 3. Aufl. 2021, S. 45 ff. <a name="page2"></a><div class="center pagebreak">BGE 148 V 366 S. 369</div>sowie KELLER, Strafrecht AT, 2020, S. 12; ferner BGE 145 IV 88 E. 2) und danach weiter ausgeführt.</div>
+  <div class="paraatf" id="pb2">5. Eine Bemerkung (nur zwei Ziffern 42 enthalten <a name="page3"></a><div class="center pagebreak">BGE 148 V 366 S. 370</div>hier drin) im Text.</div>
+</div></body></html>`;
+
+{
+  const dom = domMitScript(PAGEBREAK_SEITE);
+  const doc = dom.window.document;
+  const R = dom.window.BGerReader;
+
+  // Textkarte überspringt Seitenwechsel: Balken-Text zählt weder zur Länge
+  // noch zu den Ziffern einer Klammer.
+  const karte = R.textKarteAufbauen(doc.getElementById('pb2'));
+  pruefe('Textkarte ohne Seitenwechsel-Text', karte.gesamt.indexOf('BGE 148') === -1, karte.gesamt);
+
+  // pb2: ohne die Balken-Ziffern (148, 366, 370 …) hat die Klammer nur
+  // 2 Ziffern und kein Signal -> bleibt offen.
+  const anzahlPb2 = R.blockVerarbeiten(doc.getElementById('pb2'));
+  pruefe('Seitenwechsel-Ziffern verfälschen die Klassifikation nicht', anzahlPb2 === 0, 'war ' + anzahlPb2);
+
+  // pb1: lange Literatur-Klammer mit Seitenwechsel mitten drin
+  const block1 = doc.getElementById('pb1');
+  const vorherText = block1.textContent;
+  const pbOriginal = block1.querySelector('.pagebreak');
+  const originalIndex = Array.prototype.indexOf.call(block1.childNodes, pbOriginal);
+
+  const anzahlPb1 = R.blockVerarbeiten(block1);
+  pruefe('Literatur-Klammer mit Seitenwechsel eingeklappt', anzahlPb1 === 1, 'war ' + anzahlPb1);
+
+  const fold = block1.querySelector('.bkl-fold');
+  const inhalt = fold && fold.querySelector('.bkl-fold-content');
+  pruefe('Seitenwechsel nicht im versteckten Fold-Inhalt',
+    !!inhalt && inhalt.querySelectorAll('.pagebreak').length === 0);
+  pruefe('Seitenwechsel sichtbar ausserhalb des Folds im Absatz',
+    !!block1.querySelector('.pagebreak') && !block1.querySelector('.pagebreak').closest('.bkl-fold'));
+  pruefe('leerer page-Anker zusammen mit dem Balken verlagert',
+    !!block1.querySelector('a[name="page2"]') && !block1.querySelector('a[name="page2"]').closest('.bkl-fold'));
+  const t1 = inhalt ? inhalt.textContent.trim() : '';
+  pruefe('Fold-Inhalt bleibt vollständige Klammer (( … ))', t1.startsWith('(') && t1.endsWith(')'));
+  pruefe('Kommentar-Platzhalter im Fold-Inhalt hinterlassen',
+    !!inhalt && Array.prototype.some.call(inhalt.childNodes, function (k) {
+      return k.nodeType === 8 && k.nodeValue === 'bkl-pb';
+    }));
+
+  // Roundtrip: Text und Position des Seitenwechsels exakt wie vorher
+  R.allesAufklappenUndEntfernen();
+  pruefe('Roundtrip: Text identisch', block1.textContent === vorherText);
+  const pbNachher = block1.querySelector('.pagebreak');
+  pruefe('Roundtrip: Seitenwechsel wieder an Originalposition',
+    !!pbNachher && Array.prototype.indexOf.call(block1.childNodes, pbNachher) === originalIndex &&
+    pbNachher.previousSibling && pbNachher.previousSibling.tagName === 'A' &&
+    pbNachher.previousSibling.getAttribute('name') === 'page2');
+  pruefe('keine Platzhalter-Kommentare zurückgeblieben',
+    !Array.prototype.some.call(block1.childNodes, function (k) {
+      return k.nodeType === 8 && k.nodeValue === 'bkl-pb';
+    }));
+}
+
+
 /* ---------- 4. Komplettes Skript auf der ECHTEN heruntergeladenen Seite ---------- */
 console.log('\n[4] Echte Entscheidseite (BGE 152 IV 1)');
 
@@ -160,6 +229,11 @@ if (fs.existsSync(ECHTE_SEITE)) {
   const bloecke = doc.querySelectorAll('div.paraatf');
   pruefe('Entscheidabsätze (div.paraatf) gefunden', bloecke.length > 10, bloecke.length + ' gefunden');
 
+  // Originaltext vor jeder Verarbeitung sichern: Referenz für den Roundtrip
+  // (eingeklappt sind Seitenwechsel absichtlich umplatziert – sichtbar vor dem
+  // Fold –, erst der Rückbau muss die Originalreihenfolge exakt wiederherstellen).
+  const textOriginal = doc.querySelector('div.eit').textContent;
+
   const shadowHost = doc.getElementById('bkl-panel-host');
   pruefe('Panel-Host existiert', !!shadowHost);
   pruefe('Panel im Shadow DOM (Seiten-CSS kann es nicht zerstören)',
@@ -171,10 +245,10 @@ if (fs.existsSync(ECHTE_SEITE)) {
       !!panelFont && /font-size:\s*14px/.test(SCRIPT));
   }
 
-  // Klammerverarbeitung mit der Easy-Regel
+  // Klammerverarbeitung mit dem festen Regelsatz
   let gesamt = 0;
   bloecke.forEach(function (b) { gesamt += R.blockVerarbeiten(b); });
-  pruefe('Klammern auf echter Seite gefunden (Easy-Regel)', gesamt > 0, gesamt + ' gefunden');
+  pruefe('Klammern auf echter Seite gefunden (Regelsatz)', gesamt > 0, gesamt + ' gefunden');
 
   const folds = doc.querySelectorAll('.bkl-fold');
   pruefe('Fold-Elemente vorhanden', folds.length === gesamt, folds.length + '/' + gesamt);
@@ -199,11 +273,18 @@ if (fs.existsSync(ECHTE_SEITE)) {
   pruefe('Zweitlauf nach Rückbau findet gleich viele Klammern', gesamtZwei === gesamt,
     gesamtZwei + ' vs ' + gesamt);
 
-  // Roundtrip auf echter Seite: Text identisch (Pfeil-Zeichen werden beim Entfernen mit entfernt)
-  const textVorher = doc.querySelector('div.eit').textContent;
+  // Roundtrip auf echter Seite: nach dem Entfernen aller Wrapper muss der
+  // Text wieder exakt dem Original entsprechen (Seitenwechsel inklusive).
   R.allesAufklappenUndEntfernen();
   const textNachher = doc.querySelector('div.eit').textContent;
-  pruefe('Roundtrip: Gesamttext nach Entfernen identisch', textVorher.replace(/[▸▾]/g, '') === textNachher);
+  pruefe('Roundtrip: Gesamttext nach Entfernen identisch', textNachher === textOriginal,
+    (function () {
+      let i = 0;
+      while (i < textOriginal.length && textOriginal[i] === textNachher[i]) i++;
+      return 'erste Abweichung bei ' + i + ': ' +
+        JSON.stringify(textOriginal.slice(i, i + 40)) + ' vs ' +
+        JSON.stringify(textNachher.slice(i, i + 40));
+    })());
 } else {
   console.log('  ⚠️  Echte Seite nicht gefunden (curl zuerst ausführen), Block übersprungen.');
 }
@@ -578,6 +659,52 @@ if (IST_EXTENSION) {
   }
 } else {
   console.log('  ⚠️  Kein Extension-Skript getestet, Font-Block übersprungen.');
+}
+
+/* ---------- 11. v0.5.0: Schriftart-Reihenfolge, Farbschema Nacht, Panel-Umbau ---------- */
+console.log('\n[11] v0.5.0: Dropdown-Reihenfolge, Nacht-Schema, Panel-Umbau');
+{
+  const dom = domMitScript(SYNTHESE);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+
+  // (c) Schriftart-Dropdown: exakte Reihenfolge, Atkinson ohne Klammerzusatz
+  const artOptionen = Array.prototype.slice.call(
+    shadow.getElementById('bkl-art').querySelectorAll('option'));
+  const werte = artOptionen.map(function (o) { return o.value; });
+  const ERWARTETE_REIHENFOLGE = ['atkinson', 'opendyslexic', 'comicneue', 'garamond',
+    'liberation-sans', 'liberation-serif', 'sans', 'serif'];
+  pruefe('Schriftart-Dropdown in neuer Reihenfolge',
+    werte.join(',') === ERWARTETE_REIHENFOLGE.join(','), werte.join(','));
+  pruefe('Atkinson-Label ohne Klammerzusatz',
+    artOptionen[0].textContent === 'Atkinson Hyperlegible', artOptionen[0].textContent);
+
+  // (d) Farbschema „Nacht" als letzte Option, Variablen werden gesetzt
+  const farbOptionen = Array.prototype.slice.call(
+    shadow.getElementById('bkl-farbe').querySelectorAll('option'));
+  pruefe('Nacht ist letzte Farbschema-Option',
+    farbOptionen[farbOptionen.length - 1].value === 'nacht',
+    farbOptionen.map(function (o) { return o.value; }).join(','));
+  const farbe = shadow.getElementById('bkl-farbe');
+  farbe.value = 'nacht';
+  farbe.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Nacht-Schema: --bkl-bg ist #2b1518',
+    doc.documentElement.style.getPropertyValue('--bkl-bg') === '#2b1518',
+    doc.documentElement.style.getPropertyValue('--bkl-bg'));
+
+  // (e) Panel: genau eine Klammern-Checkbox, im Bereich Allgemein;
+  //     die Buttons „Alle Klammern auf" / „Alle zu" sind entfernt,
+  //     Zurücksetzen und Zähler bleiben im Detail-Bereich.
+  pruefe('genau eine Klammern-Checkbox im Panel',
+    shadow.querySelectorAll('#bkl-klammern').length === 1);
+  pruefe('Klammern-Checkbox im Bereich Allgemein',
+    !!shadow.querySelector('#bkl-allgemein #bkl-klammern'));
+  pruefe('Buttons bkl-alle-auf / bkl-alle-zu entfernt',
+    !shadow.getElementById('bkl-alle-auf') && !shadow.getElementById('bkl-alle-zu'));
+  pruefe('Zurücksetzen bleibt im Detail-Bereich',
+    !!shadow.querySelector('#bkl-details #bkl-reset'));
+  pruefe('Zähler-Hinweis bleibt im Detail-Bereich',
+    !!shadow.querySelector('#bkl-details #bkl-zaehler'));
 }
 
 /* ---------- Ergebnis ---------- */

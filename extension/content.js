@@ -35,7 +35,10 @@
       while ((n = walker.nextNode())) {
         if (!n.nodeValue) continue;
         const el = n.parentElement;
-        if (el && el.closest('script, style')) continue;
+        // Seitenwechsel-Balken („BGE 152 IV 1 S. 7") liegen mitten im Absatz,
+        // sind aber kein Entscheidtext: weder zur Länge noch zu den Ziffern
+        // einer Klammer zählen.
+        if (el && el.closest('script, style, .pagebreak')) continue;
         knoten.push(n);
       }
       let gesamt = '';
@@ -86,26 +89,55 @@
       return ergebnis;
     }
 
-    /* ---------- Easy-Mode: ein fester Einklapp-Regelsatz ---------- */
-    // Bewusst einfach und vorhersagbar – jede Stelle bleibt einzeln
+    /* ---------- Einklapp-Regeln (fester, vorhersagbarer Regelsatz) ---------- */
+    // Priorität, der erste Treffer entscheidet – jede Stelle bleibt einzeln
     // manuell aufklappbar (reversibel):
-    //   < 30 Zeichen:   nie einklappen
-    //   30–299 Zeichen: nur einklappen, wenn >= 3 Ziffern (0–9) enthalten
-    //                   Ausnahme: Art.-Listen (>= 2 Verweise „Art. <Zahl>")
-    //                   bleiben offen – das sind Erwägungs-Verweise,
-    //                   keine Literatur.
-    //   >= 300 Zeichen: immer einklappen, Inhalt egal
-    const EASY_KURZ = 30;
-    const EASY_LANG = 300;
+    //   1. < 30 Zeichen:   nie einklappen (Jahreszahlen, Geschäftsnummern …)
+    //   2. Latinismus / inhaltliche Bemerkung (nullum crimen, in casu,
+    //      Gattungsschuld …): nie – das ist Entscheidtext, keine Literatur
+    //   3. im Wesentlichen nur Gesetzesverweise (Art.-Angaben + Füllwörter,
+    //      Rest <= 15 Zeichen): nie – Erwägungs-Verweise bleiben offen
+    //   4. Literatur-/Zitat-Signale (vgl., in:, Kommentar, S. 12, Urteil …):
+    //      immer einklappen
+    //   5. > 100 Zeichen:  immer einklappen, Inhalt egal
+    //   6. dazwischen:     nur bei >= 3 Ziffern (0–9) im Inhalt
+    const KLAMMER_MIN_LAENGE = 30;
+    const KLAMMER_MAX_LAENGE = 100;
+    const GESETZ_REST_MAX = 15;
+    const ZIFFERN_MIN = 3;
+
+    const LATEINISMUS_RE = /\b(nullum crimen|nullem crimen|nulla poena|ne bis in idem|in dubio pro reo|in casu|in aeternum|ex officio|de lege (lata|ferenda)|prima facie|a priori|a posteriori|ad hoc|per se|inter alia|mutatis mutandis|sui generis|vice versa|sensu (stricto|lato)|eo ipso|ceteris paribus|Gattungsschuld|Stückschuld|Spezies(schuld)?)\b/i;
+
+    // Gesetzesverweis: Art./art. + Zahl, optionale Abs./al./lit./ch.-Angaben,
+    // optionale Aufzählung (bis/und/,/;) und Gesetzeskürzel aus 2–6
+    // Grossbuchstaben (BV, StGB, BGG, UVG, OR, ZGB, LTF, CP, CPP …).
+    const GESETZESVERWEIS_RE = /\b[Aa]rt\.?\s*\d+[a-z]?\s*([Aa]bs?\.?\s*\d+)?\s*(al\.?\s*\d+)?\s*(lit\.?\s*[a-z])?\s*(ch\.?\s*\d+)?(\s*(bis|und|,|;|-|–)\s*\d+[a-z]?\s*([Aa]bs?\.?\s*\d+)?\s*(al\.?\s*\d+)?\s*(lit\.?\s*[a-z])?)*(\s*[A-ZÄÖÜ]{2,6}\b)?/g;
+
+    // Literatur-Signale. Kein reines \b am Anfang: JS-\b ist ASCII-only und
+    // würde z. B. „éd." verfehlen; das Prefix verhindert umgekehrt
+    // Fehltreffer in Wörtern wie „enfin:".
+    const LITERATUR_RE = /(?:^|[^\wÀ-ÿ])(vgl\.|cf\.|in:|Kommentar|Commentaire|Hrsg\.?|Aufl\.|éd\.|Urteil|arrêt|op\.\s*cit\.|Rz\.|S\.\s*\d|p\.\s*\d|fn\.|Fn\.|consulté le|abgerufen|JdT|ZStrR|Rabels)/i;
+
+    // Prüft, ob der Inhalt nach Entfernen aller Gesetzesverweise, Füllwörter,
+    // Satzzeichen und Ziffern praktisch leer ist (<= GESETZ_REST_MAX Zeichen).
+    function nurGesetzesverweise(inhalt) {
+      let rest = inhalt.replace(GESETZESVERWEIS_RE, ' ');
+      rest = rest.replace(/in Verbindung mit|i\.V\.m\.|in der hier massgeblichen Fassung|i\.S\.v\.|i\.S\.d\./gi, ' ');
+      rest = rest.replace(/\b(gemäss|gemäß|sowie|und|oder|Abs?|al|lit|ch)\b\.?/gi, ' ');
+      rest = rest.replace(/[^\p{L}\s]/gu, ' '); // Satzzeichen und Ziffern
+      rest = rest.replace(/\s+/g, ' ').trim();
+      return rest.length <= GESETZ_REST_MAX;
+    }
 
     function sollEingeklapptWerden(klammerInhalt) {
       const len = klammerInhalt.length;
-      if (len < EASY_KURZ) return false;
-      if (len >= EASY_LANG) return true;
-      const artVerweise = klammerInhalt.match(/\bArt\.\s*\d/gi);
-      if (artVerweise && artVerweise.length >= 2) return false;
-      const ziffern = klammerInhalt.match(/\d/g);
-      return !!ziffern && ziffern.length >= 3;
+      if (len < KLAMMER_MIN_LAENGE) return false;                 // Regel 1
+      if (LATEINISMUS_RE.test(klammerInhalt)) return false;       // Regel 2
+      if (nurGesetzesverweise(klammerInhalt)) return false;       // Regel 3
+      if (LITERATUR_RE.test(klammerInhalt)) return true;          // Regel 4
+      if (len > KLAMMER_MAX_LAENGE) return true;                  // Regel 5
+      const ziffern = klammerInhalt.match(/\d/g);                 // Regel 6
+      return !!ziffern && ziffern.length >= ZIFFERN_MIN;
     }
 
     /* ---------- Ein-/Ausklappen (reversibel, formatierungserhaltend) ---------- */
@@ -135,6 +167,14 @@
         const content = fold.querySelector('.bkl-fold-content');
         const eltern = fold.parentNode;
         if (!eltern) return;
+        // Verlagerte Seitenwechsel zuerst an ihren Platzhalter im Fold-Inhalt
+        // zurücksetzen – so stimmt der Roundtrip exakt (Position und Text).
+        (fold._bklPagebreaks || []).forEach(function (v) {
+          const ziel = v.platzhalter.parentNode;
+          if (!ziel) return;
+          v.knoten.forEach(function (k) { ziel.insertBefore(k, v.platzhalter); });
+          ziel.removeChild(v.platzhalter);
+        });
         if (content) {
           while (content.firstChild) eltern.insertBefore(content.firstChild, fold);
         }
@@ -147,10 +187,12 @@
 
     function blockVerarbeiten(block) {
       const t = textKarteAufbauen(block);
-      if (!t.gesamt || t.gesamt.length < EASY_KURZ) return 0;
+      if (!t.gesamt || t.gesamt.length < KLAMMER_MIN_LAENGE) return 0;
 
+      // Nur Top-Level-Klammern: verschachtelte Klammern bleiben Teil des
+      // Inhalts ihrer äusseren Klammer, es gibt kein Fold im Fold.
       const kandidaten = klammernFinden(t.gesamt).filter(function (k) {
-        return sollEingeklapptWerden(k.inhalt);
+        return k.tiefe === 0 && sollEingeklapptWerden(k.inhalt);
       });
 
       // Absteigend verarbeiten, damit frühere Positionen gültig bleiben.
@@ -190,6 +232,28 @@
         fold.appendChild(knopf);
         fold.appendChild(content);
         range.insertNode(fold);
+
+        // Seitenwechsel (BGE-Paginierung) aus dem Fold-Inhalt herauslösen:
+        // der Seitenzahl-Balken bleibt sichtbar direkt vor dem Fold, statt im
+        // versteckten Inhalt zu verschwinden. Ein Kommentar-Platzhalter markiert
+        // die ursprüngliche Stelle; die Referenz liegt am Fold-Element
+        // (fold._bklPagebreaks) für den exakten Rückbau.
+        const verlagert = [];
+        content.querySelectorAll('.pagebreak').forEach(function (pb) {
+          const knoten = [];
+          const vor = pb.previousSibling;
+          // ein leerer page-Anker direkt davor gehört zum Seitenwechsel
+          if (vor && vor.nodeType === 1 && vor.tagName === 'A' &&
+              /^page\d+$/.test(vor.getAttribute('name') || '') && !vor.textContent.trim()) {
+            knoten.push(vor);
+          }
+          knoten.push(pb);
+          const platzhalter = document.createComment('bkl-pb');
+          knoten[0].parentNode.insertBefore(platzhalter, knoten[0]);
+          knoten.forEach(function (k) { fold.parentNode.insertBefore(k, fold); });
+          verlagert.push({ platzhalter: platzhalter, knoten: knoten });
+        });
+        if (verlagert.length) fold._bklPagebreaks = verlagert;
         anzahl++;
       });
       return anzahl;
@@ -228,7 +292,7 @@
     zeilenlaenge: 0,            // 0 = unbegrenzt, sonst Zeichen (ch)
     spaltenbreite: 625,         // px – Breite der Haarlinien-Textspalte (Seiten-Standard: 625)
     silbentrennung: false,
-    farbschema: 'hell',         // hell | sepia | dunkel | kontrast
+    farbschema: 'hell',         // hell | sepia | dunkel | kontrast | nacht
     klammern: true              // Easy-Mode: Klammern nach festem Regelsatz einklappen
   };
 
@@ -460,7 +524,8 @@
     hell:    { bg: '#ffffff', fg: '#1a1a1a', link: '#1a56cc', border: '#999', tbg: '#eee', tfg: '#333' },
     sepia:   { bg: '#f4ecd8', fg: '#3b2f20', link: '#7a4a12', border: '#a08c62', tbg: '#e8dcb8', tfg: '#3b2f20' },
     dunkel:  { bg: '#181818', fg: '#e8e8e8', link: '#8ab4f8', border: '#555', tbg: '#333', tfg: '#e8e8e8' },
-    kontrast:{ bg: '#000000', fg: '#ffffff', link: '#ffe26f', border: '#ffffff', tbg: '#222222', tfg: '#ffffff' }
+    kontrast:{ bg: '#000000', fg: '#ffffff', link: '#ffe26f', border: '#ffffff', tbg: '#222222', tfg: '#ffffff' },
+    nacht:   { bg: '#2b1518', fg: '#f3e3e3', link: '#ffb3c1', border: '#7a4a52', tbg: '#432227', tfg: '#f3e3e3' }
   };
 
   function wendeStileAn() {
@@ -523,7 +588,7 @@
     z.textContent = anzahl > 0
       ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' eingeklappt (Pfeil ▸ anklicken zum Aufklappen).'
       : (einstellungen.aktiv && einstellungen.klammern
-        ? 'Keine Klammern eingeklappt. Regel: unter 30 Zeichen nie, ab 300 immer, dazwischen nur mit mindestens 3 Ziffern.'
+        ? 'Keine Klammern eingeklappt. Regel: Gesetzesverweise und inhaltliche Bemerkungen bleiben offen, Literatur und lange Klammern werden eingeklappt.'
         : '');
   }
 
@@ -744,14 +809,14 @@
           <span class="bkl-icon">${svgIcon(ICONS.art)}</span>
           <label for="bkl-art">Schriftart</label>
           <select id="bkl-art" title="Schriftart wählen" aria-label="Schriftart wählen">
-            <option value="serif">System Serif</option>
-            <option value="sans">System Sans</option>
-            <option value="atkinson">Atkinson Hyperlegible (gut lesbar)</option>
-            <option value="garamond">EB Garamond (Buchschrift)</option>
+            <option value="atkinson">Atkinson Hyperlegible</option>
             <option value="opendyslexic">OpenDyslexic</option>
             <option value="comicneue">Comic Neue</option>
-            <option value="liberation-serif">Liberation Serif (Times-ähnlich)</option>
+            <option value="garamond">EB Garamond (Buchschrift)</option>
             <option value="liberation-sans">Liberation Sans (Arial-ähnlich)</option>
+            <option value="liberation-serif">Liberation Serif (Times-ähnlich)</option>
+            <option value="sans">System Sans</option>
+            <option value="serif">System Serif</option>
           </select>
         </div>
         <div class="bkl-zeile">
@@ -762,12 +827,18 @@
             <option value="sepia">Sepia</option>
             <option value="dunkel">Dunkel</option>
             <option value="kontrast">Hoher Kontrast</option>
+            <option value="nacht">Nacht (rötlich)</option>
           </select>
         </div>
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.spalte)}</span>
           <label for="bkl-spalte">Textbreite</label>
           <input type="range" id="bkl-spalte" min="400" max="1400" step="25" title="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.klammer)}</span>
+          <label for="bkl-klammern">Klammern einklappen</label>
+          <input type="checkbox" id="bkl-klammern" title="Klammerbemerkungen einklappen (Regel: Gesetzesverweise und inhaltliche Bemerkungen bleiben offen, Literatur und lange Klammern werden eingeklappt)" aria-label="Klammerbemerkungen einklappen">
         </div>
       </div>
 
@@ -809,14 +880,7 @@
           <label for="bkl-silben">Silbentrennung</label>
           <input type="checkbox" id="bkl-silben" title="Silbentrennung ein-/ausschalten" aria-label="Silbentrennung ein-/ausschalten">
         </div>
-        <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.klammer)}</span>
-          <label for="bkl-klammern">Klammern einklappen</label>
-          <input type="checkbox" id="bkl-klammern" title="Lange Klammerbemerkungen einklappen (feste Regel: unter 30 Zeichen nie, ab 300 immer, dazwischen nur mit mindestens 3 Ziffern)" aria-label="Lange Klammerbemerkungen einklappen">
-        </div>
         <div class="bkl-knopfreihe">
-          <button class="bkl-aktion" id="bkl-alle-auf" title="Alle eingeklappten Klammerbemerkungen aufklappen" aria-label="Alle eingeklappten Klammerbemerkungen aufklappen">Alle Klammern auf</button>
-          <button class="bkl-aktion" id="bkl-alle-zu" title="Alle Klammerbemerkungen einklappen" aria-label="Alle Klammerbemerkungen einklappen">Alle zu</button>
           <button class="bkl-aktion" id="bkl-reset" title="Alle Einstellungen auf Standard zurücksetzen" aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
         </div>
         <div class="bkl-hinweis" id="bkl-zaehler"></div>
@@ -899,8 +963,6 @@
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; allesAnwenden(); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; allesAnwenden(); });
   bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; allesAnwenden(); });
-  bei('bkl-alle-auf', 'click', function () { BGerReader.alleUmschalten(true); });
-  bei('bkl-alle-zu', 'click', function () { BGerReader.alleUmschalten(false); });
   bei('bkl-reset', 'click', function () {
     einstellungen = Object.assign({}, STANDARDS);
     allesAnwenden();
