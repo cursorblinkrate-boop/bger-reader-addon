@@ -353,6 +353,31 @@
   /* ================================================================== */
 
   const seitenCss = `
+    /* Seitenrahmen (Kopfband, linke Navigation, Seitengrund): liegt ausserhalb
+       von div.eit und bliebe weiss – greller Mischzustand auf dunklen Schemata.
+       Daher Seitengrund und Grundtext des gesamten Dokuments einfärben. */
+    html.bkl-aktiv body {
+      background-color: var(--bkl-bg) !important;
+      color: var(--bkl-fg) !important;
+    }
+    /* Alle Links der Seite (Rahmen-Navigation, linke Menüspalte, Entscheid).
+       Der Highlight-Schutz unten ist spezifischer und gewinnt fuer die
+       gelben Suchbegriff-Markierungen. */
+    html.bkl-aktiv body a { color: var(--bkl-link) !important; }
+    /* Formularelemente der Site (Suche-Feld, Selects, Buttons) bleiben hell
+       und benutzbar – nicht mit Schemafarben einfärben. Unsere eigenen
+       Fold-Pfeile (button.bkl-toggle) sind davon ausgenommen. */
+    html.bkl-aktiv input,
+    html.bkl-aktiv select,
+    html.bkl-aktiv textarea,
+    html.bkl-aktiv button:not(.bkl-toggle) {
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      border-color: #999999 !important;
+    }
+    /* Trennlinien im Seitenrahmen ans Schema anpassen (sonst unsichtbar). */
+    html.bkl-aktiv hr { border-color: var(--bkl-border) !important; }
+
     /* Entscheidcontainer: Hintergrund und Textfarbe (Seiten-CSS setzt div.eit auf weiss) */
     html.bkl-aktiv div.eit {
       background-color: var(--bkl-bg) !important;

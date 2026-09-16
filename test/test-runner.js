@@ -740,6 +740,34 @@ console.log('\n[11] v0.5.0: Dropdown-Reihenfolge, Nacht-Schema, Panel-Umbau');
     !!shadow.querySelector('#bkl-details #bkl-zaehler'));
 }
 
+/* ---------- 12. v0.5.3: Seitenrahmen-Theming (body, Links, Formulare, hr) ---------- */
+console.log('\n[12] Seitenrahmen-Theming');
+{
+  const dom = domMitScript(SYNTHESE);
+  const cssText = dom.window.document.getElementById('bkl-style').textContent;
+
+  pruefe('CSS: body-Regel färbt Seitengrund und Grundtext ein',
+    /html\.bkl-aktiv body\s*\{[^}]*var\(--bkl-bg\)/.test(cssText) &&
+    /html\.bkl-aktiv body\s*\{[^}]*var\(--bkl-fg\)/.test(cssText));
+  pruefe('CSS: generelle Link-Regel für die ganze Seite (body a)',
+    /html\.bkl-aktiv body a\s*\{[^}]*var\(--bkl-link\)/.test(cssText));
+  pruefe('CSS: Formular-Schutz (input/select/textarea/button hell, Fold-Pfeile ausgenommen)',
+    /html\.bkl-aktiv input,\s*html\.bkl-aktiv select,\s*html\.bkl-aktiv textarea,\s*html\.bkl-aktiv button:not\(\.bkl-toggle\)\s*\{[^}]*#ffffff/.test(cssText) &&
+    /html\.bkl-aktiv input,\s*html\.bkl-aktiv select,\s*html\.bkl-aktiv textarea,\s*html\.bkl-aktiv button:not\(\.bkl-toggle\)\s*\{[^}]*#1a1a1a/.test(cssText));
+  pruefe('CSS: Trennlinien (hr) ans Schema angepasst',
+    /html\.bkl-aktiv hr\s*\{[^}]*var\(--bkl-border\)/.test(cssText));
+
+  // Reihenfolge: Highlight-Schutz muss NACH den generellen Link-Regeln stehen
+  // (und ist zusätzlich spezifischer) – sonst würden gelbe Markierungen
+  // und ihre Links wieder schema-bunt statt dunkel.
+  const iBodyLink = cssText.indexOf('html.bkl-aktiv body a');
+  const iEitLink = cssText.indexOf('html.bkl-aktiv div.eit a');
+  const iSchutz = cssText.indexOf('html.bkl-aktiv div.eit .concept_match,');
+  pruefe('CSS: Highlight-Schutz steht nach den generellen Link-Regeln',
+    iBodyLink !== -1 && iEitLink !== -1 && iSchutz !== -1 && iSchutz > iEitLink && iEitLink > iBodyLink,
+    iBodyLink + ' < ' + iEitLink + ' < ' + iSchutz);
+}
+
 /* ---------- Ergebnis ---------- */
 console.log('\n========================================');
 console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
