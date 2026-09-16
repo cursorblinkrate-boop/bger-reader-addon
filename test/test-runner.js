@@ -285,6 +285,21 @@ if (fs.existsSync(ECHTE_SEITE)) {
         JSON.stringify(textOriginal.slice(i, i + 40)) + ' vs ' +
         JSON.stringify(textNachher.slice(i, i + 40));
     })());
+
+  // Suchtreffer-Markierung der Site nachbauen (gelber Grund, verschachtelter
+  // Link) und prüfen, dass der Highlight-Schutz sie adressiert. jsdom rechnet
+  // keine Kaskade – CSS-Text-Match plus DOM-Struktur genügt hier.
+  const ersterAbsatz = doc.querySelector('div.paraatf');
+  const markierung = doc.createElement('span');
+  markierung.className = 'exact_match';
+  markierung.innerHTML = 'Trefferwort mit <a href="#treffer">Link</a> darin';
+  ersterAbsatz.appendChild(markierung);
+  const cssNachMarkierung = doc.getElementById('bkl-style').textContent;
+  pruefe('Markierung mit verschachteltem Link im Entscheid-DOM',
+    !!doc.querySelector('div.eit .exact_match a'));
+  pruefe('Highlight-Schutz greift konzeptionell für Markierung und Link',
+    /html\.bkl-aktiv div\.eit \.exact_match[,\s{][^}]*color:\s*#1a1a1a/.test(cssNachMarkierung) &&
+    /html\.bkl-aktiv div\.eit \.exact_match a[,\s{][^}]*color:\s*#1a1a1a/.test(cssNachMarkierung));
 } else {
   console.log('  ⚠️  Echte Seite nicht gefunden (curl zuerst ausführen), Block übersprungen.');
 }
@@ -498,7 +513,9 @@ console.log('\n[9] Panel neu (Pink-Button, Detail-Bereich) und Layout-/Farbschem
   pruefe('alle Panel-Controls mit title UND aria-label', kontrollenOhneTooltip.length === 0,
     kontrollenOhneTooltip.join(','));
 
-  // (d) Farbschema-Regeln für die Seiten-Boxen (rechte Spalte: Inhalt/Referenzen/Navigation)
+  // (d) Link-Farben v0.5.1: EINE generelle Regel für alle Links im
+  //     Entscheidcontainer (Site setzt div.eit-Links auf schwarz) +
+  //     Highlight-Schutz für die gelben Suchbegriff-Markierungen.
   const cssText = doc.getElementById('bkl-style').textContent;
   pruefe('CSS: Boxen (div.eit .box) bekommen Schema-Hintergrund/Textfarbe',
     /html\.bkl-aktiv div\.eit \.box[^{]*\{[^}]*var\(--bkl-bg\)/.test(cssText) &&
@@ -506,8 +523,24 @@ console.log('\n[9] Panel neu (Pink-Button, Detail-Bereich) und Layout-/Farbschem
   pruefe('CSS: Box-Inhalt (div.eit .box .content) eingefärbt',
     /html\.bkl-aktiv div\.eit \.box \.content\s*\{[^}]*var\(--bkl-bg\)/.test(cssText) ||
     /\.box,\s*html\.bkl-aktiv div\.eit \.box \.content\s*\{[^}]*var\(--bkl-bg\)/.test(cssText));
-  pruefe('CSS: Links in Boxen bekommen Schema-Linkfarbe',
-    /html\.bkl-aktiv div\.eit \.box a\s*\{[^}]*var\(--bkl-link\)/.test(cssText));
+  pruefe('CSS: generelle Link-Regel für den ganzen Entscheidcontainer (div.eit a)',
+    /html\.bkl-aktiv div\.eit a\s*\{[^}]*var\(--bkl-link\)/.test(cssText));
+  pruefe('CSS: Highlight-Schutz für alle 5 Markierungsklassen (dunkler Text)',
+    ['concept_match', 'exact_match', 'complete_match', 'inexact_match', 'incomplete_match']
+      .every(function (k) {
+        return new RegExp('html\\.bkl-aktiv div\\.eit \\.' + k + '[,\\s{][^}]*color:\\s*#1a1a1a').test(cssText);
+      }));
+  pruefe('CSS: Highlight-Schutz auch für Links in Markierungen (a-Varianten)',
+    ['concept_match', 'exact_match', 'complete_match', 'inexact_match', 'incomplete_match']
+      .every(function (k) {
+        return new RegExp('html\\.bkl-aktiv div\\.eit \\.' + k + ' a[,\\s{][^}]*color:\\s*#1a1a1a').test(cssText);
+      }));
+  pruefe('CSS: Markierungs-Hintergrund der Site unangetastet (kein background im Schutz)',
+    !/_match[,\s{][^}]*background/.test(cssText));
+  pruefe('CSS: alte redundante Link-Regeln entfernt (paraatf/para/box)',
+    !/html\.bkl-aktiv div\.paraatf a\s*[,{]/.test(cssText) &&
+    !/html\.bkl-aktiv div\.para a\s*[,{]/.test(cssText) &&
+    !/html\.bkl-aktiv div\.eit \.box a\s*[,{]/.test(cssText));
 
   // (e) Layout-Neutralität: bedingte Regeln statt Dauer-Breiten
   pruefe('CSS: max-width/margin-auto nur unter Klasse bkl-maxw',

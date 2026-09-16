@@ -387,8 +387,25 @@
       background-color: var(--bkl-bg) !important;
       hyphens: var(--bkl-hyphens) !important;
     }
-    html.bkl-aktiv div.paraatf a,
-    html.bkl-aktiv div.para a { color: var(--bkl-link) !important; }
+    /* Links im gesamten Entscheidcontainer: das Site-CSS setzt div.eit-Links
+       generell auf schwarz (a:link #000, a:visited #666) – auf dunklen
+       Schemata unleserlich, daher generell überschreiben (deckt auch
+       Kopf-/Fusszeilen-Links ab, nicht nur Absätze und Boxen). */
+    html.bkl-aktiv div.eit a { color: var(--bkl-link) !important; }
+
+    /* Suchbegriff-Markierungen der Site (gelber Grund) müssen dunklen Text
+       behalten – auch verschachtelte Links. Hintergrundfarbe unangetastet.
+       Steht nach der generellen Link-Regel und ist spezifischer. */
+    html.bkl-aktiv div.eit .concept_match,
+    html.bkl-aktiv div.eit .exact_match,
+    html.bkl-aktiv div.eit .complete_match,
+    html.bkl-aktiv div.eit .inexact_match,
+    html.bkl-aktiv div.eit .incomplete_match { color: #1a1a1a !important; }
+    html.bkl-aktiv div.eit .concept_match a,
+    html.bkl-aktiv div.eit .exact_match a,
+    html.bkl-aktiv div.eit .complete_match a,
+    html.bkl-aktiv div.eit .inexact_match a,
+    html.bkl-aktiv div.eit .incomplete_match a { color: #1a1a1a !important; }
 
     /* Seiten-Boxen der Entscheidseite (Fixture bger_test.html):
        div.eit .box = Inhaltsbox (#highlight_content) und rechte Spalte
@@ -405,7 +422,6 @@
       background-color: var(--bkl-bg) !important;
       color: var(--bkl-fg) !important;
     }
-    html.bkl-aktiv div.eit .box a { color: var(--bkl-link) !important; }
 
     /* Zeilenlänge begrenzen: NUR wenn eingestellt (> 0 Zeichen), Klasse bkl-maxw
        auf <html>. Im Standard bleibt der Text pixel-identisch an seiner
