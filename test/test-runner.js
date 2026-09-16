@@ -32,29 +32,33 @@ function domMitScript(html, url) {
   return dom;
 }
 
-/* ---------- 1. Heuristik: Einzelfälle ---------- */
-console.log('\n[1] Literatur-Heuristik (Einzelfälle)');
+/* ---------- 1. Easy-Regel: Einzelfälle ---------- */
+console.log('\n[1] Easy-Regel (Einzelfälle)');
 
-const HEURISTIK_FAELLE = [
-  // [Text, erwartet als Literatur]
+const EASY_FAELLE = [
+  // [Klammerinhalt, erwartet eingeklappt]
   ['in: Kramer, Das Recht, N. 12 ff.; BGE 135 II 45', true],
   ['vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45', true],
-  ['ATF 143 IV 27 consid. 2.5; JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP', true],
-  ['BGE 123 II 45', false],                                   // zu kurz (< 40)
-  ['Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann', false], // keine Signale
-  ['29. März 2021', false],                                   // Jahreszahl/Datum
-  ['6B_94/2024', false],                                      // Aktenzeichen
-  ['Art. 298b al. 1 CPP', false],                             // Gesetzesartikel
-  ['wegen versuchter ehebrecherischer Beziehung', false],     // reiner Inhalt
-  ['Rz. 45', false]                                           // Signal ja, aber zu kurz
+  ['ATF 143 IV 27 consid. 2.5; JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP', true], // nur 1 Art.-Verweis -> klappt ein
+  ['BGE 123 II 45', false],                                   // zu kurz (< 30)
+  ['Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann', false], // keine Ziffern
+  ['29. März 2021', false],                                   // zu kurz
+  ['6B_94/2024', false],                                      // zu kurz
+  ['Art. 298b al. 1 CPP', false],                             // zu kurz
+  ['wegen versuchter ehebrecherischer Beziehung', false],     // keine Ziffern
+  ['Rz. 45', false],                                          // zu kurz
+  ['Art. 8 BV, Art. 13 BV, Art. 29 BV', false],               // Art.-Liste: Ausnahme trotz 6 Ziffern
+  ['gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung', false], // Art.-Liste
+  ['dazu BGE 141 IV 234 E. 3.2 sowie Urteil 4A_12/2020 vom 5. Mai 2020', true],
+  ['reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60), true] // > 300 Zeichen
 ];
 
 {
   const dom = domMitScript('<!doctype html><html><body><div class="eit"><div class="paraatf">Test</div></div></body></html>');
   const R = dom.window.BGerReader;
-  HEURISTIK_FAELLE.forEach(function (fall) {
-    const ergebnis = R.istWahrscheinlichLiteratur(fall[0], 40);
-    pruefe('istWahrscheinlichLiteratur("' + fall[0].slice(0, 40) + '") === ' + fall[1], ergebnis === fall[1], 'war ' + ergebnis);
+  EASY_FAELLE.forEach(function (fall) {
+    const ergebnis = R.sollEingeklapptWerden(fall[0]);
+    pruefe('sollEingeklapptWerden("' + fall[0].slice(0, 40) + '") === ' + fall[1], ergebnis === fall[1], 'war ' + ergebnis);
   });
 }
 
@@ -99,7 +103,7 @@ const SYNTHESE = `<!doctype html><html><body><div class="eit">
   const vorherText = doc.getElementById('p1').textContent;
   const vorherLinks = doc.querySelectorAll('#p1 a').length;
 
-  const anzahl = R.blockVerarbeiten(doc.getElementById('p1'), 'literatur', 40);
+  const anzahl = R.blockVerarbeiten(doc.getElementById('p1'));
   pruefe('eine Klammer in p1 eingeklappt', anzahl === 1, 'war ' + anzahl);
 
   const fold = doc.querySelector('#p1 .bkl-fold');
@@ -128,12 +132,13 @@ const SYNTHESE = `<!doctype html><html><body><div class="eit">
   pruefe('Original-Text wiederhergestellt', doc.getElementById('p1').textContent === vorherText);
   pruefe('Original-Link wiederhergestellt', doc.querySelectorAll('#p1 a').length === vorherLinks);
 
-  // Jahreszahl-Klammer in p2 darf NICHT eingeklappt werden (keine Signale)
-  const anzahlP2 = R.blockVerarbeiten(doc.getElementById('p2'), 'literatur', 40);
+  // Jahreszahl-Klammer in p2 darf NICHT eingeklappt werden (< 30 Zeichen)
+  const anzahlP2 = R.blockVerarbeiten(doc.getElementById('p2'));
   pruefe('Datum in p2 bleibt unangetastet', anzahlP2 === 0, 'war ' + anzahlP2);
 
-  // Verschachtelte Klammer in p3: äussere hat Signale -> wird eingeklappt, innere bleibt im Inhalt
-  const anzahlP3 = R.blockVerarbeiten(doc.getElementById('p3'), 'literatur', 40);
+  // Verschachtelte Klammer in p3: äussere hat >= 3 Ziffern -> wird eingeklappt,
+  // innere (< 30 Zeichen) bleibt im Inhalt
+  const anzahlP3 = R.blockVerarbeiten(doc.getElementById('p3'));
   pruefe('verschachtelte Klammer in p3 eingeklappt', anzahlP3 === 1, 'war ' + anzahlP3);
   const foldP3 = doc.querySelector('#p3 .bkl-fold');
   pruefe('verschachtelte innere Klammer im Inhalt erhalten',
@@ -166,10 +171,10 @@ if (fs.existsSync(ECHTE_SEITE)) {
       !!panelFont && /font-size:\s*14px/.test(SCRIPT));
   }
 
-  // Klammerverarbeitung im Literatur-Modus
+  // Klammerverarbeitung mit der Easy-Regel
   let gesamt = 0;
-  bloecke.forEach(function (b) { gesamt += R.blockVerarbeiten(b, 'literatur', 80); });
-  pruefe('Literaturklammern auf echter Seite gefunden', gesamt > 0, gesamt + ' gefunden');
+  bloecke.forEach(function (b) { gesamt += R.blockVerarbeiten(b); });
+  pruefe('Klammern auf echter Seite gefunden (Easy-Regel)', gesamt > 0, gesamt + ' gefunden');
 
   const folds = doc.querySelectorAll('.bkl-fold');
   pruefe('Fold-Elemente vorhanden', folds.length === gesamt, folds.length + '/' + gesamt);
@@ -187,12 +192,12 @@ if (fs.existsSync(ECHTE_SEITE)) {
   const linksNachher = doc.querySelectorAll('a').length;
   pruefe('kein Link ging verloren', linksNachher >= vorher.links, linksNachher + '/' + vorher.links);
 
-  // Modus „alle": strengere, längere Klammern
+  // Zweitlauf nach Rückbau: identisches Ergebnis (idempotent)
   R.allesAufklappenUndEntfernen();
-  let gesamtAlle = 0;
-  bloecke.forEach(function (b) { gesamtAlle += R.blockVerarbeiten(b, 'alle', 80); });
-  pruefe('Modus „alle" findet >= so viele wie Literatur-Modus', gesamtAlle >= gesamt,
-    gesamtAlle + ' vs ' + gesamt);
+  let gesamtZwei = 0;
+  bloecke.forEach(function (b) { gesamtZwei += R.blockVerarbeiten(b); });
+  pruefe('Zweitlauf nach Rückbau findet gleich viele Klammern', gesamtZwei === gesamt,
+    gesamtZwei + ' vs ' + gesamt);
 
   // Roundtrip auf echter Seite: Text identisch (Pfeil-Zeichen werden beim Entfernen mit entfernt)
   const textVorher = doc.querySelector('div.eit').textContent;
@@ -246,7 +251,7 @@ if (fs.existsSync(AZA_FIXTURE)) {
   pruefe('aza: Entscheidabsätze (div.para) gefunden', bloecke.length > 20, bloecke.length + ' gefunden');
 
   let anzahl = 0;
-  bloecke.forEach(function (b) { anzahl += R.blockVerarbeiten(b, 'literatur', 80); });
+  bloecke.forEach(function (b) { anzahl += R.blockVerarbeiten(b); });
   pruefe('aza: Klammerverarbeitung läuft', anzahl >= 0, anzahl + ' gefunden');
 
   const textVorher = doc.querySelector('div.eit').textContent;

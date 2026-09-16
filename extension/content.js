@@ -86,30 +86,26 @@
       return ergebnis;
     }
 
-    /* ---------- Konservative Literatur-Heuristik ---------- */
-    // „Heuristisch und reversibel": lieber zu wenig als zu viel automatisch
-    // einklappen. Jede Stelle bleibt einzeln manuell aufklappbar.
+    /* ---------- Easy-Mode: ein fester Einklapp-Regelsatz ---------- */
+    // Bewusst einfach und vorhersagbar – jede Stelle bleibt einzeln
+    // manuell aufklappbar (reversibel):
+    //   < 30 Zeichen:   nie einklappen
+    //   30–299 Zeichen: nur einklappen, wenn >= 3 Ziffern (0–9) enthalten
+    //                   Ausnahme: Art.-Listen (>= 2 Verweise „Art. <Zahl>")
+    //                   bleiben offen – das sind Erwägungs-Verweise,
+    //                   keine Literatur.
+    //   >= 300 Zeichen: immer einklappen, Inhalt egal
+    const EASY_KURZ = 30;
+    const EASY_LANG = 300;
 
-    const LITERATUR_SIGNALE = [
-      /\bS\.\s*\d/i,                                  // S. 123
-      /\bp{1,2}\.\s*\d/i,                             // p. 123 / pp. 123-128
-      /\bpag\.\s*\d/i,                                // pag. 123
-      /\bRz\.\s*\d/i,                                 // Randziffer
-      /\bN\.\s*\d/i,                                  // Randnummer
-      /\bin\s*:/i,                                    // in: Zeitschrift
-      /\b(?:BGE|ATF)\s+\d{1,3}\s+[IVX]{1,4}\b/i,      // BGE 123 II 45 / ATF 143 IV 27
-      /\bff\./i,                                      // „und folgende"
-      /[A-ZÄÖÜ][A-Za-zäöüéèàä]*\s*\/\s*[A-ZÄÖÜ]/       // MEIER/BRUNNER
-    ];
-
-    function istWahrscheinlichLiteratur(klammerInhalt, mindestlaenge) {
-      if (klammerInhalt.length < mindestlaenge) return false;
-      return LITERATUR_SIGNALE.some(function (rx) { return rx.test(klammerInhalt); });
-    }
-
-    function sollEingeklapptWerden(klammerInhalt, modus, mindestlaenge) {
-      if (modus === 'alle') return klammerInhalt.length >= mindestlaenge;
-      return istWahrscheinlichLiteratur(klammerInhalt, mindestlaenge);
+    function sollEingeklapptWerden(klammerInhalt) {
+      const len = klammerInhalt.length;
+      if (len < EASY_KURZ) return false;
+      if (len >= EASY_LANG) return true;
+      const artVerweise = klammerInhalt.match(/\bArt\.\s*\d/gi);
+      if (artVerweise && artVerweise.length >= 2) return false;
+      const ziffern = klammerInhalt.match(/\d/g);
+      return !!ziffern && ziffern.length >= 3;
     }
 
     /* ---------- Ein-/Ausklappen (reversibel, formatierungserhaltend) ---------- */
@@ -149,12 +145,12 @@
 
     /* ---------- Block verarbeiten ---------- */
 
-    function blockVerarbeiten(block, modus, mindestlaenge) {
+    function blockVerarbeiten(block) {
       const t = textKarteAufbauen(block);
-      if (!t.gesamt || t.gesamt.length < mindestlaenge) return 0;
+      if (!t.gesamt || t.gesamt.length < EASY_KURZ) return 0;
 
       const kandidaten = klammernFinden(t.gesamt).filter(function (k) {
-        return sollEingeklapptWerden(k.inhalt, modus, mindestlaenge);
+        return sollEingeklapptWerden(k.inhalt);
       });
 
       // Absteigend verarbeiten, damit frühere Positionen gültig bleiben.
@@ -204,7 +200,6 @@
     return {
       textKarteAufbauen: textKarteAufbauen,
       klammernFinden: klammernFinden,
-      istWahrscheinlichLiteratur: istWahrscheinlichLiteratur,
       sollEingeklapptWerden: sollEingeklapptWerden,
       blockVerarbeiten: blockVerarbeiten,
       einzelnUmschalten: einzelnUmschalten,
@@ -234,8 +229,7 @@
     spaltenbreite: 625,         // px – Breite der Haarlinien-Textspalte (Seiten-Standard: 625)
     silbentrennung: false,
     farbschema: 'hell',         // hell | sepia | dunkel | kontrast
-    klammerModus: 'literatur',  // literatur (konservativ) | alle
-    klammerMindestlaenge: 80    // Zeichen
+    klammern: true              // Easy-Mode: Klammern nach festem Regelsatz einklappen
   };
 
   /* Speicher-Strategie (Privacy: 100 % offline, nichts verlässt das Gerät):
@@ -251,9 +245,18 @@
 
   let einstellungen = Object.assign({}, STANDARDS);
 
+  // Entfernt veraltete Schlüssel aus gespeicherten Einstellungen
+  // (z. B. klammerModus/klammerMindestlaenge aus Versionen < 0.4.0).
+  function bereinige(e) {
+    Object.keys(e).forEach(function (k) {
+      if (!(k in STANDARDS)) delete e[k];
+    });
+    return e;
+  }
+
   function ladeEinstellungen(fertig) {
     function uebernehmen(res) {
-        einstellungen = Object.assign({}, STANDARDS, (res && res[STORAGE_KEY]) || {});
+        einstellungen = bereinige(Object.assign({}, STANDARDS, (res && res[STORAGE_KEY]) || {}));
         fertig();
     }
     if (extensionStorage) {
@@ -271,7 +274,7 @@
     }
     try {
       const gespeichert = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      einstellungen = Object.assign({}, STANDARDS, gespeichert || {});
+      einstellungen = bereinige(Object.assign({}, STANDARDS, gespeichert || {}));
     } catch (e) { /* Standardwerte behalten */ }
     fertig();
   }
@@ -505,15 +508,11 @@
   function verarbeiteKlammern() {
     BGerReader.allesAufklappenUndEntfernen();
 
-    if (!einstellungen.aktiv) { aktualisiereZaehler(0); return; }
+    if (!einstellungen.aktiv || !einstellungen.klammern) { aktualisiereZaehler(0); return; }
 
     let anzahl = 0;
     entscheidBloecke().forEach(function (block) {
-      anzahl += BGerReader.blockVerarbeiten(
-        block,
-        einstellungen.klammerModus,
-        einstellungen.klammerMindestlaenge
-      );
+      anzahl += BGerReader.blockVerarbeiten(block);
     });
     aktualisiereZaehler(anzahl);
   }
@@ -522,9 +521,9 @@
     const z = shadow.getElementById('bkl-zaehler');
     if (!z) return;
     z.textContent = anzahl > 0
-      ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' gefunden (Pfeil ▸ anklicken zum Aufklappen).'
-      : (einstellungen.klammerModus === 'literatur'
-        ? 'Keine sicheren Literaturhinweise gefunden – Heuristik ist bewusst konservativ.'
+      ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' eingeklappt (Pfeil ▸ anklicken zum Aufklappen).'
+      : (einstellungen.aktiv && einstellungen.klammern
+        ? 'Keine Klammern eingeklappt. Regel: unter 30 Zeichen nie, ab 300 immer, dazwischen nur mit mindestens 3 Ziffern.'
         : '');
   }
 
@@ -561,7 +560,6 @@
     spalte:      'M2 3 h12 v10 h-12 z M5.5 3 v10 M10.5 3 v10',
     silben:      'M2 4 h12 M2 8 h5 M9 8 h5 M2 12 h12',
     klammer:     'M6 3 c-2 1 -2.5 3 -2.5 5 s0.5 4 2.5 5 M10 3 c2 1 2.5 3 2.5 5 s-0.5 4 -2.5 5',
-    min:         'M2 5 h12 v6 h-12 z M5 5 v3 M8 5 v4 M11 5 v3',
     pfeil:       'M6 4 L10 8 L6 12'
   };
 
@@ -766,6 +764,11 @@
             <option value="kontrast">Hoher Kontrast</option>
           </select>
         </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${svgIcon(ICONS.spalte)}</span>
+          <label for="bkl-spalte">Textbreite</label>
+          <input type="range" id="bkl-spalte" min="400" max="1400" step="25" title="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+        </div>
       </div>
 
       <button type="button" id="bkl-details-toggle" aria-expanded="false" aria-controls="bkl-details"
@@ -789,22 +792,17 @@
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.buchstaben)}</span>
           <label for="bkl-buchstaben">Buchstabenabstand</label>
-          <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.5" title="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
+          <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.1" title="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
         </div>
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.worte)}</span>
           <label for="bkl-worte">Wortabstand</label>
-          <input type="range" id="bkl-worte" min="0" max="10" step="1" title="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
+          <input type="range" id="bkl-worte" min="0" max="10" step="0.1" title="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
         </div>
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.laenge)}</span>
           <label for="bkl-laenge">Zeilenlänge</label>
           <input type="range" id="bkl-laenge" min="0" max="120" step="10" title="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
-        </div>
-        <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.spalte)}</span>
-          <label for="bkl-spalte">Spaltenbreite</label>
-          <input type="range" id="bkl-spalte" min="400" max="1400" step="25" title="Spaltenbreite des Rahmens in Pixel (Seiten-Standard: 625)" aria-label="Spaltenbreite des Rahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
         </div>
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.silben)}</span>
@@ -813,16 +811,8 @@
         </div>
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.klammer)}</span>
-          <label for="bkl-klammer-modus">Klammern einklappen</label>
-          <select id="bkl-klammer-modus" title="Klammer-Modus wählen" aria-label="Klammer-Modus wählen">
-            <option value="literatur">nur wahrscheinliche Literaturhinweise</option>
-            <option value="alle">alle Klammern ab Mindestlänge</option>
-          </select>
-        </div>
-        <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.min)}</span>
-          <label for="bkl-klammer-min">Mindestlänge</label>
-          <input type="range" id="bkl-klammer-min" min="40" max="400" step="10" title="Mindestlänge für Klammern in Zeichen" aria-label="Mindestlänge für Klammern in Zeichen"><span class="bkl-wert" id="bkl-klammer-min-w"></span>
+          <label for="bkl-klammern">Klammern einklappen</label>
+          <input type="checkbox" id="bkl-klammern" title="Lange Klammerbemerkungen einklappen (feste Regel: unter 30 Zeichen nie, ab 300 immer, dazwischen nur mit mindestens 3 Ziffern)" aria-label="Lange Klammerbemerkungen einklappen">
         </div>
         <div class="bkl-knopfreihe">
           <button class="bkl-aktion" id="bkl-alle-auf" title="Alle eingeklappten Klammerbemerkungen aufklappen" aria-label="Alle eingeklappten Klammerbemerkungen aufklappen">Alle Klammern auf</button>
@@ -874,18 +864,16 @@
     shadow.getElementById('bkl-zeilenabstand').value = einstellungen.zeilenabstand;
     shadow.getElementById('bkl-zeilenabstand-w').textContent = einstellungen.zeilenabstand;
     shadow.getElementById('bkl-buchstaben').value = einstellungen.buchstabenabstand;
-    shadow.getElementById('bkl-buchstaben-w').textContent = einstellungen.buchstabenabstand + 'px';
+    shadow.getElementById('bkl-buchstaben-w').textContent = (+einstellungen.buchstabenabstand).toFixed(1) + 'px';
     shadow.getElementById('bkl-worte').value = einstellungen.wortabstand;
-    shadow.getElementById('bkl-worte-w').textContent = einstellungen.wortabstand + 'px';
+    shadow.getElementById('bkl-worte-w').textContent = (+einstellungen.wortabstand).toFixed(1) + 'px';
     shadow.getElementById('bkl-laenge').value = einstellungen.zeilenlaenge;
     shadow.getElementById('bkl-laenge-w').textContent = einstellungen.zeilenlaenge === 0 ? 'aus' : einstellungen.zeilenlaenge;
     shadow.getElementById('bkl-spalte').value = einstellungen.spaltenbreite;
     shadow.getElementById('bkl-spalte-w').textContent = einstellungen.spaltenbreite + 'px';
     shadow.getElementById('bkl-silben').checked = einstellungen.silbentrennung;
     shadow.getElementById('bkl-farbe').value = einstellungen.farbschema;
-    shadow.getElementById('bkl-klammer-modus').value = einstellungen.klammerModus;
-    shadow.getElementById('bkl-klammer-min').value = einstellungen.klammerMindestlaenge;
-    shadow.getElementById('bkl-klammer-min-w').textContent = einstellungen.klammerMindestlaenge;
+    shadow.getElementById('bkl-klammern').checked = einstellungen.klammern;
   }
 
   function allesAnwenden() {
@@ -910,8 +898,7 @@
   bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; allesAnwenden(); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; allesAnwenden(); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; allesAnwenden(); });
-  bei('bkl-klammer-modus', 'change', function (e) { einstellungen.klammerModus = e.target.value; allesAnwenden(); });
-  bei('bkl-klammer-min', 'input', function (e) { einstellungen.klammerMindestlaenge = +e.target.value; allesAnwenden(); });
+  bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; allesAnwenden(); });
   bei('bkl-alle-auf', 'click', function () { BGerReader.alleUmschalten(true); });
   bei('bkl-alle-zu', 'click', function () { BGerReader.alleUmschalten(false); });
   bei('bkl-reset', 'click', function () {
