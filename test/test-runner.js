@@ -802,6 +802,139 @@ console.log('\n[12] Seitenrahmen-Theming');
     iBodyLink + ' < ' + iEitLink + ' < ' + iSchutz);
 }
 
+/* ---------- 13. Aufwandstrennung bei Bedienung (Regler-Performance) ---------- */
+console.log('\n[13] Aufwandstrennung bei Bedienung');
+{
+  // Dokument mit einklappbaren Klammern, damit ein Neuaufbau messbar waere.
+  let absaetze = '';
+  for (let i = 0; i < 12; i++) {
+    absaetze += '<div class="paraatf">Erwaegung ' + i + ': Dies gilt ohne Weiteres ' +
+      '(vgl. STRATENWERTH/WOHLERS, Handkommentar, 4. Aufl. 2022, N. ' + i +
+      ' zu Art. 111 StGB), was zutrifft.</div>';
+  }
+  const DOK = '<!doctype html><html><body><div class="eit"><div class="middle">' +
+    absaetze + '</div></div></body></html>';
+
+  const dom = new JSDOM(DOK, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+  dom.window.localStorage.setItem('bger-reader-einstellungen-v2',
+    JSON.stringify({ aktiv: true, klammern: true }));
+  dom.window.eval(SCRIPT);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+
+  const foldsStart = doc.querySelectorAll('.bkl-fold').length;
+  pruefe('Ausgangslage: Klammern sind eingeklappt', foldsStart === 12, foldsStart + ' Folds');
+
+  // (a) Typografie-Aenderung darf die Folds NICHT neu aufbauen.
+  // Nachweis ueber Objektidentitaet: derselbe DOM-Knoten wie vorher.
+  const foldVorher = doc.querySelector('.bkl-fold');
+  const groesse = shadow.getElementById('bkl-groesse');
+  groesse.value = '26';
+  groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+
+  pruefe('Schriftgroesse wirkt sofort (CSS-Variable gesetzt)',
+    doc.documentElement.style.getPropertyValue('--bkl-size') === '26px',
+    doc.documentElement.style.getPropertyValue('--bkl-size'));
+  pruefe('Wertanzeige neben dem Regler nachgefuehrt',
+    shadow.getElementById('bkl-groesse-w').textContent === '26px',
+    shadow.getElementById('bkl-groesse-w').textContent);
+  pruefe('Typografie-Aenderung baut die Folds NICHT neu auf (identischer Knoten)',
+    doc.querySelector('.bkl-fold') === foldVorher);
+
+  // (b) Von Hand aufgeklappte Stelle muss beim Verstellen offen bleiben.
+  const knopf = foldVorher.querySelector('.bkl-toggle');
+  knopf.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  pruefe('Fold laesst sich von Hand aufklappen', foldVorher.classList.contains('bkl-offen'));
+
+  groesse.value = '20';
+  groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  const farbe = shadow.getElementById('bkl-farbe');
+  farbe.value = 'dunkel';
+  farbe.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+
+  pruefe('aufgeklappte Stelle bleibt nach Schrift-/Farbwechsel offen',
+    foldVorher.classList.contains('bkl-offen') && foldVorher.isConnected);
+
+  // (c) Klammern-Schalter muss weiterhin neu aufbauen.
+  const klammern = shadow.getElementById('bkl-klammern');
+  klammern.checked = false;
+  klammern.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Klammern-Schalter aus: alle Folds entfernt',
+    doc.querySelectorAll('.bkl-fold').length === 0);
+  klammern.checked = true;
+  klammern.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Klammern-Schalter ein: Folds wieder aufgebaut',
+    doc.querySelectorAll('.bkl-fold').length === 12,
+    doc.querySelectorAll('.bkl-fold').length + ' Folds');
+
+  // (d) Lesemodus-Schalter baut ebenfalls neu auf.
+  const aktiv = shadow.getElementById('bkl-aktiv');
+  aktiv.checked = false;
+  aktiv.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Lesemodus aus: Folds entfernt und Klasse weg',
+    doc.querySelectorAll('.bkl-fold').length === 0 &&
+    !doc.documentElement.classList.contains('bkl-aktiv'));
+}
+
+/* ---------- 14. Speicher-Buendelung (Throttle mit fuehrender Kante) ---------- */
+console.log('\n[14] Speicher-Buendelung');
+{
+  const dom = new JSDOM(
+    '<!doctype html><html><body><div class="eit"><div class="paraatf">Test</div></div></body></html>',
+    { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true }
+  );
+  const SCHLUESSEL = 'bger-reader-einstellungen-v2';
+  const speicher = {};
+  let schreibvorgaenge = 0;
+  dom.window.chrome = {
+    storage: {
+      local: {
+        get: function (key, cb) { cb({}); },
+        set: function (paket) {
+          schreibvorgaenge++;
+          // Wie die echte API: Momentaufnahme ablegen, nicht die Referenz auf
+          // das weiterlaufende Einstellungsobjekt (sonst misst der Test nur
+          // den Endzustand).
+          Object.keys(paket).forEach(function (k) {
+            speicher[k] = JSON.parse(JSON.stringify(paket[k]));
+          });
+        }
+      }
+    }
+  };
+  dom.window.eval(SCRIPT);
+
+  const shadow = dom.window.document.getElementById('bkl-panel-host').shadowRoot;
+  const groesse = shadow.getElementById('bkl-groesse');
+
+  schreibvorgaenge = 0;
+
+  // Ein Reglerzug ueber den gesamten erlaubten Bereich (min=12, max=30):
+  // 19 Ereignisse unmittelbar hintereinander, erster Wert 12, letzter 30.
+  for (let px = 12; px <= 30; px++) {
+    groesse.value = String(px);
+    groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  }
+
+  pruefe('erster Wert wird sofort geschrieben (fuehrende Kante)',
+    schreibvorgaenge >= 1 && speicher[SCHLUESSEL] && speicher[SCHLUESSEL].schriftgroesse === 12,
+    JSON.stringify(speicher[SCHLUESSEL]));
+  pruefe('19 Reglerbewegungen erzeugen genau 1 Schreibvorgang',
+    schreibvorgaenge === 1, schreibvorgaenge + ' Schreibvorgaenge');
+
+  // Seite wird verlassen: ausstehender Wert muss nachgeschrieben werden.
+  dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+  pruefe('pagehide schreibt den ausstehenden Wert nach',
+    schreibvorgaenge === 2, schreibvorgaenge + ' Schreibvorgaenge');
+  pruefe('nachgeschrieben wird der ZULETZT eingestellte Wert (kein Datenverlust)',
+    speicher[SCHLUESSEL].schriftgroesse === 30, JSON.stringify(speicher[SCHLUESSEL]));
+
+  // Kein Schreibvorgang mehr offen -> weiteres pagehide darf nichts tun.
+  dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+  pruefe('kein doppeltes Schreiben ohne ausstehende Aenderung',
+    schreibvorgaenge === 2, schreibvorgaenge + ' Schreibvorgaenge');
+}
+
 /* ---------- Ergebnis ---------- */
 console.log('\n========================================');
 console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');

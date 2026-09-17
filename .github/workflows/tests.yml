@@ -1,0 +1,60 @@
+# Führt die Test-Suite bei jedem Push und jedem Pull Request aus.
+# Ergebnis erscheint als grüner Haken bzw. rotes Kreuz neben dem Commit
+# auf github.com – die Regel "vor dem Push muss die Suite grün sein" hängt
+# damit nicht mehr allein an Disziplin.
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: # erlaubt manuelles Starten über die GitHub-Oberfläche
+
+jobs:
+  # Pflichtlauf: ohne Fixtures, damit das Ergebnis nicht von der
+  # Erreichbarkeit von bger.ch abhängt. Deckt die Blöcke ausser [4], [6], [7] ab.
+  suite:
+    name: Test-Suite (ohne Fixtures)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: jsdom installieren (einzige Testabhängigkeit)
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: Syntaxprüfung des ausgelieferten Skripts
+        run: node --check extension/content.js
+
+      - name: Manifest ist gültiges JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
+
+      - name: Test-Suite
+        run: node test/test-runner.js
+
+  # Zusatzlauf: mit echten Entscheidseiten. Schlägt fehl, sobald bger.ch nicht
+  # erreichbar ist oder sein HTML ändert – das ist wertvolle Information, darf
+  # aber den Pflichtlauf nicht blockieren, deshalb continue-on-error.
+  suite-fixtures:
+    name: Test-Suite (mit echten Entscheidseiten, nicht blockierend)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: jsdom installieren
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: Fixtures laden
+        run: bash tools/fetch-fixtures.sh
+
+      - name: Test-Suite mit Fixtures
+        run: node test/test-runner.js

@@ -977,29 +977,127 @@
     shadow.getElementById('bkl-klammern').checked = einstellungen.klammern;
   }
 
+  /* ---------- Reaktion auf Bedienung: drei Pfade nach Aufwand ----------
+     Die drei Teilschritte kosten sehr unterschiedlich viel, deshalb laufen
+     sie nicht mehr pauschal zusammen:
+
+     1. wendeStileAn() setzt nur CSS-Variablen auf <html>. Ein gutes Dutzend
+        Zuweisungen, den Rest rechnet der Browser im Layout. Laeuft bei JEDER
+        Reglerbewegung sofort und ungedrosselt – hier wird bewusst nichts
+        verzoegert, sonst fuehlt sich der Regler traege an.
+     2. verarbeiteKlammern() reisst die Folds aller Entscheidabsaetze ab und
+        baut sie neu auf (TreeWalker + Range ueber das ganze Dokument). Das
+        Ergebnis haengt ausschliesslich an `aktiv` und `klammern`; Schriftart,
+        Groesse, Abstaende und Farbschema aendern daran nichts. Frueher lief
+        es bei jedem Regler-Pixel mit, jetzt nur noch beim Umschalten dieser
+        beiden Einstellungen.
+        Nebeneffekt, der vorher fehlte: von Hand aufgeklappte Klammern
+        bleiben offen, wenn die Schrift verstellt wird.
+     3. speichereEinstellungen() schreibt in chrome.storage.local. Gebuendelt,
+        siehe speichereGebuendelt() – das ist der einzige gedrosselte Teil und
+        fuer das Auge unsichtbar.
+  */
+
+  /* Schreibzugriffe buendeln (Throttle mit fuehrender Kante):
+     Der erste Wert geht sofort raus, damit der gespeicherte Zustand auch bei
+     einem Abbruch mitten im Ziehen stimmt. Weitere Aenderungen innerhalb des
+     Fensters werden zu einem einzigen Schreibvorgang am Fensterende
+     zusammengefasst; der zuletzt eingestellte Wert landet immer im Speicher.
+     Bewusst KEIN klassisches Debouncing der Anzeige: gedrosselt wird nur der
+     Speicher-I/O, nie die Darstellung. */
+  const SPEICHER_ABSTAND = 400; // ms
+  let speicherTimer = null;
+  let letzteSpeicherung = 0;
+
+  function speichereGebuendelt() {
+    if (speicherTimer !== null) return; // Nachschreiben ist bereits geplant
+    const seit = Date.now() - letzteSpeicherung;
+    if (seit >= SPEICHER_ABSTAND) {
+      letzteSpeicherung = Date.now();
+      speichereEinstellungen();
+      return;
+    }
+    speicherTimer = setTimeout(function () {
+      speicherTimer = null;
+      letzteSpeicherung = Date.now();
+      speichereEinstellungen();
+    }, SPEICHER_ABSTAND - seit);
+  }
+
+  function speichereSofort() {
+    if (speicherTimer !== null) { clearTimeout(speicherTimer); speicherTimer = null; }
+    letzteSpeicherung = Date.now();
+    speichereEinstellungen();
+  }
+
+  /* Seite wird verlassen/versteckt: ausstehenden Schreibvorgang nachholen,
+     damit der letzte Reglerwert nicht im offenen Zeitfenster verlorengeht. */
+  window.addEventListener('pagehide', function () {
+    if (speicherTimer !== null) speichereSofort();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden' && speicherTimer !== null) speichereSofort();
+  });
+
+  /* Nur die Zahl neben dem bewegten Regler nachfuehren statt aller
+     14 Bedienelemente wie in aktualisiereAnzeige(). */
+  const WERTANZEIGE = {
+    'bkl-groesse':       function (e) { return e.schriftgroesse + 'px'; },
+    'bkl-zeilenabstand': function (e) { return String(e.zeilenabstand); },
+    'bkl-buchstaben':    function (e) { return (+e.buchstabenabstand).toFixed(1) + 'px'; },
+    'bkl-worte':         function (e) { return (+e.wortabstand).toFixed(1) + 'px'; },
+    'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? 'aus' : String(e.zeilenlaenge); },
+    'bkl-spalte':        function (e) { return e.spaltenbreite + 'px'; }
+  };
+
+  function wertAnzeigen(id) {
+    const f = WERTANZEIGE[id];
+    if (!f) return;
+    const el = shadow.getElementById(id + '-w');
+    if (el) el.textContent = f(einstellungen);
+  }
+
+  /* Pfad A – Typografie und Farben: Darstellung sofort, Folds unberuehrt. */
+  function stilGeaendert(id) {
+    wendeStileAn();
+    wertAnzeigen(id);
+    speichereGebuendelt();
+  }
+
+  /* Pfad B – aktiv/klammern: hier aendert sich, WELCHE Klammern eingeklappt
+     sind, also muessen die Folds neu aufgebaut werden. */
+  function aufbauGeaendert() {
+    wendeStileAn();
+    verarbeiteKlammern();
+    speichereGebuendelt();
+  }
+
+  /* Pfad C – Zuruecksetzen: alles neu, inklusive aller Bedienelemente, und
+     sofort speichern (kein Buendeln noetig, das ist ein Einzelereignis). */
   function allesAnwenden() {
     wendeStileAn();
     verarbeiteKlammern();
     aktualisiereAnzeige();
-    speichereEinstellungen();
+    speichereSofort();
   }
 
   function bei(id, event, fn) {
     shadow.getElementById(id).addEventListener(event, fn);
   }
 
-  bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; allesAnwenden(); });
-  bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; allesAnwenden(); });
-  bei('bkl-art', 'change', function (e) { einstellungen.schriftart = e.target.value; allesAnwenden(); });
-  bei('bkl-staerke', 'change', function (e) { einstellungen.schriftstaerke = e.target.value; allesAnwenden(); });
-  bei('bkl-zeilenabstand', 'input', function (e) { einstellungen.zeilenabstand = +e.target.value; allesAnwenden(); });
-  bei('bkl-buchstaben', 'input', function (e) { einstellungen.buchstabenabstand = +e.target.value; allesAnwenden(); });
-  bei('bkl-worte', 'input', function (e) { einstellungen.wortabstand = +e.target.value; allesAnwenden(); });
-  bei('bkl-laenge', 'input', function (e) { einstellungen.zeilenlaenge = +e.target.value; allesAnwenden(); });
-  bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; allesAnwenden(); });
-  bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; allesAnwenden(); });
-  bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; allesAnwenden(); });
-  bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; allesAnwenden(); });
+  bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; aufbauGeaendert(); });
+  bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; aufbauGeaendert(); });
+
+  bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; stilGeaendert('bkl-groesse'); });
+  bei('bkl-art', 'change', function (e) { einstellungen.schriftart = e.target.value; stilGeaendert('bkl-art'); });
+  bei('bkl-staerke', 'change', function (e) { einstellungen.schriftstaerke = e.target.value; stilGeaendert('bkl-staerke'); });
+  bei('bkl-zeilenabstand', 'input', function (e) { einstellungen.zeilenabstand = +e.target.value; stilGeaendert('bkl-zeilenabstand'); });
+  bei('bkl-buchstaben', 'input', function (e) { einstellungen.buchstabenabstand = +e.target.value; stilGeaendert('bkl-buchstaben'); });
+  bei('bkl-worte', 'input', function (e) { einstellungen.wortabstand = +e.target.value; stilGeaendert('bkl-worte'); });
+  bei('bkl-laenge', 'input', function (e) { einstellungen.zeilenlaenge = +e.target.value; stilGeaendert('bkl-laenge'); });
+  bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; stilGeaendert('bkl-spalte'); });
+  bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; stilGeaendert('bkl-silben'); });
+  bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; stilGeaendert('bkl-farbe'); });
   bei('bkl-reset', 'click', function () {
     einstellungen = Object.assign({}, STANDARDS);
     allesAnwenden();

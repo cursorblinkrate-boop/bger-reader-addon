@@ -1,4 +1,6 @@
 # Barrierefreie Bundesgerichtsentscheide
+
+[![Tests](https://github.com/cursorblinkrate-boop/bger-reader-addon/actions/workflows/tests.yml/badge.svg)](https://github.com/cursorblinkrate-boop/bger-reader-addon/actions/workflows/tests.yml)
 # Accessibility tool for Swiss Federal Supreme Court decisions
 # Browser-Extension for Chrome / Brave
 

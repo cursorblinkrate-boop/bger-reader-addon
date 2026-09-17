@@ -26,7 +26,7 @@ extension/content.js      ~1020 Zeilen, ALLES in einer Datei: Einklapp-Logik,
 extension/manifest.json   Manifest V3, Version hier bumpen
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
 extension/icons/          icon16/48/128.png (pinkes Buch-Icon)
-test/test-runner.js       ~800 Zeilen, Suite ohne Framework, Blöcke [1]–[12]
+test/test-runner.js       ~940 Zeilen, Suite ohne Framework, Blöcke [1]–[14]
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
 test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
@@ -35,6 +35,9 @@ test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
                           bger_relevancy.html (BGE 152 IV 1, relevancy)
 tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
                           mit Plausibilitätscheck
+.github/workflows/        CI: Suite läuft bei jedem Push automatisch auf
+                          GitHub (Pflichtlauf ohne Fixtures, Zusatzlauf mit
+                          Fixtures nicht blockierend)
 archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
                           Userscript v2.1.0) – NICHT pflegen, nicht als Vorlage
                           nehmen, Änderungen nur in extension/content.js
@@ -44,13 +47,15 @@ archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
   cd bger-reader-addon
   bash tools/fetch-fixtures.sh
   cd test && npm install jsdom && node test-runner.js
-Erwartung: 150/150 grün. Ohne Fixtures deckt die Suite nur ~87 % ab
+Erwartung: 164/164 grün. Ohne Fixtures sind es 144/144
 (Blöcke [4], [6], [7] werden übersprungen) — also immer erst Fixtures laden.
 jsdom ist die einzige Test-Abhängigkeit.
 
 == REGELN ==
-1. Vor jedem Push: volle Suite 150/150. Bei DOM-/Panel-Änderungen zusätzlich
-   node test/render-check.js.
+1. Vor jedem Push: volle Suite 164/164. Bei DOM-/Panel-Änderungen zusätzlich
+   node test/render-check.js. GitHub führt die Suite nach dem Push nochmals
+   aus (.github/workflows/tests.yml); das ersetzt den lokalen Lauf nicht,
+   sondern sichert ihn ab.
 2. Nutzersichtbare Änderung = Version in extension/manifest.json erhöhen
    (Patch-Stelle, aktuell 0.5.x). Reine Test-/Tool-Commits ohne Bump.
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
