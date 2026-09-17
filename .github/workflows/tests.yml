@@ -16,11 +16,13 @@ jobs:
     name: Test-Suite (ohne Fixtures)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # v5 ist die erste Version, die auf Node 24 läuft; v4 löst auf den
+      # Runnern eine Deprecation-Warnung aus. Node 22 = aktuelles LTS.
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: jsdom installieren (einzige Testabhängigkeit)
         working-directory: test
@@ -43,11 +45,11 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: jsdom installieren
         working-directory: test
