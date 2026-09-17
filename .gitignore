@@ -1,0 +1,18 @@
+# Test-Abhaengigkeiten (jsdom wird bei Bedarf per npm install geladen,
+# siehe STARTPROMPT.md – bewusst kein npm-Manifest im Repo)
+test/node_modules/
+test/package.json
+test/package-lock.json
+
+# Echte Entscheidseiten als Testvorlagen: gross und nicht zu committen,
+# werden per tools/fetch-fixtures.sh geladen
+test/fixtures/
+
+# Screenshot-Ausgabe von test/render-check.js (nur zum manuellen Sichten)
+test/render/
+
+# Lokale Font-Werkzeug-Umgebung (tools/subset-fonts.py)
+.venv-fonts/
+
+# Betriebssystem-Artefakte
+.DS_Store
