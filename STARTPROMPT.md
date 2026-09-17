@@ -22,8 +22,12 @@ extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
                           Konstanten POLITIK am Anfang des Regelkerns),
                           Shadow-DOM-Panel (pinkfarbener Button unten rechts),
                           Panel-CSS als Template-Literal (const panelCss),
-                          Inline-SVG-Icons (svgIcon() + ICONS-Map, Marken-Icon
-                          ICON_BUCH_SMILE), chrome.storage.local-Persistenz
+                          Inline-SVG-Icons: ICONS-Map = Colibre-Icons aus
+                          LibreOffice (CC0, extension/icons/LICENSES.md),
+                          Marken-Icon ICON_MARKE (pinkes Buch, gefüllt),
+                          Pink-Button ICON_BUCH_SMILE (weisser Strich),
+                          eigene Tooltips nach 3 s (data-tooltip, kein title),
+                          chrome.storage.local-Persistenz
 extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
                           nie von Hand ändern (siehe tools/version.js)
 extension/background.js   Service Worker/Event-Seite: Icon-Klick oeffnet
@@ -33,8 +37,10 @@ extension/popup.html/.css/.js  Einstellungen im mittigen Fenster: gleiche
                           Bedienelemente wie das Seiten-Panel, Sync mit der
                           Seite ueber storage.onChanged (keine neuen Rechte)
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
-extension/icons/          icon16/48/128.png (pinkes Buch-Icon)
-test/test-runner.js       Suite ohne Framework, nummerierte Blöcke
+extension/icons/          icon16/48/128.png (pinkes Buch-Icon), LICENSES.md
+test/test-runner.js       Suite ohne Framework, 7 nummerierte Blöcke, bewusst
+                          kompakt (~80 Prüfungen): ein Test pro Sachverhalt,
+                          Fehlschläge nennen die betroffenen Fälle
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
 test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
@@ -72,8 +78,9 @@ archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
   cd test && npm install jsdom && node test-runner.js
 Erwartung: „0 fehlgeschlagen". Die Gesamtzahl wächst mit jedem neuen Test
 und ist bewusst nirgends festgeschrieben — Massstab ist immer nur, dass
-nichts fehlschlägt. Ohne Fixtures werden die Blöcke [4], [6], [7]
-übersprungen, also immer erst Fixtures laden.
+nichts fehlschlägt. Ohne Fixtures wird Block [3] übersprungen, also immer
+erst Fixtures laden. Die Suite bleibt klein (Ziel: unter 150 Prüfungen) —
+neue Prüfungen zusammenfassen, nicht je Detail eine eigene.
 jsdom ist die einzige Test-Abhängigkeit.
 
 == REGELN ==
@@ -84,7 +91,7 @@ jsdom ist die einzige Test-Abhängigkeit.
 2. Nutzersichtbare Änderung = Version erhöhen, IMMER mit
    `node tools/version.js patch` (bzw. minor/major) — nie von Hand im
    Manifest. Das Werkzeug legt zugleich den CHANGELOG-Eintrag an, dessen
-   TODO-Zeile vor dem Push ausgefüllt werden muss (Block [15] prüft das).
+   TODO-Zeile vor dem Push ausgefüllt werden muss (Block [6] prüft das).
    Reine Test-/Tool-Commits ohne Bump.
    Paket bauen: `bash tools/release.sh` -> dist/bger-reader-<version>.zip
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
@@ -107,7 +114,10 @@ jsdom ist die einzige Test-Abhängigkeit.
 == BEKANNTE FALLSTRICKE ==
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,
   Panel-CSS muss ins shadow.innerHTML.
-- Test-Block [9] prüft nur, dass ein <svg> im Button existiert, nicht welches.
+- Beschriftungen laut Skizze der Autorin (v0.7.0): „bger reader" klein,
+  „einschalten", „Hintergrund", „einfach", „erweitert" — Block [4] prüft sie.
+- Pop-up und Panel duplizieren Markup/Icons bewusst (kein Build-Schritt);
+  Block [7] prüft, dass beide identisch bleiben.
 - Fixtures sind gross und bewusst nicht committed (Lizenz/Grösse) — niemals
   committen, nur über tools/fetch-fixtures.sh laden.
 

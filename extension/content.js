@@ -420,7 +420,10 @@
     spaltenbreite: 625,         // px – Breite der Haarlinien-Textspalte (Seiten-Standard: 625)
     silbentrennung: false,
     farbschema: 'hell',         // hell | sepia | dunkel | kontrast | nacht
-    klammern: true              // Easy-Mode: Klammern nach festem Regelsatz einklappen
+    klammern: true,             // „einfach": Klammern nach festem Regelsatz einklappen
+    ausrichtung: 'links',       // links | mittig | rechts | blocksatz
+    spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
+    absatzabstand: 0            // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
   };
 
   /* Speicher-Strategie (Privacy: 100 % offline, nichts verlässt das Gerät):
@@ -488,26 +491,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(einstellungen));
       }
     } catch (e) { /* Speichern ist schön, aber nicht kritisch */ }
-  }
-
-  /* Klammer-Zähler für das mittige Pop-up-Fenster veröffentlichen (gleicher
-     lokaler Speicher, getrennter Schlüssel): das Fenster zeigt ihn an, ohne
-     dass Nachrichten an Tabs oder zusätzliche Rechte nötig wären. */
-  const ZAEHLER_SCHLUESSEL = 'bger-reader-zaehler';
-
-  function publiziereZaehler(anzahl) {
-    if (!extensionStorage) return; // jsdom/localStorage-Fallback: kein Fenster-Publikum
-    try {
-      const paket = {};
-      paket[ZAEHLER_SCHLUESSEL] = { anzahl: anzahl, zeit: Date.now() };
-      if (verwendetPromises) {
-        extensionStorage.set(paket).catch(function () {});
-      } else {
-        extensionStorage.set(paket, function () {
-          if (extensionApi.runtime && extensionApi.runtime.lastError) return;
-        });
-      }
-    } catch (e) { /* Zähler-Anzeige ist nett, nicht kritisch */ }
   }
 
   /* ================================================================== */
@@ -613,6 +596,29 @@
       max-width: var(--bkl-maxw) !important;
       margin-left: auto !important;
       margin-right: auto !important;
+    }
+
+    /* Ausrichtung: NUR bei Abweichung vom Seiten-Standard (linksbündig),
+       Klasse bkl-ausrichtung auf <html>. */
+    html.bkl-aktiv.bkl-ausrichtung div.paraatf,
+    html.bkl-aktiv.bkl-ausrichtung div.para {
+      text-align: var(--bkl-align) !important;
+    }
+
+    /* Absatzabstand: NUR wenn eingestellt (> 0 em), Klasse bkl-absatz auf <html>. */
+    html.bkl-aktiv.bkl-absatz div.paraatf,
+    html.bkl-aktiv.bkl-absatz div.para {
+      margin-bottom: var(--bkl-absatz) !important;
+    }
+
+    /* Textspalten (Zeitungssatz): der gemeinsame Elternknoten aller
+       Entscheidabsätze erhält zur Laufzeit die Klasse bkl-spalten-container
+       (siehe spaltenContainerSetzen) – NUR bei 2 oder 3 Spalten. Absätze
+       dürfen über Spalten hinweg umbrechen (Erwägungen sind lang). */
+    html.bkl-aktiv .bkl-spalten-container {
+      column-count: var(--bkl-spalten) !important;
+      column-gap: 2.5em !important;
+      column-rule: 1px solid var(--bkl-border) !important;
     }
 
     /* Spaltenbreite (Haarlinien-Box): das Seiten-CSS fixiert div.eit .middle auf 625px.
@@ -726,10 +732,38 @@
     nacht:   { bg: '#2b1518', fg: '#f3e3e3', link: '#ffb3c1', border: '#7a4a52', tbg: '#432227', tfg: '#f3e3e3' }
   };
 
+  const AUSRICHTUNGEN = { links: 'left', mittig: 'center', rechts: 'right', blocksatz: 'justify' };
+
+  /* Textspalten: column-count muss auf dem gemeinsamen Elternknoten der
+     Entscheidabsätze liegen (auf den Absätzen selbst würde jeder Absatz für
+     sich in Spalten zerfallen). Der Knoten wird einmal gesucht und gemerkt;
+     ohne Spalten wird die Klasse wieder entfernt (Layout-Neutralität). */
+  let spaltenContainer = null;
+
+  function spaltenContainerSetzen(an) {
+    if (!an) {
+      if (spaltenContainer) spaltenContainer.classList.remove('bkl-spalten-container');
+      spaltenContainer = null;
+      return;
+    }
+    if (spaltenContainer && spaltenContainer.isConnected) return;
+    const bloecke = entscheidBloecke();
+    if (!bloecke.length) return;
+    let el = bloecke[0].parentNode;
+    while (el && el !== document.body &&
+           !bloecke.every(function (b) { return el.contains(b); })) {
+      el = el.parentNode;
+    }
+    if (!el || el === document.body || el === document.documentElement) return;
+    spaltenContainer = el;
+    el.classList.add('bkl-spalten-container');
+  }
+
   function wendeStileAn() {
     const html = document.documentElement;
     const e = einstellungen;
     const farben = FARBSCHEMATA[e.farbschema] || FARBSCHEMATA.hell;
+    if (!AUSRICHTUNGEN[e.ausrichtung]) e.ausrichtung = STANDARDS.ausrichtung;
 
     /* Abwärtskompatibilität/Defensive: unbekannte gespeicherte Werte
        (z. B. aus älteren Versionen) auf den Standard zurückfallen lassen,
@@ -743,6 +777,9 @@
        (625px Spalte, keine Zeilenlängen-Begrenzung) aktivieren. */
     html.classList.toggle('bkl-maxw', e.aktiv && e.zeilenlaenge > 0);
     html.classList.toggle('bkl-breite', e.aktiv && e.spaltenbreite !== STANDARDS.spaltenbreite);
+    html.classList.toggle('bkl-ausrichtung', e.aktiv && e.ausrichtung !== STANDARDS.ausrichtung);
+    html.classList.toggle('bkl-absatz', e.aktiv && e.absatzabstand > 0);
+    spaltenContainerSetzen(e.aktiv && e.spalten > 1);
     html.style.setProperty('--bkl-font', SCHRIFTARTEN[e.schriftart]);
     html.style.setProperty('--bkl-size', e.schriftgroesse + 'px');
     html.style.setProperty('--bkl-lh', e.zeilenabstand);
@@ -752,6 +789,9 @@
     html.style.setProperty('--bkl-maxw', e.zeilenlaenge > 0 ? e.zeilenlaenge + 'ch' : 'none');
     html.style.setProperty('--bkl-spalte', e.spaltenbreite + 'px');
     html.style.setProperty('--bkl-hyphens', e.silbentrennung ? 'auto' : 'manual');
+    html.style.setProperty('--bkl-align', AUSRICHTUNGEN[e.ausrichtung]);
+    html.style.setProperty('--bkl-absatz', e.absatzabstand + 'em');
+    html.style.setProperty('--bkl-spalten', String(e.spalten));
     html.style.setProperty('--bkl-bg', farben.bg);
     html.style.setProperty('--bkl-fg', farben.fg);
     html.style.setProperty('--bkl-link', farben.link);
@@ -771,24 +811,11 @@
   function verarbeiteKlammern() {
     BGerReader.allesAufklappenUndEntfernen();
 
-    if (!einstellungen.aktiv || !einstellungen.klammern) { aktualisiereZaehler(0); return; }
+    if (!einstellungen.aktiv || !einstellungen.klammern) return;
 
-    let anzahl = 0;
     entscheidBloecke().forEach(function (block) {
-      anzahl += BGerReader.blockVerarbeiten(block);
+      BGerReader.blockVerarbeiten(block);
     });
-    aktualisiereZaehler(anzahl);
-  }
-
-  function aktualisiereZaehler(anzahl) {
-    publiziereZaehler(anzahl); // Spiegel für das Pop-up-Fenster
-    const z = shadow.getElementById('bkl-zaehler');
-    if (!z) return;
-    z.textContent = anzahl > 0
-      ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' eingeklappt (Pfeil ▸ anklicken zum Aufklappen).'
-      : (einstellungen.aktiv && einstellungen.klammern
-        ? 'Keine Klammern eingeklappt. Regel: Fundstellen (Rechtsprechung, Literatur) werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen.'
-        : '');
   }
 
   /* ================================================================== */
@@ -801,33 +828,53 @@
 
   const shadow = host.attachShadow({ mode: 'open' });
 
-  /* Inline-SVG-Icons (selbst gezeichnet, einfache Pfade, kein Icon-Font,
-     keine externe Ressource). stroke="currentColor" -> färbt sich mit dem Text. */
+  /* Inline-SVG-Icons: die Strich-Symbole (Schliessen-X, Pfeil) sind selbst
+     gezeichnet, stroke="currentColor" -> färben sich mit dem Text. */
   function svgIcon(pfad) {
     return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" ' +
       'stroke="currentColor" stroke-width="1.6" stroke-linecap="square" ' +
       'aria-hidden="true" focusable="false"><path d="' + pfad + '"/></svg>';
   }
+  const PFAD_SCHLIESSEN = 'M3 3 L13 13 M13 3 L3 13';
+  const PFAD_PFEIL = 'M6 4 L10 8 L6 12';
 
+  /* Zeilen-Icons: Colibre, das Standard-Icon-Thema von LibreOffice
+     (icon-themes/colibre_svg/cmd, 16x16, Lizenz CC0 – siehe
+     extension/icons/LICENSES.md). Unverändert bis auf Rundung der
+     Koordinaten und entfernte Namensräume; eigene Farben (Grau/Blau),
+     daher kein currentColor. Dieselben Strings stehen in popup.html. */
   const ICONS = {
-    schliessen:  'M3 3 L13 13 M13 3 L3 13',
-    buch:        'M2 4 c2 -1.3 4 -1.3 6 0 c2 -1.3 4 -1.3 6 0 v9 c-2 -1.3 -4 -1.3 -6 0 c-2 -1.3 -4 -1.3 -6 0 z M8 4 v9',
-    groesse:     'M2 12.5 L5.5 3.5 L9 12.5 M3.4 9.5 h4.2 M12.5 3.5 v9 M12.5 3.5 l-1.5 2 M12.5 3.5 l1.5 2 M12.5 12.5 l-1.5 -2 M12.5 12.5 l1.5 -2',
-    art:         'M1.5 12.5 L4 4.5 L6.5 12.5 M2.6 10 h2.8 M9 12.5 v-5 a2.5 2.5 0 0 1 5 0 v5 M9 10.5 h5',
-    farbe:       'M8 2 C8 2 3.5 7.5 3.5 10 a4.5 4.5 0 0 0 9 0 C12.5 7.5 8 2 8 2 z',
-    staerke:     'M4.5 2.5 h3.5 a3 3 0 0 1 0 6 h-3.5 z M4.5 8.5 h4.5 a3 3 0 0 1 0 6 h-4.5 z',
-    zeilen:      'M6 4 h8 M6 8 h8 M6 12 h8 M2.5 3 v10 M2.5 3 L1 4.5 M2.5 3 L4 4.5 M2.5 13 L1 11.5 M2.5 13 L4 11.5',
-    buchstaben:  'M1 12.5 L3.5 4.5 L6 12.5 M2 10 h3 M10 12.5 L12.5 4.5 L15 12.5 M11 10 h3 M6.8 8.5 h2.4',
-    worte:       'M1 5 h5 M1 9 h5 M10 5 h5 M10 9 h5 M7 7 h2 M7 7 l1 -1.2 M7 7 l1 1.2 M9 7 l-1 -1.2 M9 7 l-1 1.2',
-    laenge:      'M2 4 h12 M2 8 h8 M2 12 h10',
-    spalte:      'M2 3 h12 v10 h-12 z M5.5 3 v10 M10.5 3 v10',
-    silben:      'M2 4 h12 M2 8 h5 M9 8 h5 M2 12 h12',
-    klammer:     'M6 3 c-2 1 -2.5 3 -2.5 5 s0.5 4 2.5 5 M10 3 c2 1 2.5 3 2.5 5 s-0.5 4 -2.5 5',
-    pfeil:       'M6 4 L10 8 L6 12'
+    buch:       '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m13 1v2h2v-1l-1.05-1z" fill="#fafafa"/><path d="m9 1v14h6v-12l-2.02-2z" fill="#fafafa"/><path d="m9 0c-0.55 0-1 0.45-1 1v14c0 0.55 0.45 1 1 1h6c0.55 0 1-0.45 1-1v-10.96-0.04-1-0.41l-2.59-2.59h-0.41-1zm0 1h3v2.5c0 0.28 0.22 0.5 0.5 0.5h0.5 2v11h-6zm4 0 2 2h-2z" fill="#3a3a38" fill-rule="evenodd"/><g transform="matrix(-1 0 0 1 16 0)"><path d="m13 1v2h2v-1l-1.05-1z" fill="#fafafa"/><path d="m9 1v14h6v-12l-2.02-2z" fill="#fafafa"/><path d="m9 0c-0.55 0-1 0.45-1 1v14c0 0.55 0.45 1 1 1h6c0.55 0 1-0.45 1-1v-10.96-0.04-1-0.41l-2.59-2.59h-0.41-1zm0 1h3v2.5c0 0.28 0.22 0.5 0.5 0.5h0.5 2v11h-6zm4 0 2 2h-2z" fill="#3a3a38" fill-rule="evenodd"/></g></svg>',
+    groesse:    '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7.39 1-5.17 14h1.26c0.16 0 0.3-0.05 0.41-0.14 0.12-0.09 0.2-0.2 0.24-0.32l1.23-3.54h5.28l1.23 3.54c0.04 0.12 0.12 0.23 0.24 0.32 0.11 0.09 0.25 0.14 0.41 0.14h1.26l-3.74-10.11c-0.54 0.2-1.18 0.1-1.61-0.33-0.02-0.02-0.04-0.05-0.06-0.07l1.92 5.52h-4.59l2.02-5.82c0.06-0.17 0.13-0.37 0.2-0.6 0.02-0.08 0.05-0.17 0.07-0.25 0.01 0.02 0.01 0.04 0.02 0.06 0.03-0.35 0.16-0.69 0.42-0.95l0.51-0.51-0.34-0.93h-0.61z" fill="#3a3a38"/><path d="m12.5 7c-0.28 0-0.5-0.22-0.5-0.5v-4.79l-2.15 2.15c-0.2 0.2-0.51 0.2-0.71 0-0.2-0.2-0.2-0.51 0-0.71l3-3c0.1-0.1 0.23-0.15 0.35-0.15 0.06 0 0.13 0.01 0.19 0.04 0.06 0.02 0.12 0.06 0.17 0.11l3 3c0.2 0.2 0.2 0.51 0 0.71-0.2 0.2-0.51 0.2-0.71 0l-2.15-2.15v4.79c0 0.28-0.22 0.5-0.5 0.5z" fill="#1e8bcd"/></svg>',
+    art:        '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7.06 1-5.06 14h1.45c0.16 0 0.29-0.05 0.4-0.14 0.12-0.09 0.2-0.2 0.24-0.32l0.86-2.54h6.12l0.87 2.55c0.05 0.13 0.13 0.24 0.23 0.32 0.1 0.09 0.24 0.13 0.4 0.13h1.45l-5.05-14zm0.94 1.83c0.06 0.26 0.13 0.51 0.2 0.74 0.07 0.23 0.14 0.43 0.21 0.6l1.98 5.84h-4.76l1.98-5.82c0.06-0.17 0.13-0.37 0.2-0.6 0.07-0.23 0.14-0.48 0.21-0.75z" fill="#3a3a38"/></svg>',
+    farbe:      '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill-rule="evenodd"><path d="m7 4-1.02 0.02-3.98-0.02c-0.93 0.07-1.26 0.25-1.81 1.07-0.24 0.5-0.19 1.01-0.19 1.11l-0.01 5.82c1.23-0.67 2.19-1.4 3-2.5 0-0.95-0.01-0.99 0.01-2.85-0.01-0.74 0.56-0.88 0.99-1.15z" fill="#0063b1"/><path d="m2.06 4.99c-0.39 0.03-0.54 0.07-0.61 0.12-0.06 0.04-0.19 0.18-0.38 0.44-0.04 0.1-0.07 0.2-0.08 0.3-0.01 0.12 0 0.14 0 0.3a0.99 0.99 0 0 1 0 0.03l0 3.72c0.32-0.28 0.74-0.49 1.01-0.84 0-0.62-0.01-0.86 0.01-2.41-0.01-0.62 0.33-1.23 0.69-1.53 0.1-0.08 0.12-0.08 0.21-0.13z" fill="#83beec"/></g><path d="m10.5 3-6 3 3.5 7 6-3z" fill="#3a3a38"/><path d="m10.18 3.97-4.71 2.36 2.86 5.71 4.71-2.36z" fill="#fafafa"/><path d="m8.5 8v-5.5c0-2.83 4-2.5 4 0v3.5" fill="none" stroke="#3a3a38"/></svg>',
+    spalte:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m10 1h-4v6.11c0.24 0.08 0.46 0.21 0.62 0.39 0.27 0.3 0.38 0.67 0.38 1.01s-0.11 0.71-0.38 1.01c-0.16 0.18-0.38 0.31-0.62 0.39v5.08h4v-5.09c-0.24-0.08-0.46-0.22-0.62-0.39-0.27-0.3-0.38-0.66-0.38-1.01s0.11-0.71 0.38-1.01c0.16-0.18 0.38-0.31 0.62-0.39z" fill="#fafafa"/><path d="m11 0h-1-5v1h5v4h-4v-4h-1v4 0.36c0 0.03 0.01 0.05 0.01 0.07 0 0.06-0.01 0.12-0.01 0.18v0.38 1.01h0.48c0.17 0 0.35 0.03 0.52 0.09v-1.11h4v1.1c0.17-0.06 0.35-0.1 0.52-0.09h0.48v-1.4c-0.01-0.06-0.02-0.12-0.01-0.18 0-0.03 0.01-0.05 0.01-0.07zm0 10h-0.48c-0.17 0-0.35-0.03-0.52-0.09v1.09h-4v-1.08c-0.17 0.06-0.35 0.1-0.52 0.09h-0.48v0.99 0.33c0.01 0.09 0.02 0.17 0.02 0.25 0 0.04-0.01 0.08-0.02 0.11v3.3h1v-3h4v3h-5v1h5 1v-4.31c-0.01-0.04-0.02-0.07-0.02-0.11 0-0.08 0.01-0.17 0.02-0.25z" fill="#3a3a38"/><g fill="#1e8bcd" fill-rule="evenodd"><path d="m16 8.48c0-0.16-0.08-0.3-0.2-0.39l-2.95-2.94c-0.47-0.47-1.18 0.24-0.71 0.71l2.14 2.14-3.78 0.01c-0.68-0.01-0.68 1.01 0 1l3.78-0.01-2.14 2.15c-0.49 0.47 0.24 1.2 0.71 0.7l2.95-2.96c0.13-0.1 0.2-0.25 0.2-0.4z"/><path d="m0 8.49c0-0.16 0.08-0.3 0.2-0.39l2.95-2.94c0.47-0.47 1.18 0.24 0.71 0.71l-2.14 2.14 3.78 0.01c0.68-0.01 0.68 1.01 0 1l-3.78-0.01 2.14 2.15c0.49 0.47-0.24 1.2-0.71 0.7l-2.95-2.96c-0.13-0.1-0.2-0.25-0.2-0.4z"/></g></svg>',
+    klammer:    '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m6 0c-1.1 0-2 0.9-2 2v12c0 1.1 0.9 2 2 2h1v-1h-1c-0.55 0-1-0.45-1-1v-8.28-3.72c0-0.55 0.43-1 1-1h1v-1zm3 0v1h1c0.55 0 1 0.45 1 1v3.72 8.28c0 0.55-0.45 1-1 1h-1v1h1c1.1 0 2-0.9 2-2v-12c0-1.1-0.62-2-2-2z" fill="#1e8bcd"/></svg>',
+    staerke:    '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m3 15v-14h4.75c0.9 0 1.67 0.09 2.31 0.26 0.64 0.18 1.16 0.43 1.56 0.75 0.41 0.32 0.7 0.72 0.89 1.18 0.19 0.46 0.28 0.97 0.28 1.54 0 0.32-0.05 0.64-0.14 0.94-0.09 0.3-0.23 0.58-0.42 0.84-0.19 0.26-0.44 0.5-0.74 0.72-0.3 0.21-0.66 0.26-1.08 0.41 1.81 0.44 2.72 1.59 2.72 3.22 0 0.6-0.11 1.15-0.33 1.66-0.22 0.51-0.54 0.95-0.96 1.32-0.41 0.37-0.93 0.65-1.55 0.86-0.61 0.2-1.31 0.31-2.11 0.31zm3-6.21v3.93h2.13c0.44 0 0.81-0.06 1.11-0.17 0.3-0.11 0.53-0.26 0.7-0.45 0.18-0.19 0.3-0.41 0.37-0.65 0.07-0.25 0.11-0.51 0.11-0.78 0-0.29-0.04-0.55-0.13-0.78-0.08-0.23-0.21-0.43-0.39-0.59-0.18-0.16-0.41-0.28-0.71-0.37-0.29-0.09-0.64-0.14-1.06-0.14zm0-1.91h1.58c0.78 0 1.38-0.15 1.8-0.44 0.42-0.3 0.63-0.8 0.63-1.49 0-0.72-0.18-1.22-0.55-1.51-0.37-0.3-0.94-0.44-1.73-0.44h-1.74z" fill="#3a3a38"/></svg>',
+    zeilen:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="7" y="3"/><rect height="1" ry="0.44" width="7" x="7" y="9"/><rect height="1" ry="0.5" width="8" x="7" y="12"/><rect height="1" ry="0.48" width="8" x="7" y="6"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m0 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m0 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg>',
+    buchstaben: '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m3.75 0-3.75 10h0.88l0.85-0.85 0.76-2.15c0 0 0.01 0 0.01 0h3.92l0.95 2.68c0.04 0.09 0.1 0.17 0.17 0.23 0.08 0.06 0.17 0.09 0.29 0.09h1.07l-3.74-10zm0.7 1.31c0.05 0.19 0.09 0.36 0.14 0.53 0.05 0.16 0.1 0.3 0.15 0.43l1.32 3.74h-3.23l1.31-3.73c0.05-0.12 0.1-0.26 0.15-0.43 0.05-0.16 0.1-0.34 0.15-0.53z" fill="#3a3a38"/><path d="m7.25 0 3.75 10h0.11c-0.13-0.36-0.13-0.76 0.01-1.08 0.1-0.23 0.27-0.44 0.49-0.6-0.04-0.16-0.08-0.32-0.13-0.47-0.06-0.19-0.11-0.36-0.17-0.52l-2.47-7.01c-0.04-0.09-0.09-0.17-0.17-0.23-0.08-0.06-0.18-0.09-0.3-0.09zm7.63 0c-0.12 0-0.22 0.03-0.3 0.1-0.08 0.07-0.14 0.14-0.17 0.23l-2.47 7c-0.06 0.16-0.12 0.33-0.18 0.52-0.04 0.13-0.07 0.27-0.1 0.41 0.25-0.17 0.55-0.27 0.86-0.26a1 1 0 0 1 0.01 0c0.15 0 0.29 0.04 0.42 0.08l3.03-8.08z" fill="#3a3a38"/><path d="m3.48 9c-0.13 0-0.25 0.06-0.34 0.15l-2.92 2.91c-0.17 0.16-0.22 0.27-0.22 0.44 0 0.17 0.05 0.27 0.22 0.44l2.92 2.91c0.09 0.09 0.21 0.15 0.34 0.15 0.45 0.01 0.69-0.54 0.36-0.86l-2.15-2.14h12.61l-2.15 2.14c-0.33 0.32-0.09 0.87 0.36 0.86 0.13 0 0.25-0.06 0.34-0.15l2.92-2.91c0.17-0.16 0.22-0.27 0.22-0.44 0-0.17-0.05-0.27-0.22-0.44l-2.92-2.91c-0.09-0.09-0.21-0.15-0.34-0.15-0.45-0.01-0.69 0.54-0.36 0.86l2.15 2.14h-12.61l2.15-2.14c0.33-0.32 0.09-0.87-0.36-0.86z" fill="#1e8bcd" fill-rule="evenodd"/></svg>',
+    worte:      '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m1 8c-0.55 0-1 0.45-1 1v6c0 0.55 0.45 1 1 1h1.48a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h0.25v-0.87c-0.11 0.01-0.21 0.02-0.33 0-0.14-0.03-0.29-0.07-0.43-0.15a1 1 0 0 1-0.08-0.05c-0.1-0.07-0.2-0.15-0.3-0.27a1 1 0 0 1-0.01-0.01l-0.37-0.47a1 1 0 0 1 0.16-1.4l1.94-1.56a1 1 0 0 1 0.63-0.22zm4 0a1 1 0 0 1 1 1v4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h4a1 1 0 0 1-1-1v-0.36c0-0.21 0.04-0.39 0.1-0.54a1 1 0 0 1 0.01-0.02c0.08-0.23 0.22-0.44 0.39-0.6l1.69-1.74 0 0c-0.25 0.06-0.5 0.12-0.7 0.09a1 1 0 0 1 0 0l-0.57-0.1a1 1 0 0 1-0.82-1.14c0.06-0.38 0.17-0.74 0.35-1.07 0 0 0 0 0 0v0c0.17-0.32 0.39-0.6 0.67-0.84 0.27-0.23 0.59-0.4 0.93-0.51 0 0 0 0 0 0 0.33-0.11 0.68-0.16 1.04-0.16zm7.09 0c0.37 0 0.74 0.06 1.09 0.19 0.33 0.12 0.65 0.3 0.91 0.55 0.27 0.25 0.47 0.56 0.61 0.89 0.15 0.34 0.21 0.71 0.21 1.08 0 0.31-0.05 0.63-0.14 0.92a1 1 0 0 1 0 0.01c-0.09 0.25-0.2 0.5-0.34 0.73a1 1 0 0 1 0 0.01c-0.14 0.22-0.29 0.42-0.46 0.62a1 1 0 0 1-0.01 0.01c-0.03 0.03-0.06 0.07-0.09 0.1 0.25 0.04 0.51 0.09 0.71 0.28 0.27 0.25 0.42 0.66 0.42 0.98v0.64a1 1 0 0 1-1 1h1c0.55 0 1-0.45 1-1v-6c0-0.55-0.45-1-1-1zm-1.84 2.2c0 0-0.01 0.01-0.01 0.01l-0.01 0.04c0.01-0.02 0.02-0.03 0.02-0.05zm1.2 1.49c0 0 0 0.01-0.01 0.01l0.01-0.01c0 0 0 0-0.01 0z" fill="#fafafa"/><path d="m2.48 14h1.25v-3.17c0-0.14 0-0.28 0.01-0.43l-0.84 0.67c-0.06 0.04-0.11 0.07-0.17 0.08-0.06 0.01-0.11 0.01-0.16 0-0.05-0.01-0.09-0.02-0.13-0.05-0.04-0.02-0.06-0.05-0.08-0.07l-0.37-0.47 1.94-1.56h1.06v5h1v1h-3.52z" fill="#1e8bcd"/><path d="m12.09 9q0.41 0 0.74 0.13 0.34 0.12 0.57 0.34 0.24 0.22 0.37 0.54 0.13 0.31 0.13 0.69 0 0.33-0.09 0.61-0.09 0.28-0.25 0.53-0.16 0.25-0.37 0.49-0.21 0.24-0.44 0.48l-1.26 1.32q0.2-0.06 0.4-0.09 0.2-0.04 0.37-0.04h1.34q0.17 0 0.27 0.1 0.11 0.1 0.11 0.26v0.64h-4v-0.36q0-0.1 0.04-0.22 0.04-0.12 0.15-0.22l1.72-1.77q0.22-0.23 0.38-0.43 0.17-0.21 0.28-0.41 0.12-0.21 0.17-0.41 0.06-0.21 0.06-0.44 0-0.41-0.2-0.62-0.2-0.21-0.58-0.21-0.16 0-0.29 0.05-0.13 0.05-0.24 0.13-0.11 0.08-0.18 0.2-0.08 0.12-0.12 0.25-0.07 0.21-0.2 0.27-0.12 0.06-0.33 0.03l-0.57-0.1q0.07-0.43 0.24-0.76 0.17-0.33 0.43-0.54 0.26-0.22 0.6-0.33 0.34-0.11 0.73-0.11z" fill="#1e8bcd"/><g fill="#3a3a38"><path d="m0 8v8h16v-8zm1 1h14v6h-14z"/><g fill="#3a3a38" transform="translate(.074131 -2)"><path d="m5.59 9.59q-0.18 0-0.27-0.05-0.09-0.05-0.13-0.22l-0.15-0.61q-0.26 0.24-0.51 0.42-0.24 0.18-0.51 0.31-0.27 0.13-0.58 0.19-0.31 0.07-0.68 0.07-0.38 0-0.72-0.1-0.33-0.11-0.59-0.32-0.25-0.22-0.4-0.55-0.14-0.33-0.14-0.78 0-0.39 0.21-0.75 0.22-0.36 0.69-0.65 0.48-0.28 1.25-0.46 0.77-0.18 1.89-0.21v-0.51q0-0.77-0.33-1.15-0.32-0.39-0.95-0.39-0.42 0-0.71 0.11-0.28 0.11-0.49 0.24-0.21 0.13-0.36 0.24-0.15 0.11-0.3 0.11-0.12 0-0.21-0.06-0.09-0.06-0.14-0.16l-0.22-0.38q0.55-0.53 1.17-0.78 0.63-0.26 1.4-0.26 0.55 0 0.98 0.18 0.43 0.18 0.72 0.51 0.29 0.33 0.44 0.79 0.16 0.46 0.16 1.02v4.22zm-2.47-0.73q0.3 0 0.55-0.06 0.25-0.06 0.47-0.17 0.22-0.11 0.42-0.28 0.2-0.17 0.4-0.37v-1.36q-0.79 0.03-1.34 0.13-0.55 0.09-0.9 0.26-0.34 0.16-0.5 0.38-0.16 0.22-0.16 0.49 0 0.26 0.08 0.45 0.09 0.18 0.23 0.3 0.14 0.11 0.34 0.18 0.2 0.05 0.42 0.05z"/><path d="m7.93 9.59v-7.59h1.19v1.93c0.27-0.32 0.58-0.57 0.92-0.76 0.35-0.19 0.74-0.28 1.19-0.28 0.38 0 0.73 0.07 1.03 0.22 0.31 0.15 0.57 0.36 0.78 0.64 0.22 0.28 0.38 0.62 0.49 1.02 0.12 0.4 0.18 0.85 0.18 1.35 0 0.54-0.07 1.02-0.2 1.46-0.13 0.44-0.32 0.81-0.56 1.13-0.24 0.31-0.54 0.55-0.88 0.72-0.35 0.17-0.74 0.26-1.17 0.26s-0.79-0.08-1.09-0.24c-0.29-0.17-0.54-0.4-0.77-0.69l-0.07 0.59c-0.02 0.17-0.11 0.25-0.29 0.25zm2.91-5.76c-0.36 0-0.69 0.09-0.96 0.26-0.27 0.17-0.53 0.41-0.76 0.73v3.18c0.21 0.28 0.43 0.48 0.68 0.6 0.25 0.11 0.52 0.17 0.82 0.17 0.61 0 1.07-0.22 1.4-0.65 0.32-0.44 0.49-1.09 0.49-1.95 0-0.8-0.14-1.39-0.43-1.77-0.29-0.38-0.7-0.57-1.23-0.57z"/></g></g></svg>',
+    laenge:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38" transform="scale(-1 1)"><rect height="1" ry="0.46" width="3" x="-4" y="5"/><rect height="1" ry="0.5" width="14" x="-15" y="2"/><rect height="1" ry="0.5" width="14" x="-15" y="13"/></g><path d="m15.5 8.51-3 2.99-3-2.99" fill="none" stroke="#1e8bcd" stroke-linecap="round" stroke-linejoin="round"/><path d="m5.5 5.01c-0.28 0-0.5 0.22-0.5 0.5s0.22 0.5 0.5 0.5h4c1.38 0 2.5 1.12 2.5 2.5h0.01v0.42 2.07h1v-2.07-0.5c-0.01-2.15-1.88-3.37-3.51-3.42z" fill="#1e8bcd" fill-rule="evenodd"/></svg>',
+    silben:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7.93 0v9.59h0.35l0.77-0.77 0.01-0.07c0.01 0.01 0.02 0.02 0.03 0.03l0.36-0.36c0.01-0.01 0.03-0.02 0.04-0.04-0.13-0.11-0.25-0.23-0.37-0.39v-3.18c0.23-0.31 0.48-0.56 0.76-0.73 0.28-0.17 0.6-0.26 0.96-0.26 0.53 0 0.94 0.19 1.23 0.57 0.29 0.38 0.43 0.97 0.43 1.77 0 0.86-0.16 1.51-0.49 1.95-0.11 0.15-0.25 0.27-0.39 0.37 0.12 0.13 0.22 0.26 0.28 0.41 0.07 0.17 0.1 0.37 0.1 0.57 0.03-0.01 0.06-0.02 0.08-0.03 0.35-0.17 0.64-0.41 0.88-0.72 0.24-0.31 0.43-0.69 0.56-1.13 0.13-0.44 0.2-0.92 0.2-1.46 0-0.5-0.06-0.95-0.18-1.35-0.11-0.4-0.28-0.74-0.49-1.02-0.22-0.28-0.48-0.49-0.78-0.64-0.31-0.15-0.65-0.22-1.03-0.22-0.45 0-0.85 0.09-1.19 0.28-0.35 0.18-0.65 0.43-0.92 0.75v-3.93zm-4.12 2.88c-0.51 0-0.98 0.09-1.4 0.26-0.42 0.17-0.81 0.43-1.17 0.78l0.22 0.38c0.04 0.06 0.08 0.12 0.14 0.16 0.06 0.04 0.13 0.06 0.21 0.06 0.1 0 0.21-0.04 0.3-0.11 0.1-0.07 0.22-0.15 0.36-0.24 0.14-0.09 0.3-0.16 0.49-0.24 0.19-0.07 0.43-0.11 0.71-0.11 0.42 0 0.74 0.13 0.95 0.39 0.22 0.26 0.33 0.64 0.33 1.15v0.51c-0.75 0.02-1.38 0.09-1.89 0.21-0.51 0.12-0.93 0.27-1.25 0.46-0.32 0.19-0.55 0.41-0.7 0.65-0.14 0.24-0.21 0.49-0.21 0.75 0 0.3 0.05 0.56 0.14 0.78 0.1 0.22 0.23 0.4 0.4 0.54 0.17 0.14 0.37 0.25 0.59 0.32 0.13 0.04 0.28 0.06 0.42 0.08-0.25 0.15-0.47 0.32-0.65 0.54-0.25 0.3-0.43 0.66-0.56 1.07-0.13 0.41-0.19 0.86-0.19 1.35 0 0.54 0.07 1.01 0.21 1.43 0.14 0.41 0.34 0.77 0.58 1.06 0.25 0.29 0.54 0.5 0.88 0.66 0.33 0.15 0.69 0.23 1.08 0.23 0.22 0 0.44-0.02 0.66-0.06 0.22-0.04 0.43-0.1 0.63-0.18 0.2-0.08 0.39-0.19 0.56-0.31 0.17-0.13 0.33-0.28 0.47-0.46l-0.34-0.43c-0.05-0.08-0.12-0.12-0.21-0.12-0.08 0-0.16 0.03-0.23 0.1-0.07 0.07-0.16 0.14-0.28 0.22-0.11 0.08-0.25 0.15-0.41 0.22-0.17 0.07-0.38 0.1-0.63 0.1-0.27 0-0.51-0.05-0.72-0.16-0.21-0.11-0.4-0.27-0.55-0.48-0.15-0.21-0.27-0.47-0.36-0.77-0.08-0.31-0.12-0.66-0.12-1.05 0-0.38 0.04-0.72 0.11-1.02 0.08-0.3 0.19-0.56 0.34-0.77 0.15-0.21 0.34-0.38 0.56-0.49 0.23-0.12 0.49-0.17 0.78-0.17 0.22 0 0.41 0.03 0.56 0.08 0.16 0.05 0.29 0.11 0.39 0.18 0.11 0.06 0.2 0.12 0.27 0.17 0.07 0.05 0.14 0.08 0.21 0.08 0.06 0 0.11-0.01 0.14-0.03 0.04-0.03 0.07-0.06 0.11-0.11l0.31-0.43c-0.26-0.27-0.55-0.48-0.89-0.62-0.26-0.12-0.56-0.17-0.88-0.2 0.09-0.05 0.18-0.1 0.27-0.16 0.17-0.13 0.33-0.27 0.51-0.43l0.15 0.61c0.02 0.11 0.06 0.19 0.13 0.22 0.06 0.04 0.15 0.05 0.27 0.05h0.53v-4.21c0-0.37-0.05-0.71-0.15-1.02-0.1-0.31-0.25-0.57-0.44-0.79-0.19-0.22-0.43-0.39-0.72-0.51-0.29-0.12-0.62-0.18-0.99-0.18zm1.14 3.74v1.36c-0.13 0.13-0.26 0.26-0.4 0.37-0.13 0.11-0.27 0.2-0.42 0.28-0.15 0.07-0.31 0.13-0.47 0.17-0.17 0.04-0.35 0.06-0.54 0.06-0.15 0-0.29-0.02-0.42-0.05-0.13-0.04-0.24-0.1-0.34-0.17-0.09-0.08-0.17-0.18-0.23-0.3-0.05-0.13-0.08-0.27-0.08-0.45 0-0.18 0.05-0.34 0.15-0.48 0.1-0.15 0.27-0.28 0.5-0.38 0.23-0.11 0.54-0.19 0.9-0.26 0.37-0.07 0.82-0.11 1.34-0.14z" fill="#3a3a38"/><path d="m15 8v2c0 1.1-0.9 2-2 2l-4.29-0.02 2.15-2.15c0.33-0.32 0.09-0.87-0.36-0.86-0.13 0-0.25 0.06-0.34 0.15l-2.96 2.96c-0.26 0.2-0.26 0.59 0 0.79l0.01 0 2.95 2.95c0.47 0.49 1.2-0.24 0.71-0.71l-2.15-2.15 4.29 0.02c1.66 0 3-1.34 3-3v-2z" fill="#1e8bcd" fill-rule="evenodd"/></svg>',
+    ausrichtung:'<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.5" width="14" x="1" y="2"/><rect height="1" ry="0.48" width="14" x="1" y="12"/><rect height="1" ry="0.5" width="14" x="1" y="14"/><rect height="1" ry="0.48" width="14" x="1" y="4"/><rect height="1" ry="0.48" width="14" x="1" y="9"/><rect height="1" ry="0.48" width="14" x="1" y="7"/></g></svg>',
+    spalten:    '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m3 0c-0.55 0-1 0.45-1 1v14c0 0.55 0.45 1 1 1h11c0.55 0 1-0.45 1-1v-14c0-0.55-0.45-1-1-1zm0 1h11v14h-11z" fill="#3a3a38"/><path d="m3 1h11v14h-11z" fill="#fafafa"/><rect fill="#1e8bcd" height="1" ry="0.5" width="4" x="4" y="3"/><g fill="#3a3a38"><rect height="1" ry="0.5" width="4" x="4" y="7"/><rect height="1" ry="0.5" width="4" x="4" y="13"/><rect height="1" ry="0.5" width="4" x="4" y="10"/></g><rect fill="#1e8bcd" height="1" ry="0.5" width="4" x="9" y="3"/><g fill="#3a3a38"><rect height="1" ry="0.5" width="4" x="9" y="7"/><rect height="1" ry="0.5" width="4" x="9" y="13"/><rect height="1" ry="0.5" width="4" x="9" y="10"/></g></svg>',
+    absatz:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="1" y="2"/><rect height="1" ry="0.44" width="7" x="1" y="12"/><rect height="1" ry="0.5" width="8" x="1" y="14"/><rect height="1" ry="0.48" width="8" x="1" y="4"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m9 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m9 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg>'
   };
 
-  /* Marken-Icon: Buch mit Smiley (angelehnt an das Extension-Icon).
-     Eigenes Markup, weil die Augen gefüllte Kreise sind (fill statt stroke). */
+  /* Marken-Icon in der Kopfzeile: das Extension-Icon (icons/icon128.png)
+     als ausgefülltes pinkes Buch mit Smiley, als Inline-SVG nachgezeichnet
+     (ein <img> bräuchte im Content-Skript web_accessible_resources). */
+  const ICON_MARKE =
+    '<svg viewBox="0 0 16 16" width="22" height="22" aria-hidden="true" focusable="false">' +
+    '<path d="M2 1h5.6v14H2a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 2 1z" fill="#d63384"/>' +
+    '<path d="M8.4 1H14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 14 15H8.4z" fill="#e64980"/>' +
+    '<path d="M7.6 1h.8v14h-.8z" fill="#a61e63"/>' +
+    '<circle cx="4.4" cy="5.8" r="1" fill="#fff"/><circle cx="11.6" cy="5.8" r="1" fill="#fff"/>' +
+    '<path d="M3.6 9c1.4 1.8 7.4 1.8 8.8 0" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>' +
+    '<path d="M2.2 12.6h11.6" stroke="#fff" stroke-width=".7" opacity=".7"/></svg>';
+
+  /* Pink-Button auf der Seite: weisses Strich-Buch mit Smiley (auf pinkem
+     Grund wäre das pinke Marken-Icon unsichtbar). */
   const ICON_BUCH_SMILE =
     '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" ' +
     'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
@@ -837,6 +884,32 @@
     'M3.8 9.2 c1 1.1 2.5 1.5 4.2 1.5 c1.7 0 3.2 -0.4 4.2 -1.5"/>' +
     '<circle cx="4.8" cy="6.4" r="0.55" fill="currentColor" stroke="none"/>' +
     '<circle cx="11.2" cy="6.4" r="0.55" fill="currentColor" stroke="none"/></svg>';
+
+  /* Tooltip-Text des Zurücksetzen-Knopfs: nennt die Standardwerte, damit
+     klar ist, was der Knopf tut. Gleicher Wortlaut in popup.html. */
+  const RESET_TOOLTIP = 'Alle Einstellungen auf Standard zurücksetzen: ' +
+    'Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, ' +
+    'Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, ' +
+    'Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, ' +
+    'Textbreite 625 px, Hintergrund Weiss, Klammern „einfach" ein';
+
+  /* Dropdown-Vorschau: jede Schriftart-Option in ihrer Schrift, jede
+     Hintergrund-Option in ihren Farben; das Dropdown selbst zeigt den
+     gewählten Wert ebenso (Attribut data-wert, gesetzt von wertAnzeigen).
+     Aus SCHRIFTARTEN/FARBSCHEMATA erzeugt – eine Quelle, kein Auseinanderlaufen.
+     Browser, die die Liste nativ zeichnen (Firefox auf macOS), ignorieren
+     Option-Stile; dann bleibt nur die Vorschau im geschlossenen Dropdown. */
+  function vorschauCss() {
+    let css = '';
+    Object.keys(SCHRIFTARTEN).forEach(function (k) {
+      css += '#bkl-art option[value="' + k + '"], #bkl-art[data-wert="' + k + '"] { font-family: ' + SCHRIFTARTEN[k] + '; }\n';
+    });
+    Object.keys(FARBSCHEMATA).forEach(function (k) {
+      css += '#bkl-farbe option[value="' + k + '"], #bkl-farbe[data-wert="' + k + '"] { background: ' +
+        FARBSCHEMATA[k].bg + '; color: ' + FARBSCHEMATA[k].fg + '; }\n';
+    });
+    return css;
+  }
 
   const panelCss = `
     :host { all: initial; }
@@ -890,6 +963,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 4px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #dddddd;
     }
     h2 {
       font-size: 15px;
@@ -900,29 +975,21 @@
       gap: 6px;
       color: #d63384;
     }
+    /* Schliessen-Knopf in Pink (wie der Pink-Button auf der Seite) */
     #bkl-schliessen {
       width: 30px;
       height: 30px;
       padding: 0;
-      border: 1px solid #bbb;
+      border: 1px solid #a61e63;
       border-radius: 6px;
-      background: #f4f4f4;
-      color: #222222;
+      background: #d63384;
+      color: #ffffff;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #bkl-schliessen:hover { background: #e6e6e6; }
-
-    .bkl-bereich-titel {
-      font-size: 13px;
-      font-weight: bold;
-      color: #555555;
-      margin: 8px 0 2px 0;
-      padding-bottom: 2px;
-      border-bottom: 1px solid #dddddd;
-    }
+    #bkl-schliessen:hover { background: #e64980; }
 
     .bkl-zeile {
       display: flex;
@@ -931,16 +998,19 @@
       margin: 6px 0;
     }
     .bkl-icon {
-      flex: 0 0 16px;
+      flex: 0 0 20px;
       display: inline-flex;
-      color: #444444;
     }
+    .bkl-icon svg { display: block; width: 18px; height: 18px; }
     label { flex: 1; color: #222222; }
     input[type="range"] { width: 110px; }
     select { width: 124px; font-size: 13px; }
     input[type="checkbox"] { width: 18px; height: 18px; }
+    /* Regler-Knöpfe und Häkchen in Pink */
+    input[type="range"],
+    input[type="checkbox"] { accent-color: #d63384; }
     .bkl-wert { width: 42px; text-align: right; color: #555555; }
-
+${vorschauCss()}
     /* Toggle für den Detail-Bereich (echter Button, aria-expanded) */
     #bkl-details-toggle {
       width: 100%;
@@ -987,38 +1057,54 @@
       outline-offset: 1px;
     }
 
-    .bkl-hinweis { font-size: 12px; color: #666666; margin-top: 6px; }
+    /* Eigener Tooltip (erscheint erst nach TOOLTIP_VERZOEGERUNG; native
+       title-Tooltips lassen sich nicht verzögern). Liegt ausserhalb des
+       Panels, damit dessen overflow ihn nicht abschneidet. */
+    #bkl-tooltip {
+      position: fixed;
+      z-index: 2147483647;
+      max-width: 300px;
+      padding: 6px 9px;
+      border-radius: 6px;
+      background: #222222;
+      color: #ffffff;
+      font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.35;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      pointer-events: none;
+    }
+    #bkl-tooltip[hidden] { display: none; }
   `;
 
   shadow.innerHTML = `
     <style>${panelCss}</style>
     <button type="button" id="bkl-button"
-            title="BGer Reader Einstellungen öffnen"
-            aria-label="BGer Reader Einstellungen öffnen">${ICON_BUCH_SMILE}</button>
-    <div id="bkl-panel" role="region" aria-label="BGer Reader Einstellungen" hidden>
+            data-tooltip="bger reader Einstellungen öffnen"
+            aria-label="bger reader Einstellungen öffnen">${ICON_BUCH_SMILE}</button>
+    <div id="bkl-panel" role="region" aria-label="bger reader Einstellungen" hidden>
       <div id="bkl-kopf">
-        <h2>${ICON_BUCH_SMILE} BGer Reader</h2>
+        <h2>${ICON_MARKE} bger reader</h2>
         <button type="button" id="bkl-schliessen"
-                title="Einstellungen schliessen (Escape)"
-                aria-label="Einstellungen schliessen">${svgIcon(ICONS.schliessen)}</button>
+                data-tooltip="Einstellungen schliessen (Escape)"
+                aria-label="Einstellungen schliessen">${svgIcon(PFAD_SCHLIESSEN)}</button>
       </div>
 
       <div class="bkl-bereich" id="bkl-allgemein">
-        <h3 class="bkl-bereich-titel">Allgemein</h3>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.buch)}</span>
-          <label for="bkl-aktiv">Lesemodus</label>
-          <input type="checkbox" id="bkl-aktiv" title="Lesemodus ein-/ausschalten" aria-label="Lesemodus ein-/ausschalten">
+          <span class="bkl-icon">${ICONS.buch}</span>
+          <label for="bkl-aktiv">einschalten</label>
+          <input type="checkbox" id="bkl-aktiv" data-tooltip="Lesemodus ein-/ausschalten" aria-label="Lesemodus ein-/ausschalten">
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.groesse)}</span>
+          <span class="bkl-icon">${ICONS.groesse}</span>
           <label for="bkl-groesse">Schriftgrösse</label>
-          <input type="range" id="bkl-groesse" min="12" max="30" step="1" title="Schriftgrösse in Pixel" aria-label="Schriftgrösse in Pixel"><span class="bkl-wert" id="bkl-groesse-w"></span>
+          <input type="range" id="bkl-groesse" min="6" max="50" step="1" data-tooltip="Schriftgrösse (6 bis 50, Standard 18)" aria-label="Schriftgrösse"><span class="bkl-wert" id="bkl-groesse-w"></span>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.art)}</span>
+          <span class="bkl-icon">${ICONS.art}</span>
           <label for="bkl-art">Schriftart</label>
-          <select id="bkl-art" title="Schriftart wählen" aria-label="Schriftart wählen">
+          <select id="bkl-art" data-tooltip="Schriftart wählen (Vorschau in der Liste)" aria-label="Schriftart wählen">
             <option value="atkinson">Atkinson Hyperlegible</option>
             <option value="opendyslexic">OpenDyslexic</option>
             <option value="comicneue">Comic Neue</option>
@@ -1030,9 +1116,9 @@
           </select>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.farbe)}</span>
-          <label for="bkl-farbe">Farbschema</label>
-          <select id="bkl-farbe" title="Farbschema wählen" aria-label="Farbschema wählen">
+          <span class="bkl-icon">${ICONS.farbe}</span>
+          <label for="bkl-farbe">Hintergrund</label>
+          <select id="bkl-farbe" data-tooltip="Hintergrund und Textfarbe wählen (Vorschau in der Liste)" aria-label="Hintergrund wählen">
             <option value="hell">Weiss</option>
             <option value="sepia">Sepia</option>
             <option value="dunkel">Dunkel</option>
@@ -1041,61 +1127,85 @@
           </select>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.spalte)}</span>
+          <span class="bkl-icon">${ICONS.spalte}</span>
           <label for="bkl-spalte">Textbreite</label>
-          <input type="range" id="bkl-spalte" min="400" max="1400" step="25" title="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+          <input type="range" id="bkl-spalte" min="400" max="1400" step="25" data-tooltip="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.klammer)}</span>
-          <label for="bkl-klammern">Klammern einklappen</label>
-          <input type="checkbox" id="bkl-klammern" title="Klammerbemerkungen einklappen (Regel: Fundstellen wie BGE-Zitate und Literatur werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen)" aria-label="Klammerbemerkungen einklappen">
+          <span class="bkl-icon">${ICONS.klammer}</span>
+          <label for="bkl-klammern">einfach</label>
+          <input type="checkbox" id="bkl-klammern" data-tooltip="Klammerbemerkungen einklappen (Regel: Fundstellen wie BGE-Zitate und Literatur werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen)" aria-label="Klammerbemerkungen einklappen">
         </div>
       </div>
 
       <button type="button" id="bkl-details-toggle" aria-expanded="false" aria-controls="bkl-details"
-              title="Weitere Einstellungen ein-/ausblenden" aria-label="Detaillierte Einstellungen ein-/ausblenden">
-        <span class="bkl-pfeil">${svgIcon(ICONS.pfeil)}</span>Detaillierte Einstellungen
+              data-tooltip="Weitere Einstellungen ein-/ausblenden" aria-label="Erweiterte Einstellungen ein-/ausblenden">
+        <span class="bkl-pfeil">${svgIcon(PFAD_PFEIL)}</span>erweitert
       </button>
       <div class="bkl-bereich" id="bkl-details" hidden>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.staerke)}</span>
+          <span class="bkl-icon">${ICONS.staerke}</span>
           <label for="bkl-staerke">Schriftstärke</label>
-          <select id="bkl-staerke" title="Schriftstärke wählen" aria-label="Schriftstärke wählen">
+          <select id="bkl-staerke" data-tooltip="Schriftstärke wählen" aria-label="Schriftstärke wählen">
             <option value="normal">normal</option>
             <option value="fett">fett</option>
           </select>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.zeilen)}</span>
+          <span class="bkl-icon">${ICONS.zeilen}</span>
           <label for="bkl-zeilenabstand">Zeilenabstand</label>
-          <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1" title="Zeilenabstand (Faktor)" aria-label="Zeilenabstand (Faktor)"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
+          <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1" data-tooltip="Zeilenabstand (Faktor)" aria-label="Zeilenabstand (Faktor)"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.buchstaben)}</span>
+          <span class="bkl-icon">${ICONS.absatz}</span>
+          <label for="bkl-absatz">Absatzabstand</label>
+          <input type="range" id="bkl-absatz" min="0" max="3" step="0.25" data-tooltip="Zusätzlicher Abstand nach jedem Absatz (Faktor der Schriftgrösse, 0 = Seiten-Standard)" aria-label="Absatzabstand (Faktor, 0 = Seiten-Standard)"><span class="bkl-wert" id="bkl-absatz-w"></span>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${ICONS.buchstaben}</span>
           <label for="bkl-buchstaben">Buchstabenabstand</label>
-          <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.1" title="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
+          <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.1" data-tooltip="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.worte)}</span>
+          <span class="bkl-icon">${ICONS.worte}</span>
           <label for="bkl-worte">Wortabstand</label>
-          <input type="range" id="bkl-worte" min="0" max="10" step="0.1" title="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
+          <input type="range" id="bkl-worte" min="0" max="10" step="0.1" data-tooltip="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.laenge)}</span>
+          <span class="bkl-icon">${ICONS.laenge}</span>
           <label for="bkl-laenge">Zeilenlänge</label>
-          <input type="range" id="bkl-laenge" min="0" max="120" step="10" title="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
+          <input type="range" id="bkl-laenge" min="0" max="120" step="10" data-tooltip="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
         </div>
         <div class="bkl-zeile">
-          <span class="bkl-icon">${svgIcon(ICONS.silben)}</span>
+          <span class="bkl-icon">${ICONS.silben}</span>
           <label for="bkl-silben">Silbentrennung</label>
-          <input type="checkbox" id="bkl-silben" title="Silbentrennung ein-/ausschalten" aria-label="Silbentrennung ein-/ausschalten">
+          <input type="checkbox" id="bkl-silben" data-tooltip="Silbentrennung ein-/ausschalten" aria-label="Silbentrennung ein-/ausschalten">
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${ICONS.ausrichtung}</span>
+          <label for="bkl-ausrichtung">Ausrichtung</label>
+          <select id="bkl-ausrichtung" data-tooltip="Textausrichtung der Absätze (Standard: links)" aria-label="Textausrichtung wählen">
+            <option value="links">links</option>
+            <option value="mittig">mittig</option>
+            <option value="rechts">rechts</option>
+            <option value="blocksatz">Blocksatz</option>
+          </select>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${ICONS.spalten}</span>
+          <label for="bkl-spalten">Spalten</label>
+          <select id="bkl-spalten" data-tooltip="Entscheidtext in 1, 2 oder 3 Spalten (Zeitungssatz)" aria-label="Anzahl Textspalten wählen">
+            <option value="1">1 Spalte</option>
+            <option value="2">2 Spalten</option>
+            <option value="3">3 Spalten</option>
+          </select>
         </div>
         <div class="bkl-knopfreihe">
-          <button class="bkl-aktion" id="bkl-reset" title="Alle Einstellungen auf Standard zurücksetzen" aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
+          <button class="bkl-aktion" id="bkl-reset" data-tooltip="${RESET_TOOLTIP}" aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
         </div>
-        <div class="bkl-hinweis" id="bkl-zaehler"></div>
       </div>
     </div>
+    <div id="bkl-tooltip" role="tooltip" hidden></div>
   `;
 
   const panel = shadow.getElementById('bkl-panel');
@@ -1105,11 +1215,13 @@
      Fokus-Management: beim Öffnen Fokus ins Panel (Schliessen-Knopf),
      beim Schliessen zurück auf den Pink-Button. */
   function panelOeffnen() {
+    tooltipVerbergen();
     panel.hidden = false;
     pinkKnopf.hidden = true;
     shadow.getElementById('bkl-schliessen').focus();
   }
   function panelSchliessen() {
+    tooltipVerbergen();
     panel.hidden = true;
     pinkKnopf.hidden = false;
     pinkKnopf.focus();
@@ -1117,8 +1229,61 @@
   pinkKnopf.addEventListener('click', panelOeffnen);
   shadow.getElementById('bkl-schliessen').addEventListener('click', panelSchliessen);
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !panel.hidden) panelSchliessen();
+    if (e.key === 'Escape') {
+      tooltipVerbergen();
+      if (!panel.hidden) panelSchliessen();
+    }
   });
+
+  /* ---------- Tooltips mit Verzögerung ----------
+     Native title-Tooltips erscheinen nach ca. einer Sekunde und lassen sich
+     nicht verzögern. Die Texte stehen deshalb in data-tooltip und werden
+     erst nach TOOLTIP_VERZOEGERUNG in #bkl-tooltip eingeblendet – bei Maus
+     über dem Element oder bei Tastaturfokus (:focus-visible). Weg bei
+     Verlassen, Blur, Klick, Escape. Die gleiche Funktion steht in popup.js. */
+  const TOOLTIP_VERZOEGERUNG = 3000; // ms
+
+  function tooltipsEinrichten(wurzel, tip) {
+    let timer = null;
+    let ziel = null;
+    function verbergen() {
+      if (timer !== null) { clearTimeout(timer); timer = null; }
+      if (ziel) { ziel.removeAttribute('aria-describedby'); ziel = null; }
+      tip.hidden = true;
+    }
+    function zeigen(el, nurTastatur) {
+      timer = null;
+      if (nurTastatur) {
+        // Fokus durch Mausklick: kein Tooltip (der Regler hält den Fokus
+        // noch lange nach dem Loslassen). jsdom kennt :focus-visible nicht.
+        try { if (!el.matches(':focus-visible')) return; } catch (e) { /* zeigen */ }
+      }
+      tip.textContent = el.getAttribute('data-tooltip');
+      tip.hidden = false;
+      const r = el.getBoundingClientRect();
+      const links = Math.max(8, Math.min(r.left, window.innerWidth - tip.offsetWidth - 8));
+      const unten = r.bottom + 6 + tip.offsetHeight > window.innerHeight;
+      tip.style.left = links + 'px';
+      tip.style.top = (unten ? r.top - 6 - tip.offsetHeight : r.bottom + 6) + 'px';
+      el.setAttribute('aria-describedby', tip.id);
+      ziel = el;
+    }
+    function planen(e) {
+      const el = e.currentTarget;
+      const nurTastatur = e.type === 'focus';
+      verbergen();
+      timer = setTimeout(function () { zeigen(el, nurTastatur); }, TOOLTIP_VERZOEGERUNG);
+    }
+    wurzel.querySelectorAll('[data-tooltip]').forEach(function (el) {
+      el.addEventListener('mouseenter', planen);
+      el.addEventListener('focus', planen);
+      el.addEventListener('mouseleave', verbergen);
+      el.addEventListener('blur', verbergen);
+      el.addEventListener('mousedown', verbergen);
+    });
+    return verbergen;
+  }
+  const tooltipVerbergen = tooltipsEinrichten(shadow, shadow.getElementById('bkl-tooltip'));
 
   /* Detail-Bereich ein-/ausklappen (echter Button, aria-expanded) */
   const detailsToggle = shadow.getElementById('bkl-details-toggle');
@@ -1130,24 +1295,23 @@
   });
 
   function aktualisiereAnzeige() {
-    shadow.getElementById('bkl-aktiv').checked = einstellungen.aktiv;
-    shadow.getElementById('bkl-groesse').value = einstellungen.schriftgroesse;
-    shadow.getElementById('bkl-groesse-w').textContent = einstellungen.schriftgroesse + 'px';
-    shadow.getElementById('bkl-art').value = einstellungen.schriftart;
-    shadow.getElementById('bkl-staerke').value = einstellungen.schriftstaerke;
-    shadow.getElementById('bkl-zeilenabstand').value = einstellungen.zeilenabstand;
-    shadow.getElementById('bkl-zeilenabstand-w').textContent = einstellungen.zeilenabstand;
-    shadow.getElementById('bkl-buchstaben').value = einstellungen.buchstabenabstand;
-    shadow.getElementById('bkl-buchstaben-w').textContent = (+einstellungen.buchstabenabstand).toFixed(1) + 'px';
-    shadow.getElementById('bkl-worte').value = einstellungen.wortabstand;
-    shadow.getElementById('bkl-worte-w').textContent = (+einstellungen.wortabstand).toFixed(1) + 'px';
-    shadow.getElementById('bkl-laenge').value = einstellungen.zeilenlaenge;
-    shadow.getElementById('bkl-laenge-w').textContent = einstellungen.zeilenlaenge === 0 ? 'aus' : einstellungen.zeilenlaenge;
-    shadow.getElementById('bkl-spalte').value = einstellungen.spaltenbreite;
-    shadow.getElementById('bkl-spalte-w').textContent = einstellungen.spaltenbreite + 'px';
-    shadow.getElementById('bkl-silben').checked = einstellungen.silbentrennung;
-    shadow.getElementById('bkl-farbe').value = einstellungen.farbschema;
-    shadow.getElementById('bkl-klammern').checked = einstellungen.klammern;
+    const e = einstellungen;
+    shadow.getElementById('bkl-aktiv').checked = e.aktiv;
+    shadow.getElementById('bkl-groesse').value = e.schriftgroesse;
+    shadow.getElementById('bkl-art').value = e.schriftart;
+    shadow.getElementById('bkl-staerke').value = e.schriftstaerke;
+    shadow.getElementById('bkl-zeilenabstand').value = e.zeilenabstand;
+    shadow.getElementById('bkl-absatz').value = e.absatzabstand;
+    shadow.getElementById('bkl-buchstaben').value = e.buchstabenabstand;
+    shadow.getElementById('bkl-worte').value = e.wortabstand;
+    shadow.getElementById('bkl-laenge').value = e.zeilenlaenge;
+    shadow.getElementById('bkl-spalte').value = e.spaltenbreite;
+    shadow.getElementById('bkl-silben').checked = e.silbentrennung;
+    shadow.getElementById('bkl-farbe').value = e.farbschema;
+    shadow.getElementById('bkl-klammern').checked = e.klammern;
+    shadow.getElementById('bkl-ausrichtung').value = e.ausrichtung;
+    shadow.getElementById('bkl-spalten').value = String(e.spalten);
+    Object.keys(WERTANZEIGE).forEach(wertAnzeigen);
   }
 
   /* ---------- Reaktion auf Bedienung: drei Pfade nach Aufwand ----------
@@ -1213,19 +1377,29 @@
   });
 
   /* Nur die Zahl neben dem bewegten Regler nachfuehren statt aller
-     14 Bedienelemente wie in aktualisiereAnzeige(). */
+     Bedienelemente wie in aktualisiereAnzeige(). Schriftgrösse bewusst ohne
+     Einheit (nur die Zahl). Bei den Dropdowns Schriftart/Hintergrund wird
+     stattdessen data-wert gesetzt (Vorschau im geschlossenen Dropdown). */
   const WERTANZEIGE = {
-    'bkl-groesse':       function (e) { return e.schriftgroesse + 'px'; },
+    'bkl-groesse':       function (e) { return String(e.schriftgroesse); },
     'bkl-zeilenabstand': function (e) { return String(e.zeilenabstand); },
+    'bkl-absatz':        function (e) { return e.absatzabstand === 0 ? 'aus' : String(e.absatzabstand); },
     'bkl-buchstaben':    function (e) { return (+e.buchstabenabstand).toFixed(1) + 'px'; },
     'bkl-worte':         function (e) { return (+e.wortabstand).toFixed(1) + 'px'; },
     'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? 'aus' : String(e.zeilenlaenge); },
-    'bkl-spalte':        function (e) { return e.spaltenbreite + 'px'; }
+    'bkl-spalte':        function (e) { return e.spaltenbreite + 'px'; },
+    'bkl-art':           null,
+    'bkl-farbe':         null
   };
 
   function wertAnzeigen(id) {
+    if (!(id in WERTANZEIGE)) return;
     const f = WERTANZEIGE[id];
-    if (!f) return;
+    if (!f) {
+      const sel = shadow.getElementById(id);
+      if (sel) sel.setAttribute('data-wert', sel.value);
+      return;
+    }
     const el = shadow.getElementById(id + '-w');
     if (el) el.textContent = f(einstellungen);
   }
@@ -1271,6 +1445,9 @@
   bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; stilGeaendert('bkl-spalte'); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; stilGeaendert('bkl-silben'); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; stilGeaendert('bkl-farbe'); });
+  bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; stilGeaendert('bkl-ausrichtung'); });
+  bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; stilGeaendert('bkl-spalten'); });
+  bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; stilGeaendert('bkl-absatz'); });
   bei('bkl-reset', 'click', function () {
     einstellungen = Object.assign({}, STANDARDS);
     allesAnwenden();
@@ -1283,7 +1460,7 @@
   /* Änderungen aus dem mittigen Pop-up-Fenster (background.js öffnet es per
      Icon-Klick, popup.js schreibt in denselben Speicher) live auf dieser
      Seite anwenden. Bewusst KEIN erneutes Speichern hier: sonst Ping-Pong
-     über onChanged. Der eigene Zähler-Schlüssel wird ignoriert. */
+     über onChanged. */
   if (extensionApi && extensionApi.storage &&
       extensionApi.storage.onChanged &&
       typeof extensionApi.storage.onChanged.addListener === 'function') {

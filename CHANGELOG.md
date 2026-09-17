@@ -4,7 +4,7 @@ Alle veröffentlichten Versionen dieser Extension, neueste zuerst.
 
 **Die Versionsnummer steht an genau einer Stelle: `extension/manifest.json`.**
 Geändert wird sie ausschliesslich mit `node tools/version.js` — nie von Hand.
-Dieser Verlauf und das Manifest werden von Testblock [15] automatisch
+Dieser Verlauf und das Manifest werden von Testblock [6] automatisch
 gegeneinander geprüft; laufen sie auseinander, wird die Suite rot.
 
 Nummerierung nach [Semantic Versioning](https://semver.org/lang/de/):
@@ -12,6 +12,31 @@ Nummerierung nach [Semantic Versioning](https://semver.org/lang/de/):
 hinten bei Korrekturen.
 
 ---
+
+## 0.7.0 — 2026-09-17
+
+- GUI nach Skizze der Autorin überarbeitet (Seiten-Panel und Pop-up-Fenster
+  identisch): Kopfzeile „bger reader" klein geschrieben mit dem Extension-Icon
+  als ausgefülltes pinkes Buch; Zwischentitel „Allgemein" und der
+  Klammer-Zähler-Hinweis entfernt; Beschriftungen „einschalten", „Hintergrund",
+  „einfach", „erweitert". Schliessen-Knopf, Regler und Häkchen in Pink.
+- Schriftgrösse: Bereich 6–50 (vorher 12–30), Anzeige nur die Zahl ohne „px".
+- Zeilen-Icons aus Colibre, dem Standard-Icon-Thema von LibreOffice (CC0,
+  siehe `extension/icons/LICENSES.md`), statt selbst gezeichneter Striche.
+- Dropdown-Vorschau: Schriftart-Optionen erscheinen in ihrer Schrift,
+  Hintergrund-Optionen in ihren Farben; das geschlossene Dropdown zeigt den
+  gewählten Eintrag ebenso. Browser mit nativ gezeichneter Liste (Firefox auf
+  macOS) zeigen nur die Vorschau im geschlossenen Dropdown.
+- Neue Einstellungen unter „erweitert": Ausrichtung (links, mittig, rechts,
+  Blocksatz), Spalten (1–3, Zeitungssatz auf dem gemeinsamen Elternknoten der
+  Absätze) und Absatzabstand (0–3, Faktor der Schriftgrösse). Alle drei sind
+  layout-neutral: ohne Abweichung vom Standard wird keine Regel aktiv.
+- Tooltips erscheinen erst nach 3 Sekunden (eigener Tooltip in
+  `data-tooltip`, native `title`-Tooltips lassen sich nicht verzögern); der
+  Zurücksetzen-Knopf nennt im Tooltip alle Standardwerte.
+- Test-Suite gestrafft: 82 Prüfungen (mit Fixtures 88) statt 310, Korpus der
+  Einklapp-Regeln unverändert, aber je Kategorie ausgewertet; Fehlschläge
+  nennen die betroffenen Fälle. Blöcke neu nummeriert [1]–[7].
 
 ## 0.6.2 — 2026-09-17
 

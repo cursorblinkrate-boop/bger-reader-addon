@@ -1,9 +1,8 @@
-// BGer Reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung.
+// bger reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung.
 
 /* Einstellungen im mittigen Pop-up-Fenster (per Icon-Klick geöffnet).
  * Schreibt in denselben lokalen Speicher wie content.js; das Content-Skript
- * auf der Entscheidseite wendet Änderungen live an (storage.onChanged) und
- * publiziert umgekehrt seinen Klammer-Zähler, den dieses Fenster anzeigt.
+ * auf der Entscheidseite wendet Änderungen live an (storage.onChanged).
  * Keine Nachrichten an Tabs nötig, keine zusätzlichen Rechte.
  */
 
@@ -11,9 +10,8 @@
   'use strict';
 
   /* Schlüssel und Standards: identisch zu content.js (Konsistenz ist
-     testabgesichert, test-runner.js Block [13]). */
+     testabgesichert, test-runner.js Block [16]). */
   const STORAGE_KEY = 'bger-reader-einstellungen-v2';
-  const ZAEHLER_SCHLUESSEL = 'bger-reader-zaehler';
 
   const STANDARDS = {
     aktiv: false,               // Lesemodus ein/aus
@@ -27,7 +25,10 @@
     spaltenbreite: 625,         // px – Breite der Haarlinien-Textspalte (Seiten-Standard: 625)
     silbentrennung: false,
     farbschema: 'hell',         // hell | sepia | dunkel | kontrast | nacht
-    klammern: true              // Easy-Mode: Klammern nach festem Regelsatz einklappen
+    klammern: true,             // „einfach": Klammern nach festem Regelsatz einklappen
+    ausrichtung: 'links',       // links | mittig | rechts | blocksatz
+    spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
+    absatzabstand: 0            // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
   };
 
   /* Speicher-Strategie wie in content.js: Extension-Speicher wenn vorhanden,
@@ -38,7 +39,6 @@
   const extensionStorage = extensionApi && extensionApi.storage && extensionApi.storage.local;
 
   let einstellungen = Object.assign({}, STANDARDS);
-  let letzterZaehlerStand = null;
 
   // Entfernt veraltete Schlüssel aus gespeicherten Einstellungen.
   function bereinige(e) {
@@ -95,74 +95,133 @@
 
   function $(id) { return document.getElementById(id); }
 
-  function aktualisiereAnzeige() {
-    $('bkl-aktiv').checked = einstellungen.aktiv;
-    $('bkl-groesse').value = einstellungen.schriftgroesse;
-    $('bkl-groesse-w').textContent = einstellungen.schriftgroesse + 'px';
-    $('bkl-art').value = einstellungen.schriftart;
-    $('bkl-staerke').value = einstellungen.schriftstaerke;
-    $('bkl-zeilenabstand').value = einstellungen.zeilenabstand;
-    $('bkl-zeilenabstand-w').textContent = einstellungen.zeilenabstand;
-    $('bkl-buchstaben').value = einstellungen.buchstabenabstand;
-    $('bkl-buchstaben-w').textContent = (+einstellungen.buchstabenabstand).toFixed(1) + 'px';
-    $('bkl-worte').value = einstellungen.wortabstand;
-    $('bkl-worte-w').textContent = (+einstellungen.wortabstand).toFixed(1) + 'px';
-    $('bkl-laenge').value = einstellungen.zeilenlaenge;
-    $('bkl-laenge-w').textContent = einstellungen.zeilenlaenge === 0 ? 'aus' : einstellungen.zeilenlaenge;
-    $('bkl-spalte').value = einstellungen.spaltenbreite;
-    $('bkl-spalte-w').textContent = einstellungen.spaltenbreite + 'px';
-    $('bkl-silben').checked = einstellungen.silbentrennung;
-    $('bkl-farbe').value = einstellungen.farbschema;
-    $('bkl-klammern').checked = einstellungen.klammern;
-  }
+  /* Wertanzeige neben den Reglern (Schriftgrösse bewusst ohne Einheit);
+     bei den Dropdowns Schriftart/Hintergrund stattdessen data-wert für die
+     Vorschau im geschlossenen Dropdown (popup.css). Gleiche Formate wie
+     WERTANZEIGE in content.js. */
+  const WERTANZEIGE = {
+    'bkl-groesse':       function (e) { return String(e.schriftgroesse); },
+    'bkl-zeilenabstand': function (e) { return String(e.zeilenabstand); },
+    'bkl-absatz':        function (e) { return e.absatzabstand === 0 ? 'aus' : String(e.absatzabstand); },
+    'bkl-buchstaben':    function (e) { return (+e.buchstabenabstand).toFixed(1) + 'px'; },
+    'bkl-worte':         function (e) { return (+e.wortabstand).toFixed(1) + 'px'; },
+    'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? 'aus' : String(e.zeilenlaenge); },
+    'bkl-spalte':        function (e) { return e.spaltenbreite + 'px'; },
+    'bkl-art':           null,
+    'bkl-farbe':         null
+  };
 
-  /* Zähler-Anzeige: gleiche Texte wie aktualisiereZaehler() in content.js,
-     ergänzt um einen Hinweis, solange noch keine Entscheidseite gezählt hat. */
-  function aktualisiereZaehler() {
-    const z = $('bkl-zaehler');
-    if (!z) return;
-    if (!letzterZaehlerStand || typeof letzterZaehlerStand.anzahl !== 'number') {
-      z.textContent = 'Noch kein Entscheid gezählt – die Einstellungen gelten automatisch auf allen Entscheidseiten (search.bger.ch, relevancy.bger.ch).';
+  function wertAnzeigen(id) {
+    if (!(id in WERTANZEIGE)) return;
+    const f = WERTANZEIGE[id];
+    if (!f) {
+      const sel = $(id);
+      if (sel) sel.setAttribute('data-wert', sel.value);
       return;
     }
-    const anzahl = letzterZaehlerStand.anzahl;
-    z.textContent = anzahl > 0
-      ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' eingeklappt (Pfeil ▸ anklicken zum Aufklappen).'
-      : (einstellungen.aktiv && einstellungen.klammern
-        ? 'Keine Klammern eingeklappt. Regel: Fundstellen (Rechtsprechung, Literatur) werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen.'
-        : '');
+    const el = $(id + '-w');
+    if (el) el.textContent = f(einstellungen);
+  }
+
+  function aktualisiereAnzeige() {
+    const e = einstellungen;
+    $('bkl-aktiv').checked = e.aktiv;
+    $('bkl-groesse').value = e.schriftgroesse;
+    $('bkl-art').value = e.schriftart;
+    $('bkl-staerke').value = e.schriftstaerke;
+    $('bkl-zeilenabstand').value = e.zeilenabstand;
+    $('bkl-absatz').value = e.absatzabstand;
+    $('bkl-buchstaben').value = e.buchstabenabstand;
+    $('bkl-worte').value = e.wortabstand;
+    $('bkl-laenge').value = e.zeilenlaenge;
+    $('bkl-spalte').value = e.spaltenbreite;
+    $('bkl-silben').checked = e.silbentrennung;
+    $('bkl-farbe').value = e.farbschema;
+    $('bkl-klammern').checked = e.klammern;
+    $('bkl-ausrichtung').value = e.ausrichtung;
+    $('bkl-spalten').value = String(e.spalten);
+    Object.keys(WERTANZEIGE).forEach(wertAnzeigen);
   }
 
   /* ================================================================== */
   /* BEDIENUNG                                                            */
   /* ================================================================== */
 
-  function geaendert() {
+  function geaendert(id) {
+    wertAnzeigen(id);
     speichereEinstellungen();
-    aktualisiereZaehler(); // leerer Text hängt von aktiv/klammern ab
   }
 
   function bei(id, event, fn) {
     $(id).addEventListener(event, fn);
   }
 
-  bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; geaendert(); });
-  bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; $('bkl-groesse-w').textContent = einstellungen.schriftgroesse + 'px'; geaendert(); });
-  bei('bkl-art', 'change', function (e) { einstellungen.schriftart = e.target.value; geaendert(); });
-  bei('bkl-staerke', 'change', function (e) { einstellungen.schriftstaerke = e.target.value; geaendert(); });
-  bei('bkl-zeilenabstand', 'input', function (e) { einstellungen.zeilenabstand = +e.target.value; $('bkl-zeilenabstand-w').textContent = einstellungen.zeilenabstand; geaendert(); });
-  bei('bkl-buchstaben', 'input', function (e) { einstellungen.buchstabenabstand = +e.target.value; $('bkl-buchstaben-w').textContent = (+einstellungen.buchstabenabstand).toFixed(1) + 'px'; geaendert(); });
-  bei('bkl-worte', 'input', function (e) { einstellungen.wortabstand = +e.target.value; $('bkl-worte-w').textContent = (+einstellungen.wortabstand).toFixed(1) + 'px'; geaendert(); });
-  bei('bkl-laenge', 'input', function (e) { einstellungen.zeilenlaenge = +e.target.value; $('bkl-laenge-w').textContent = einstellungen.zeilenlaenge === 0 ? 'aus' : einstellungen.zeilenlaenge; geaendert(); });
-  bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; $('bkl-spalte-w').textContent = einstellungen.spaltenbreite + 'px'; geaendert(); });
-  bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; geaendert(); });
-  bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; geaendert(); });
-  bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; geaendert(); });
+  bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; geaendert('bkl-aktiv'); });
+  bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; geaendert('bkl-groesse'); });
+  bei('bkl-art', 'change', function (e) { einstellungen.schriftart = e.target.value; geaendert('bkl-art'); });
+  bei('bkl-staerke', 'change', function (e) { einstellungen.schriftstaerke = e.target.value; geaendert('bkl-staerke'); });
+  bei('bkl-zeilenabstand', 'input', function (e) { einstellungen.zeilenabstand = +e.target.value; geaendert('bkl-zeilenabstand'); });
+  bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; geaendert('bkl-absatz'); });
+  bei('bkl-buchstaben', 'input', function (e) { einstellungen.buchstabenabstand = +e.target.value; geaendert('bkl-buchstaben'); });
+  bei('bkl-worte', 'input', function (e) { einstellungen.wortabstand = +e.target.value; geaendert('bkl-worte'); });
+  bei('bkl-laenge', 'input', function (e) { einstellungen.zeilenlaenge = +e.target.value; geaendert('bkl-laenge'); });
+  bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; geaendert('bkl-spalte'); });
+  bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; geaendert('bkl-silben'); });
+  bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; geaendert('bkl-farbe'); });
+  bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; geaendert('bkl-klammern'); });
+  bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; geaendert('bkl-ausrichtung'); });
+  bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; geaendert('bkl-spalten'); });
   bei('bkl-reset', 'click', function () {
     einstellungen = Object.assign({}, STANDARDS);
     aktualisiereAnzeige();
-    geaendert();
+    speichereEinstellungen();
   });
+
+  /* ---------- Tooltips mit Verzögerung ----------
+     Gleiche Logik wie tooltipsEinrichten() in content.js: Texte in
+     data-tooltip, Einblendung erst nach TOOLTIP_VERZOEGERUNG (Maus über dem
+     Element oder Tastaturfokus), weg bei Verlassen, Blur, Klick, Escape. */
+  const TOOLTIP_VERZOEGERUNG = 3000; // ms
+
+  function tooltipsEinrichten(wurzel, tip) {
+    let timer = null;
+    let ziel = null;
+    function verbergen() {
+      if (timer !== null) { clearTimeout(timer); timer = null; }
+      if (ziel) { ziel.removeAttribute('aria-describedby'); ziel = null; }
+      tip.hidden = true;
+    }
+    function zeigen(el, nurTastatur) {
+      timer = null;
+      if (nurTastatur) {
+        try { if (!el.matches(':focus-visible')) return; } catch (e) { /* zeigen */ }
+      }
+      tip.textContent = el.getAttribute('data-tooltip');
+      tip.hidden = false;
+      const r = el.getBoundingClientRect();
+      const links = Math.max(8, Math.min(r.left, window.innerWidth - tip.offsetWidth - 8));
+      const unten = r.bottom + 6 + tip.offsetHeight > window.innerHeight;
+      tip.style.left = links + 'px';
+      tip.style.top = (unten ? r.top - 6 - tip.offsetHeight : r.bottom + 6) + 'px';
+      el.setAttribute('aria-describedby', tip.id);
+      ziel = el;
+    }
+    function planen(e) {
+      const el = e.currentTarget;
+      const nurTastatur = e.type === 'focus';
+      verbergen();
+      timer = setTimeout(function () { zeigen(el, nurTastatur); }, TOOLTIP_VERZOEGERUNG);
+    }
+    wurzel.querySelectorAll('[data-tooltip]').forEach(function (el) {
+      el.addEventListener('mouseenter', planen);
+      el.addEventListener('focus', planen);
+      el.addEventListener('mouseleave', verbergen);
+      el.addEventListener('blur', verbergen);
+      el.addEventListener('mousedown', verbergen);
+    });
+    return verbergen;
+  }
+  const tooltipVerbergen = tooltipsEinrichten(document, $('bkl-tooltip'));
 
   /* Detail-Bereich ein-/ausklappen (echter Button, aria-expanded) */
   const detailsToggle = $('bkl-details-toggle');
@@ -179,17 +238,17 @@
   }
   $('bkl-schliessen').addEventListener('click', fensterSchliessen);
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') fensterSchliessen();
+    if (e.key === 'Escape') { tooltipVerbergen(); fensterSchliessen(); }
   });
 
   /* ================================================================== */
   /* LIVE-SYNC MIT DER ENTSCHEIDSEITE                                     */
   /* ================================================================== */
 
-  /* Änderungen aus dem Seiten-Panel (content.js) hier nachziehen; der
-     Klammer-Zähler der Seite wird angezeigt. Die eigenen Speicher-Schreibvorgänge
-     lösen onChanged ebenfalls aus – Anzeige aktualisieren ist idempotent,
-     gespeichert wird hier nicht erneut (kein Ping-Pong). */
+  /* Änderungen aus dem Seiten-Panel (content.js) hier nachziehen. Die
+     eigenen Speicher-Schreibvorgänge lösen onChanged ebenfalls aus – Anzeige
+     aktualisieren ist idempotent, gespeichert wird hier nicht erneut
+     (kein Ping-Pong). */
   if (extensionApi && extensionApi.storage &&
       extensionApi.storage.onChanged &&
       typeof extensionApi.storage.onChanged.addListener === 'function') {
@@ -201,11 +260,6 @@
           einstellungen = bereinige(Object.assign({}, STANDARDS, diff.newValue));
           aktualisiereAnzeige();
         }
-        const z = aenderungen && aenderungen[ZAEHLER_SCHLUESSEL];
-        if (z && z.newValue) {
-          letzterZaehlerStand = z.newValue;
-        }
-        if (diff || z) aktualisiereZaehler();
       });
     } catch (e) { /* ohne Live-Sync geht es auch */ }
   }
@@ -214,16 +268,12 @@
   /* START                                                                */
   /* ================================================================== */
 
-  // Gespeicherte Einstellungen und letzten Zähler-Stand laden, dann anzeigen.
+  // Gespeicherte Einstellungen laden, dann anzeigen.
   // Beim Start nur lesen: ein Ladefehler darf gespeicherte Werte nicht
   // durch Standardwerte überschreiben. Gespeichert wird bei Bedienung.
   ladeSchluessel(STORAGE_KEY, function (res) {
     einstellungen = bereinige(Object.assign({}, STANDARDS, (res && res[STORAGE_KEY]) || {}));
-    ladeSchluessel(ZAEHLER_SCHLUESSEL, function (resZ) {
-      letzterZaehlerStand = (resZ && resZ[ZAEHLER_SCHLUESSEL]) || null;
-      aktualisiereAnzeige();
-      aktualisiereZaehler();
-      $('bkl-schliessen').focus();
-    });
+    aktualisiereAnzeige();
+    $('bkl-schliessen').focus();
   });
 })();

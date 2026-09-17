@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   # Pflichtlauf: ohne Fixtures, damit das Ergebnis nicht von der
-  # Erreichbarkeit von bger.ch abhängt. Deckt die Blöcke ausser [4], [6], [7] ab.
+  # Erreichbarkeit von bger.ch abhängt. Deckt alle Blöcke ausser [3] (echte Entscheidseiten) ab.
   suite:
     name: Test-Suite (ohne Fixtures)
     runs-on: ubuntu-latest
