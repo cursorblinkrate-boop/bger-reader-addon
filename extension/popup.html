@@ -1,0 +1,119 @@
+<!doctype html>
+<!-- BGer Reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung. -->
+<!-- Mittiges Pop-up-Fenster (wird von background.js per Icon-Klick geöffnet):
+     dieselben Einstellungen wie das Seiten-Panel, als eigenes Fenster mit
+     grösserer Bedienfläche. Skripte/CSS extern (MV3-CSP erlaubt kein Inline-JS). -->
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>BGer Reader – Einstellungen</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main aria-label="BGer Reader Einstellungen">
+    <header id="bkl-kopf">
+      <h1><svg viewBox="0 0 16 16" width="22" height="22" fill="none"
+               stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+               aria-hidden="true" focusable="false"><path d="M2 4 c2 -1.3 4 -1.3 6 0 c2 -1.3 4 -1.3 6 0 v9 c-2 -1.3 -4 -1.3 -6 0 c-2 -1.3 -4 -1.3 -6 0 z M8 4 v9 M3.8 9.2 c1 1.1 2.5 1.5 4.2 1.5 c1.7 0 3.2 -0.4 4.2 -1.5"/><circle cx="4.8" cy="6.4" r="0.55" fill="currentColor" stroke="none"/><circle cx="11.2" cy="6.4" r="0.55" fill="currentColor" stroke="none"/></svg>
+        BGer Reader</h1>
+      <button type="button" id="bkl-schliessen"
+              title="Fenster schliessen (Escape)"
+              aria-label="Fenster schliessen"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M3 3 L13 13 M13 3 L3 13"/></svg></button>
+    </header>
+
+    <section class="bkl-bereich" id="bkl-allgemein" aria-label="Allgemein">
+      <h2 class="bkl-bereich-titel">Allgemein</h2>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M2 4 c2 -1.3 4 -1.3 6 0 c2 -1.3 4 -1.3 6 0 v9 c-2 -1.3 -4 -1.3 -6 0 c-2 -1.3 -4 -1.3 -6 0 z M8 4 v9"/></svg></span>
+        <label for="bkl-aktiv">Lesemodus</label>
+        <input type="checkbox" id="bkl-aktiv" title="Lesemodus ein-/ausschalten" aria-label="Lesemodus ein-/ausschalten">
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M2 12.5 L5.5 3.5 L9 12.5 M3.4 9.5 h4.2 M12.5 3.5 v9 M12.5 3.5 l-1.5 2 M12.5 3.5 l1.5 2 M12.5 12.5 l-1.5 -2 M12.5 12.5 l1.5 -2"/></svg></span>
+        <label for="bkl-groesse">Schriftgrösse</label>
+        <input type="range" id="bkl-groesse" min="12" max="30" step="1" title="Schriftgrösse in Pixel" aria-label="Schriftgrösse in Pixel"><span class="bkl-wert" id="bkl-groesse-w"></span>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M1.5 12.5 L4 4.5 L6.5 12.5 M2.6 10 h2.8 M9 12.5 v-5 a2.5 2.5 0 0 1 5 0 v5 M9 10.5 h5"/></svg></span>
+        <label for="bkl-art">Schriftart</label>
+        <select id="bkl-art" title="Schriftart wählen" aria-label="Schriftart wählen">
+          <option value="atkinson">Atkinson Hyperlegible</option>
+          <option value="opendyslexic">OpenDyslexic</option>
+          <option value="comicneue">Comic Neue</option>
+          <option value="garamond">EB Garamond (Buchschrift)</option>
+          <option value="liberation-sans">Liberation Sans (Arial-ähnlich)</option>
+          <option value="liberation-serif">Liberation Serif (Times-ähnlich)</option>
+          <option value="sans">System Sans</option>
+          <option value="serif">System Serif</option>
+        </select>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M8 2 C8 2 3.5 7.5 3.5 10 a4.5 4.5 0 0 0 9 0 C12.5 7.5 8 2 8 2 z"/></svg></span>
+        <label for="bkl-farbe">Farbschema</label>
+        <select id="bkl-farbe" title="Farbschema wählen" aria-label="Farbschema wählen">
+          <option value="hell">Weiss</option>
+          <option value="sepia">Sepia</option>
+          <option value="dunkel">Dunkel</option>
+          <option value="kontrast">Hoher Kontrast</option>
+          <option value="nacht">Nacht (rötlich)</option>
+        </select>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M2 3 h12 v10 h-12 z M5.5 3 v10 M10.5 3 v10"/></svg></span>
+        <label for="bkl-spalte">Textbreite</label>
+        <input type="range" id="bkl-spalte" min="400" max="1400" step="25" title="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M6 3 c-2 1 -2.5 3 -2.5 5 s0.5 4 2.5 5 M10 3 c2 1 2.5 3 2.5 5 s-0.5 4 -2.5 5"/></svg></span>
+        <label for="bkl-klammern">Klammern einklappen</label>
+        <input type="checkbox" id="bkl-klammern" title="Klammerbemerkungen einklappen (Regel: Gesetzesverweise und inhaltliche Bemerkungen bleiben offen, Literatur und lange Klammern werden eingeklappt)" aria-label="Klammerbemerkungen einklappen">
+      </div>
+    </section>
+
+    <button type="button" id="bkl-details-toggle" aria-expanded="false" aria-controls="bkl-details"
+            title="Weitere Einstellungen ein-/ausblenden" aria-label="Detaillierte Einstellungen ein-/ausblenden">
+      <span class="bkl-pfeil"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M6 4 L10 8 L6 12"/></svg></span>Detaillierte Einstellungen
+    </button>
+    <section class="bkl-bereich" id="bkl-details" aria-label="Detaillierte Einstellungen" hidden>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M4.5 2.5 h3.5 a3 3 0 0 1 0 6 h-3.5 z M4.5 8.5 h4.5 a3 3 0 0 1 0 6 h-4.5 z"/></svg></span>
+        <label for="bkl-staerke">Schriftstärke</label>
+        <select id="bkl-staerke" title="Schriftstärke wählen" aria-label="Schriftstärke wählen">
+          <option value="normal">normal</option>
+          <option value="fett">fett</option>
+        </select>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M6 4 h8 M6 8 h8 M6 12 h8 M2.5 3 v10 M2.5 3 L1 4.5 M2.5 3 L4 4.5 M2.5 13 L1 11.5 M2.5 13 L4 11.5"/></svg></span>
+        <label for="bkl-zeilenabstand">Zeilenabstand</label>
+        <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1" title="Zeilenabstand (Faktor)" aria-label="Zeilenabstand (Faktor)"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M1 12.5 L3.5 4.5 L6 12.5 M2 10 h3 M10 12.5 L12.5 4.5 L15 12.5 M11 10 h3 M6.8 8.5 h2.4"/></svg></span>
+        <label for="bkl-buchstaben">Buchstabenabstand</label>
+        <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.1" title="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M1 5 h5 M1 9 h5 M10 5 h5 M10 9 h5 M7 7 h2 M7 7 l1 -1.2 M7 7 l1 1.2 M9 7 l-1 -1.2 M9 7 l-1 1.2"/></svg></span>
+        <label for="bkl-worte">Wortabstand</label>
+        <input type="range" id="bkl-worte" min="0" max="10" step="0.1" title="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M2 4 h12 M2 8 h8 M2 12 h10"/></svg></span>
+        <label for="bkl-laenge">Zeilenlänge</label>
+        <input type="range" id="bkl-laenge" min="0" max="120" step="10" title="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
+      </div>
+      <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M2 4 h12 M2 8 h5 M9 8 h5 M2 12 h12"/></svg></span>
+        <label for="bkl-silben">Silbentrennung</label>
+        <input type="checkbox" id="bkl-silben" title="Silbentrennung ein-/ausschalten" aria-label="Silbentrennung ein-/ausschalten">
+      </div>
+      <div class="bkl-knopfreihe">
+        <button class="bkl-aktion" id="bkl-reset" title="Alle Einstellungen auf Standard zurücksetzen" aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
+      </div>
+      <div class="bkl-hinweis" id="bkl-zaehler"></div>
+    </section>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -26,6 +26,12 @@ extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
                           ICON_BUCH_SMILE), chrome.storage.local-Persistenz
 extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
                           nie von Hand ändern (siehe tools/version.js)
+extension/background.js   Service Worker/Event-Seite: Icon-Klick oeffnet
+                          popup.html als mittiges Fenster (windows.create,
+                          Fenster-ID in storage.session, Fokus statt Duplikat)
+extension/popup.html/.css/.js  Einstellungen im mittigen Fenster: gleiche
+                          Bedienelemente wie das Seiten-Panel, Sync mit der
+                          Seite ueber storage.onChanged (keine neuen Rechte)
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
 extension/icons/          icon16/48/128.png (pinkes Buch-Icon)
 test/test-runner.js       Suite ohne Framework, nummerierte Blöcke

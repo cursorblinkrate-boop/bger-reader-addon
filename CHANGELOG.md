@@ -15,6 +15,12 @@ hinten bei Korrekturen.
 
 ## 0.6.0 — 2026-09-17
 
+- Bedienung entkoppelt: Typografie- und Farbänderungen bauen die Klammer-Folds
+  nicht mehr neu auf. 43,05 ms → 0,19 ms pro Reglerbewegung. Von Hand
+  aufgeklappte Klammern bleiben beim Verstellen offen. Speicherzugriffe
+  gebündelt (Throttle mit führender Kante), Nachschreiben bei `pagehide`.
+  Der Live-Sync aus dem Pop-up-Fenster folgt derselben Aufwandstrennung und
+  ignoriert das Echo der eigenen Schreibvorgänge.
 - **Einklapp-Heuristik neu gebaut.** Grundsatz nach Vorgabe der Autorin:
   Eingeklappt wird, was *Fundstelle* ist – Rechtsprechung (BGE/ATF/DTF,
   Urteile mit Aktenzeichen, auch kurz) und Literatur. Alles andere ist
@@ -46,13 +52,11 @@ hinten bei Korrekturen.
 
 ## 0.5.6 — 2026-09-17
 
-- Bedienung entkoppelt: Typografie- und Farbänderungen bauen die Klammer-Folds
-  nicht mehr neu auf. 43,05 ms → 0,19 ms pro Reglerbewegung.
-- Von Hand aufgeklappte Klammerbemerkungen bleiben beim Verstellen offen.
-- Speicherzugriffe gebündelt (Throttle mit führender Kante, 400 ms), Nachschreiben
-  bei `pagehide` und `visibilitychange`.
-- Testblöcke [13] und [14] ergänzt.
-- CI: `.github/workflows/tests.yml` läuft bei jedem Push.
+- Mittiges Pop-up-Fenster per Klick aufs Extension-Symbol (660×860):
+  dieselben Bedienelemente wie das Seiten-Panel, grössere Bedienfläche.
+  `background.js` öffnet und fokussiert das Fenster, `popup.html/.css/.js`
+  zeigen die Einstellungen; Sync mit der Seite über `storage.onChanged`,
+  keine neuen Rechte. Firefox-Mindestversion 121.
 
 ## 0.5.5 — 2026-09-17
 

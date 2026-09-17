@@ -1032,6 +1032,67 @@ console.log('\n[13] Aufwandstrennung bei Bedienung');
     !doc.documentElement.classList.contains('bkl-aktiv'));
 }
 
+/* ---------- 13b. Live-Sync (storage.onChanged) folgt derselben Aufwandstrennung ---------- */
+console.log('\n[13b] Live-Sync: Eigen-Echo und Aufwandstrennung');
+{
+  // Chrome meldet ueber storage.onChanged auch die Schreibvorgaenge DIESER
+  // Seite. Ohne Schutz wuerde jeder Reglerzug (-> Speichern -> onChanged)
+  // die Folds neu aufbauen – die Regression aus dem Merge des Pop-up-Syncs.
+  const dom = new JSDOM(SYNTHESE, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+  const speicher = {};
+  const listener = [];
+  dom.window.chrome = {
+    storage: {
+      local: {
+        get: function (key, cb) { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); },
+        set: function (paket, cb) {
+          Object.keys(paket).forEach(function (k) { speicher[k] = JSON.parse(JSON.stringify(paket[k])); });
+          if (cb) cb();
+        }
+      },
+      onChanged: { addListener: function (fn) { listener.push(fn); } }
+    },
+    runtime: { lastError: null }
+  };
+  dom.window.eval(SCRIPT);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+  const SCHLUESSEL = 'bger-reader-einstellungen-v2';
+
+  pruefe('onChanged-Listener registriert', listener.length === 1);
+
+  // Lesemodus ueber das Panel einschalten -> Folds entstehen, Speicher wird beschrieben.
+  const aktiv = shadow.getElementById('bkl-aktiv');
+  aktiv.checked = true;
+  aktiv.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  const foldVorher = doc.querySelector('.bkl-fold');
+  pruefe('Folds vorhanden', !!foldVorher);
+
+  // (a) Eigen-Echo: der gerade gespeicherte Stand kommt als onChanged zurueck.
+  listener[0]({ [SCHLUESSEL]: { newValue: JSON.parse(JSON.stringify(speicher[SCHLUESSEL])) } }, 'local');
+  pruefe('Eigen-Echo baut die Folds NICHT neu auf (identischer Knoten)',
+    doc.querySelector('.bkl-fold') === foldVorher);
+
+  // (b) Fremde Typografie-Aenderung (aus dem Pop-up): Stil ja, Folds nein.
+  const nurGroesse = Object.assign({}, speicher[SCHLUESSEL], { schriftgroesse: 24 });
+  listener[0]({ [SCHLUESSEL]: { newValue: nurGroesse } }, 'local');
+  pruefe('Fremde Schriftgroesse wirkt sofort (24px)',
+    doc.documentElement.style.getPropertyValue('--bkl-size') === '24px');
+  pruefe('Fremde Typografie-Aenderung baut die Folds NICHT neu auf',
+    doc.querySelector('.bkl-fold') === foldVorher);
+  pruefe('Panel zeigt den fremden Wert', shadow.getElementById('bkl-groesse').value === '24');
+
+  // (c) Fremdes Umschalten der Klammern: Folds muessen weg bzw. neu.
+  const ohneKlammern = Object.assign({}, nurGroesse, { klammern: false });
+  listener[0]({ [SCHLUESSEL]: { newValue: ohneKlammern } }, 'local');
+  pruefe('Fremdes Ausschalten der Klammern entfernt die Folds',
+    doc.querySelectorAll('.bkl-fold').length === 0);
+  const mitKlammern = Object.assign({}, ohneKlammern, { klammern: true });
+  listener[0]({ [SCHLUESSEL]: { newValue: mitKlammern } }, 'local');
+  pruefe('Fremdes Einschalten der Klammern baut die Folds wieder auf',
+    doc.querySelectorAll('.bkl-fold').length === 2, doc.querySelectorAll('.bkl-fold').length + ' Folds');
+}
+
 /* ---------- 14. Speicher-Buendelung (Throttle mit fuehrender Kante) ---------- */
 console.log('\n[14] Speicher-Buendelung');
 {
@@ -1158,7 +1219,289 @@ console.log('\n[15] Versions-Konsistenz');
   void fontsDir;
 }
 
-/* ---------- Ergebnis ---------- */
-console.log('\n========================================');
-console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
-process.exit(fehlgeschlagen ? 1 : 0);
+/* ---------- 13. v0.5.6: Mittiges Pop-up-Fenster beim Icon-Klick ---------- */
+console.log('\n[16] Mittiges Pop-up-Fenster (Icon-Klick, v0.5.6)');
+
+/* Dieser Block ist asynchron (Promise-Ketten in background.js) und beendet
+ * den Lauf daher selbst: das Ergebnis wird am Ende von Block [16] gedruckt. */
+(async function () {
+  const EXT = path.join(__dirname, '..', 'extension');
+  const BG_PFAD = path.join(EXT, 'background.js');
+  const POPUP_HTML_PFAD = path.join(EXT, 'popup.html');
+  const POPUP_JS_PFAD = path.join(EXT, 'popup.js');
+  const POPUP_CSS_PFAD = path.join(EXT, 'popup.css');
+  const bgQuelle = fs.readFileSync(BG_PFAD, 'utf8');
+  const popupHtml = fs.readFileSync(POPUP_HTML_PFAD, 'utf8');
+  const popupJs = fs.readFileSync(POPUP_JS_PFAD, 'utf8');
+  const popupCss = fs.readFileSync(POPUP_CSS_PFAD, 'utf8');
+  const contentQuelle = SCRIPT;
+  const ZAEHLER_SCHLUESSEL = 'bger-reader-zaehler';
+
+  // (a) Manifest und Dateien
+  const manifest = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
+  pruefe('Manifest: action mit Titel vorhanden (Icon-Klick statt Standard-Popup)',
+    !!(manifest.action && manifest.action.default_title) && !manifest.action.default_popup);
+  pruefe('Manifest: action-Icons zeigen auf existierende Dateien',
+    ['16', '48', '128'].every(function (g) {
+      const z = manifest.action.default_icon && manifest.action.default_icon[g];
+      return typeof z === 'string' && fs.existsSync(path.join(EXT, z));
+    }));
+  pruefe('Manifest: background mit service_worker (Chrome) UND scripts (Firefox >= 121)',
+    !!manifest.background && manifest.background.service_worker === 'background.js' &&
+    (manifest.background.scripts || []).join(',') === 'background.js');
+  pruefe('Manifest: gecko strict_min_version >= 121 (sonst startet Firefox den Hintergrund nicht)',
+    !!manifest.browser_specific_settings && !!manifest.browser_specific_settings.gecko &&
+    parseInt(manifest.browser_specific_settings.gecko.strict_min_version, 10) >= 121,
+    manifest.browser_specific_settings && manifest.browser_specific_settings.gecko.strict_min_version);
+  ['background.js', 'popup.html', 'popup.js', 'popup.css'].forEach(function (f) {
+    pruefe('Datei existiert: extension/' + f, fs.existsSync(path.join(EXT, f)));
+  });
+
+  // (b) background.js: Zentrier-Logik und Klick-Fluss mit gemockter chrome-API
+  {
+    const dom = new JSDOM('<!doctype html><html><body></body></html>',
+      { url: 'chrome-extension://test/background.html', runScripts: 'outside-only', pretendToBeVisual: true });
+    const sitzung = {};
+    const klickHandler = [];
+    const erstellt = [];
+    const aktualisiert = [];
+    dom.window.chrome = {
+      action: { onClicked: { addListener: function (fn) { klickHandler.push(fn); } } },
+      windows: {
+        getLastFocused: function (cb) { cb({ left: 100, top: 40, width: 1440, height: 900 }); },
+        create: function (daten, cb) { erstellt.push(daten); cb({ id: 42 }); },
+        update: function (id, daten, cb) { aktualisiert.push({ id: id, daten: daten }); cb({ id: id }); }
+      },
+      storage: {
+        session: {
+          get: function (key, cb) { const out = {}; if (sitzung[key]) out[key] = sitzung[key]; cb(out); },
+          set: function (paket, cb) { Object.keys(paket).forEach(function (k) { sitzung[k] = paket[k]; }); if (cb) cb(); }
+        },
+        local: {
+          get: function (key, cb) { cb({}); },
+          set: function (paket, cb) { if (cb) cb(); }
+        }
+      },
+      runtime: {
+        getURL: function (p) { return 'chrome-extension://test/' + p; },
+        lastError: null
+      }
+    };
+    dom.window.eval(bgQuelle);
+
+    const P = dom.window.BGerReaderPopup;
+    pruefe('zentriert(): exakte Mitte relativ zum Browser-Fenster',
+      !!P && P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, 660, 860).left === 390 &&
+      P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, 660, 860).top === 20);
+    pruefe('zentriert(): negative Werte (Fenster grösser als Bildschirm) auf 0 begrenzt',
+      !!P && P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, 660, 860).left === 0 &&
+      P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, 660, 860).top === 0);
+    pruefe('Klick-Handler auf action.onClicked registriert', klickHandler.length === 1);
+
+    // Erster Klick: keine gespeicherte Fenster-ID -> neues Fenster, mittig
+    klickHandler[0]();
+    await new Promise(function (r) { setTimeout(r, 0); });
+    await new Promise(function (r) { setTimeout(r, 0); });
+    pruefe('Icon-Klick öffnet popup.html als eigenes Fenster (type "popup")',
+      erstellt.length === 1 && /popup\.html$/.test(erstellt[0].url) && erstellt[0].type === 'popup',
+      JSON.stringify(erstellt[0]));
+    pruefe('Fenster mittig positioniert (left 490 / top 60 bei 1440x900 auf 100/40)',
+      erstellt.length === 1 && erstellt[0].left === 490 && erstellt[0].top === 60,
+      erstellt.length ? erstellt[0].left + '/' + erstellt[0].top : 'kein Fenster');
+    pruefe('Fenster-ID für den nächsten Klick in storage.session gemerkt',
+      sitzung['bger-reader-popup-fenster'] === 42, JSON.stringify(sitzung));
+
+    // Zweiter Klick: bestehendes Fenster nur fokussieren, kein zweites öffnen
+    klickHandler[0]();
+    await new Promise(function (r) { setTimeout(r, 0); });
+    await new Promise(function (r) { setTimeout(r, 0); });
+    pruefe('Zweiter Klick fokussiert das bestehende Fenster statt ein neues zu öffnen',
+      erstellt.length === 1 && aktualisiert.length === 1 &&
+      aktualisiert[0].id === 42 && aktualisiert[0].daten.focused === true,
+      'erstellt: ' + erstellt.length + ', update: ' + JSON.stringify(aktualisiert));
+  }
+
+  // (c) popup.html: dieselben Bedienelemente wie das Seiten-Panel (kein Auseinanderlaufen)
+  {
+    const popupDom = new JSDOM(popupHtml, { url: 'chrome-extension://test/popup.html' });
+    const popupDoc = popupDom.window.document;
+    const panelIds = {};
+    let m;
+    const re = /id="(bkl-[a-z0-9-]+)"/g;
+    while ((m = re.exec(contentQuelle))) panelIds[m[1]] = true;
+
+    const KONTROLLEN = ['bkl-schliessen', 'bkl-details-toggle', 'bkl-aktiv', 'bkl-groesse',
+      'bkl-art', 'bkl-farbe', 'bkl-spalte', 'bkl-klammern', 'bkl-staerke', 'bkl-zeilenabstand',
+      'bkl-buchstaben', 'bkl-worte', 'bkl-laenge', 'bkl-silben', 'bkl-reset'];
+    const popupIds = Array.prototype.map.call(
+      popupDoc.querySelectorAll('input, select, button'), function (el) { return el.id; });
+    pruefe('Pop-up enthält alle 15 Bedienelemente des Seiten-Panels',
+      KONTROLLEN.every(function (id) { return popupIds.indexOf(id) !== -1; }),
+      'fehlt: ' + KONTROLLEN.filter(function (id) { return popupIds.indexOf(id) === -1; }).join(','));
+    pruefe('jede Pop-up-Kontroll-ID existiert auch im Seiten-Panel (content.js)',
+      popupIds.every(function (id) { return panelIds[id]; }),
+      'fremd: ' + popupIds.filter(function (id) { return !panelIds[id]; }).join(','));
+
+    // Dropdowns: gleiche Werte, gleiche Reihenfolge wie im Seiten-Panel
+    const artWerte = Array.prototype.map.call(
+      popupDoc.getElementById('bkl-art').querySelectorAll('option'), function (o) { return o.value; });
+    pruefe('Schriftart-Dropdown im Pop-up: Reihenfolge wie im Panel',
+      artWerte.join(',') === 'atkinson,opendyslexic,comicneue,garamond,liberation-sans,liberation-serif,sans,serif',
+      artWerte.join(','));
+    const farbWerte = Array.prototype.map.call(
+      popupDoc.getElementById('bkl-farbe').querySelectorAll('option'), function (o) { return o.value; });
+    pruefe('Farbschema-Dropdown im Pop-up: Nacht als letzte Option',
+      farbWerte.join(',') === 'hell,sepia,dunkel,kontrast,nacht', farbWerte.join(','));
+
+    // Wert-Anzeigen und Zähler-Hinweis vorhanden
+    pruefe('Wert-Anzeigen (bkl-*-w) und Zähler-Hinweis im Pop-up vorhanden',
+      ['bkl-groesse-w', 'bkl-spalte-w', 'bkl-zeilenabstand-w', 'bkl-buchstaben-w', 'bkl-worte-w', 'bkl-laenge-w', 'bkl-zaehler']
+        .every(function (id) { return !!popupDoc.getElementById(id); }));
+
+    // Alle Controls mit title UND aria-label (wie im Panel, Block [9])
+    const ohneTooltip = [];
+    popupDoc.querySelectorAll('input, select, button').forEach(function (el) {
+      if (!el.getAttribute('title') || !el.getAttribute('aria-label')) ohneTooltip.push(el.id);
+    });
+    pruefe('alle Pop-up-Controls mit title UND aria-label', ohneTooltip.length === 0, ohneTooltip.join(','));
+
+    pruefe('Pop-up ohne Inline-Script (MV3-CSP: nur externe Dateien)',
+      !/<script(?![^>]*\bsrc=)[^>]*>/.test(popupHtml) && /<script src="popup\.js">/.test(popupHtml));
+    pruefe('Pop-up-CSS: grössere Bedienfläche als das Panel (Basis >= 16px, Checkbox >= 22px)',
+      /font-size:\s*16px/.test(popupCss) && /input\[type="checkbox"\]\s*\{[^}]*width:\s*22px/.test(popupCss));
+  }
+
+  // (d) Schlüssel- und Standard-Konsistenz zwischen popup.js und content.js
+  {
+    pruefe('Einstellungs-Schlüssel identisch (bger-reader-einstellungen-v2 in beiden Skripten)',
+      popupJs.indexOf('bger-reader-einstellungen-v2') !== -1 &&
+      contentQuelle.indexOf('bger-reader-einstellungen-v2') !== -1);
+    pruefe('Zähler-Schlüssel identisch (bger-reader-zaehler in beiden Skripten)',
+      popupJs.indexOf(ZAEHLER_SCHLUESSEL) !== -1 && contentQuelle.indexOf(ZAEHLER_SCHLUESSEL) !== -1);
+    pruefe('Standardwerte identisch (Schriftgrösse 18, Spalte 625, Zeilenabstand 1.6)',
+      /schriftgroesse:\s*18/.test(popupJs) && /spaltenbreite:\s*625/.test(popupJs) &&
+      /zeilenabstand:\s*1\.6/.test(popupJs));
+  }
+
+  // (e) popup.js: lädt, speichert und synchronisiert (gemockter Extension-Speicher)
+  {
+    const dom = new JSDOM(popupHtml,
+      { url: 'chrome-extension://test/popup.html', runScripts: 'outside-only', pretendToBeVisual: true });
+    const speicher = {};
+    speicher['bger-reader-einstellungen-v2'] = { schriftgroesse: 22, farbschema: 'dunkel', schriftart: 'garamond' };
+    const popupListener = [];
+    dom.window.chrome = {
+      storage: {
+        local: {
+          get: function (key, cb) { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); },
+          set: function (paket, cb) {
+            Object.keys(paket).forEach(function (k) { speicher[k] = paket[k]; });
+            if (cb) cb();
+          }
+        },
+        onChanged: { addListener: function (fn) { popupListener.push(fn); } }
+      },
+      runtime: { lastError: null }
+    };
+    dom.window.eval(popupJs);
+    const doc = dom.window.document;
+
+    pruefe('Pop-up lädt gespeicherte Werte (Grösse 22, Schema dunkel, Garamond)',
+      doc.getElementById('bkl-groesse').value === '22' &&
+      doc.getElementById('bkl-groesse-w').textContent === '22px' &&
+      doc.getElementById('bkl-farbe').value === 'dunkel' &&
+      doc.getElementById('bkl-art').value === 'garamond');
+    pruefe('Zähler-Hinweis ohne gezählten Entscheid erklärt die Lage',
+      /Noch kein Entscheid gezählt/.test(doc.getElementById('bkl-zaehler').textContent));
+
+    // Bedienung speichert in den Extension-Speicher (content.js wendet live an)
+    const aktiv = doc.getElementById('bkl-aktiv');
+    aktiv.checked = true;
+    aktiv.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    pruefe('Pop-up-Änderung wird in denselben Speicher geschrieben',
+      speicher['bger-reader-einstellungen-v2'].aktiv === true);
+
+    // Änderung von aussen (Seiten-Panel) wird im Fenster nachgezogen
+    popupListener[0]({
+      'bger-reader-einstellungen-v2': { newValue: { schriftgroesse: 26 } }
+    }, 'local');
+    pruefe('Externe Einstellungs-Änderung aktualisiert das Fenster live',
+      doc.getElementById('bkl-groesse').value === '26' &&
+      doc.getElementById('bkl-groesse-w').textContent === '26px',
+      doc.getElementById('bkl-groesse').value);
+
+    // Klammer-Zähler der Entscheidseite wird angezeigt
+    popupListener[0]({ 'bger-reader-zaehler': { newValue: { anzahl: 3, zeit: 1 } } }, 'local');
+    pruefe('Klammer-Zähler der Seite erscheint im Fenster',
+      /^3 Klammerbemerkungen eingeklappt/.test(doc.getElementById('bkl-zaehler').textContent),
+      doc.getElementById('bkl-zaehler').textContent);
+  }
+
+  // (f) content.js: Live-Sync aus dem Fenster + Loop-Schutz + Zähler-Publikation
+  {
+    const dom = new JSDOM(SYNTHESE,
+      { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+    const speicher = {};
+    const gesetzt = [];
+    const seitenListener = [];
+    dom.window.chrome = {
+      storage: {
+        local: {
+          get: function (key, cb) { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); },
+          set: function (paket, cb) {
+            Object.keys(paket).forEach(function (k) { speicher[k] = paket[k]; gesetzt.push(k); });
+            if (cb) cb();
+          }
+        },
+        onChanged: { addListener: function (fn) { seitenListener.push(fn); } }
+      },
+      runtime: { lastError: null }
+    };
+    dom.window.eval(contentQuelle);
+    const doc = dom.window.document;
+    const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+
+    pruefe('content.js registriert storage.onChanged-Listener für das Fenster',
+      seitenListener.length === 1);
+
+    // Änderung aus dem Pop-up-Fenster eintreffen lassen
+    gesetzt.length = 0;
+    seitenListener[0]({
+      'bger-reader-einstellungen-v2': { newValue: { aktiv: true, schriftgroesse: 24 } }
+    }, 'local');
+    pruefe('Fenster-Änderung aktiviert den Lesemodus auf der Seite live',
+      doc.documentElement.classList.contains('bkl-aktiv'));
+    pruefe('Fenster-Änderung setzt Schriftgrösse 24px auf der Seite live',
+      doc.documentElement.style.getPropertyValue('--bkl-size') === '24px',
+      doc.documentElement.style.getPropertyValue('--bkl-size'));
+    pruefe('Seiten-Panel zeigt die Fenster-Änderung an (beide GUIs synchron)',
+      shadow.getElementById('bkl-groesse').value === '24' &&
+      shadow.getElementById('bkl-aktiv').checked === true);
+    pruefe('Klammern nach Fenster-Änderung verarbeitet (2 Folds im Testdokument)',
+      doc.querySelectorAll('.bkl-fold').length === 2,
+      doc.querySelectorAll('.bkl-fold').length + ' Folds');
+    pruefe('Loop-Schutz: Live-Anwenden speichert Einstellungen NICHT erneut',
+      gesetzt.indexOf('bger-reader-einstellungen-v2') === -1, gesetzt.join(','));
+    pruefe('Klammer-Zähler für das Fenster publiziert (Anzahl 2)',
+      !!speicher[ZAEHLER_SCHLUESSEL] && speicher[ZAEHLER_SCHLUESSEL].anzahl === 2,
+      JSON.stringify(speicher[ZAEHLER_SCHLUESSEL]));
+
+    // Fremde Bereiche (session/sync) werden ignoriert
+    seitenListener[0]({
+      'bger-reader-einstellungen-v2': { newValue: { aktiv: false } }
+    }, 'session');
+    pruefe('Änderungen anderer Speicher-Bereiche werden ignoriert',
+      doc.documentElement.classList.contains('bkl-aktiv'));
+  }
+
+  /* ---------- Ergebnis (gehört zu Block [16], s. dessen Kommentar) ---------- */
+  console.log('\n========================================');
+  console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
+  process.exit(fehlgeschlagen ? 1 : 0);
+})().catch(function (e) {
+  fehlgeschlagen++;
+  console.log('  ❌ Block [16] abgebrochen: ' + e.message);
+  console.log('\n========================================');
+  console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
+  process.exit(1);
+});
