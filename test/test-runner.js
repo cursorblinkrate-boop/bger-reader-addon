@@ -35,6 +35,16 @@ function pruefe(name, bedingung, detail) {
   else { fehlgeschlagen++; console.log('  ❌ ' + name + (detail ? ' – ' + detail : '')); }
 }
 
+/* Fixture lesen und wie ein Browser dekodieren. bger.ch liefert Latin-1;
+ * search.bger.ch nennt die Kodierung nur im HTTP-Header, den curl nicht
+ * mitspeichert, relevancy.bger.ch auch im HTML. Strategie: erst streng als
+ * UTF-8, bei ungueltigen Bytes als windows-1252 (Obermenge von Latin-1). */
+function dekodiere(buf) {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch (e) { return new TextDecoder('windows-1252').decode(buf); }
+}
+function ladeSeite(pfad) { return dekodiere(fs.readFileSync(pfad)); }
+
 function domMitScript(html, url) {
   const dom = new JSDOM(html, { url: url || 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
   dom.window.eval(SCRIPT);
@@ -214,6 +224,16 @@ const KORPUS = [
     R.sollEingeklapptWerden('Art.\u00A012\u00A0Abs.\u00A03\u00A0StGB') === false);
 }
 
+/* ---------- 1b. Fixture-Dekodierung ---------- */
+console.log('\n[1b] Fixture-Dekodierung');
+{
+  const latin1 = Buffer.from([0x70, 0x72, 0xE9, 0x63, 0x69, 0x74, 0xE9]);      // "précité" in Latin-1
+  const utf8 = Buffer.from('précité', 'utf8');
+  pruefe('Latin-1-Bytes werden zu "précité"', dekodiere(latin1) === 'précité', JSON.stringify(dekodiere(latin1)));
+  pruefe('UTF-8-Bytes bleiben "précité"', dekodiere(utf8) === 'précité', JSON.stringify(dekodiere(utf8)));
+  pruefe('kein Ersatzzeichen U+FFFD im Ergebnis', dekodiere(latin1).indexOf('\uFFFD') === -1);
+}
+
 /* ---------- 2. Klammer-Stack: verschachtelt & unbalanciert ---------- */
 console.log('\n[2] Klammer-Stack');
 {
@@ -364,11 +384,8 @@ console.log('\n[4] Echte Entscheidseite (BGE 152 IV 1)');
 
 const ECHTE_SEITE = process.env.BGER_FIXTURE || path.join(__dirname, 'fixtures', 'bger_test.html');
 if (fs.existsSync(ECHTE_SEITE)) {
-  // Buffer statt String: bger.ch liefert Latin-1; jsdom liest die im HTML
-  // deklarierte Kodierung wie ein Browser. Die Link-Zählung ist reines
-  // ASCII und darf latin1 verwenden.
-  const html = fs.readFileSync(ECHTE_SEITE);
-  const vorher = { links: (html.toString('latin1').match(/<a /g) || []).length };
+  const html = ladeSeite(ECHTE_SEITE);
+  const vorher = { links: (html.match(/<a /g) || []).length };
 
   const dom = domMitScript(html);
   const doc = dom.window.document;
@@ -486,7 +503,7 @@ console.log('\n[6] aza- und relevancy-Seiten');
 
 const AZA_FIXTURE = process.env.BGER_AZA_FIXTURE || path.join(__dirname, 'fixtures', 'bger_aza.html');
 if (fs.existsSync(AZA_FIXTURE)) {
-  const html = fs.readFileSync(AZA_FIXTURE);
+  const html = ladeSeite(AZA_FIXTURE);
   const dom = domMitScript(html, 'https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?type=show_document');
   const doc = dom.window.document;
   const R = dom.window.BGerReader;
@@ -507,7 +524,7 @@ if (fs.existsSync(AZA_FIXTURE)) {
 
 const RELEVANCY_FIXTURE = process.env.BGER_RELEVANCY_FIXTURE || path.join(__dirname, 'fixtures', 'bger_relevancy.html');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
-  const html = fs.readFileSync(RELEVANCY_FIXTURE);
+  const html = ladeSeite(RELEVANCY_FIXTURE);
   const dom = domMitScript(html, 'http://relevancy.bger.ch/php/clir/http/index.php?type=show_document');
   const doc = dom.window.document;
 
@@ -521,7 +538,7 @@ if (fs.existsSync(RELEVANCY_FIXTURE)) {
 /* ---------- 7. Spaltenbreite (Haarlinien) ---------- */
 console.log('\n[7] Spaltenbreite');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
-  const html = fs.readFileSync(RELEVANCY_FIXTURE);
+  const html = ladeSeite(RELEVANCY_FIXTURE);
   const dom = domMitScript(html);
   const doc = dom.window.document;
   const host = doc.getElementById('bkl-panel-host');
