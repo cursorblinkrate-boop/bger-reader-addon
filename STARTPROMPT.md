@@ -18,12 +18,14 @@ Manifest V3, vanilla JS, keine Build-Pipeline, keine Frameworks.
 Repo: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
 == STRUKTUR ==
-extension/content.js      ~1020 Zeilen, ALLES in einer Datei: Einklapp-Logik,
+extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
+                          Konstanten POLITIK am Anfang des Regelkerns),
                           Shadow-DOM-Panel (pinkfarbener Button unten rechts),
                           Panel-CSS als Template-Literal (const panelCss),
                           Inline-SVG-Icons (svgIcon() + ICONS-Map, Marken-Icon
                           ICON_BUCH_SMILE), chrome.storage.local-Persistenz
-extension/manifest.json   Manifest V3, Version hier bumpen
+extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
+                          nie von Hand ändern (siehe tools/version.js)
 extension/background.js   Service Worker/Event-Seite: Icon-Klick oeffnet
                           popup.html als mittiges Fenster (windows.create,
                           Fenster-ID in storage.session, Fokus statt Duplikat)
@@ -32,7 +34,7 @@ extension/popup.html/.css/.js  Einstellungen im mittigen Fenster: gleiche
                           Seite ueber storage.onChanged (keine neuen Rechte)
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
 extension/icons/          icon16/48/128.png (pinkes Buch-Icon)
-test/test-runner.js       ~1080 Zeilen, Suite ohne Framework, Blöcke [1]–[13]
+test/test-runner.js       Suite ohne Framework, nummerierte Blöcke
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
 test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
@@ -41,21 +43,43 @@ test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
                           bger_relevancy.html (BGE 152 IV 1, relevancy)
 tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
                           mit Plausibilitätscheck
+tools/klammern-report.js  jede Klammer der echten Fixtures mit Entscheidung
+                          und Begründung – DAS Werkzeug für die Trefferquote;
+                          läuft auch in der CI (Artefakt "klammern-report")
+tools/version.js          Version anzeigen/erhöhen (patch|minor|major|x.y.z),
+                          ergänzt zugleich einen CHANGELOG-Eintrag
+tools/release.sh          baut dist/bger-reader-<version>.zip aus extension/,
+                          prüft Tests, Grösse (< 1023 KB) und Prüfsumme
+CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft
+.github/workflows/        CI: Suite läuft bei jedem Push automatisch auf
+                          GitHub (Pflichtlauf ohne Fixtures, Zusatzlauf mit
+                          Fixtures nicht blockierend)
+archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
+                          Userscript v2.1.0) – NICHT pflegen, nicht als Vorlage
+                          nehmen, Änderungen nur in extension/content.js
 
 == SETUP AUF FRISCHEM KLON ==
   git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git
   cd bger-reader-addon
   bash tools/fetch-fixtures.sh
   cd test && npm install jsdom && node test-runner.js
-Erwartung: 189/189 grün. Ohne Fixtures deckt die Suite nur ~80 % ab
-(Blöcke [4], [6], [7] werden übersprungen) — also immer erst Fixtures laden.
+Erwartung: „0 fehlgeschlagen". Die Gesamtzahl wächst mit jedem neuen Test
+und ist bewusst nirgends festgeschrieben — Massstab ist immer nur, dass
+nichts fehlschlägt. Ohne Fixtures werden die Blöcke [4], [6], [7]
+übersprungen, also immer erst Fixtures laden.
 jsdom ist die einzige Test-Abhängigkeit.
 
 == REGELN ==
-1. Vor jedem Push: volle Suite 189/189. Bei DOM-/Panel-Änderungen zusätzlich
-   node test/render-check.js.
-2. Nutzersichtbare Änderung = Version in extension/manifest.json erhöhen
-   (Patch-Stelle, aktuell 0.5.x). Reine Test-/Tool-Commits ohne Bump.
+1. Vor jedem Push: volle Suite ohne Fehlschlag. Bei DOM-/Panel-Änderungen
+   zusätzlich node test/render-check.js. GitHub führt die Suite nach dem
+   Push nochmals aus (.github/workflows/tests.yml); das ersetzt den lokalen
+   Lauf nicht, sondern sichert ihn ab.
+2. Nutzersichtbare Änderung = Version erhöhen, IMMER mit
+   `node tools/version.js patch` (bzw. minor/major) — nie von Hand im
+   Manifest. Das Werkzeug legt zugleich den CHANGELOG-Eintrag an, dessen
+   TODO-Zeile vor dem Push ausgefüllt werden muss (Block [15] prüft das).
+   Reine Test-/Tool-Commits ohne Bump.
+   Paket bauen: `bash tools/release.sh` -> dist/bger-reader-<version>.zip
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
    mit Begründung und Verifikationshinweis (siehe git log).
 4. Push: git push origin main — Credentials liegen im macOS-Keychain,

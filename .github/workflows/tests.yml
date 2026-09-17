@@ -1,0 +1,78 @@
+# Führt die Test-Suite bei jedem Push und jedem Pull Request aus.
+# Ergebnis erscheint als grüner Haken bzw. rotes Kreuz neben dem Commit
+# auf github.com – die Regel "vor dem Push muss die Suite grün sein" hängt
+# damit nicht mehr allein an Disziplin.
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: # erlaubt manuelles Starten über die GitHub-Oberfläche
+
+jobs:
+  # Pflichtlauf: ohne Fixtures, damit das Ergebnis nicht von der
+  # Erreichbarkeit von bger.ch abhängt. Deckt die Blöcke ausser [4], [6], [7] ab.
+  suite:
+    name: Test-Suite (ohne Fixtures)
+    runs-on: ubuntu-latest
+    steps:
+      # v5 ist die erste Version, die auf Node 24 läuft; v4 löst auf den
+      # Runnern eine Deprecation-Warnung aus. Node 22 = aktuelles LTS.
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: jsdom installieren (einzige Testabhängigkeit)
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: Syntaxprüfung des ausgelieferten Skripts
+        run: node --check extension/content.js
+
+      - name: Manifest ist gültiges JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
+
+      - name: Test-Suite
+        run: node test/test-runner.js
+
+      - name: Paket baut und bleibt unter der Groessengrenze
+        run: bash tools/release.sh
+
+  # Zusatzlauf: mit echten Entscheidseiten. Schlägt fehl, sobald bger.ch nicht
+  # erreichbar ist oder sein HTML ändert – das ist wertvolle Information, darf
+  # aber den Pflichtlauf nicht blockieren, deshalb continue-on-error.
+  suite-fixtures:
+    name: Test-Suite (mit echten Entscheidseiten, nicht blockierend)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: jsdom installieren
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: Fixtures laden
+        run: bash tools/fetch-fixtures.sh
+
+      - name: Test-Suite mit Fixtures
+        run: node test/test-runner.js
+
+      # Klammer-Report: jede Klammer der echten Entscheidseiten mit der
+      # Entscheidung der Heuristik. Liegt nach dem Lauf unter "Artifacts"
+      # zum Herunterladen und steht vollständig im Job-Log – die Prüfung an
+      # echtem Text.
+      - name: Klammer-Report erzeugen
+        run: node tools/klammern-report.js | tee klammern-report.txt
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: klammern-report
+          path: klammern-report.txt
+          retention-days: 30

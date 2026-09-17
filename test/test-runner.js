@@ -1,8 +1,9 @@
 /* Tests für den BGer Reader – Kernlogik gegen echte und synthetische Seiten.
  * Aufruf: node test-runner.js [pfad-zum-skript]
  *
- * Standard: testet extension/content.js (Extension-Port); falls nicht vorhanden,
- * ../bger-reader.user.js (archiviertes Userscript). Beide Pfade werden unterstützt.
+ * Getestet wird ausschliesslich extension/content.js (das Produkt). Ein
+ * abweichender Pfad laesst sich als Argument uebergeben; einen stillen Fallback
+ * auf archiv/bger-reader.user.js gibt es bewusst nicht (siehe archiv/README.md).
  *
  * Voraussetzungen: npm install jsdom
  * Echte Fixtures liegen in test/fixtures/ (bger_test.html, bger_aza.html,
@@ -14,9 +15,17 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const STANDARD_PFAD = fs.existsSync(path.join(__dirname, '..', 'extension', 'content.js'))
-  ? path.join(__dirname, '..', 'extension', 'content.js')
-  : path.join(__dirname, '..', 'bger-reader.user.js');
+const STANDARD_PFAD = path.join(__dirname, '..', 'extension', 'content.js');
+
+// Kein Fallback auf archiv/bger-reader.user.js: ein stiller Rueckfall auf den
+// eingefrorenen Userscript-Stand wuerde eine gruene Suite melden, obwohl gar
+// nicht das ausgelieferte Skript getestet wurde.
+if (!process.argv[2] && !fs.existsSync(STANDARD_PFAD)) {
+  console.error('FEHLER: extension/content.js nicht gefunden.');
+  console.error('Erwartet unter: ' + STANDARD_PFAD);
+  console.error('Die Suite testet ausschliesslich das Extension-Skript.');
+  process.exit(2);
+}
 
 const SCRIPT = fs.readFileSync(process.argv[2] || STANDARD_PFAD, 'utf8');
 
@@ -25,6 +34,16 @@ function pruefe(name, bedingung, detail) {
   if (bedingung) { bestanden++; console.log('  ✅ ' + name); }
   else { fehlgeschlagen++; console.log('  ❌ ' + name + (detail ? ' – ' + detail : '')); }
 }
+
+/* Fixture lesen und wie ein Browser dekodieren. bger.ch liefert Latin-1;
+ * search.bger.ch nennt die Kodierung nur im HTTP-Header, den curl nicht
+ * mitspeichert, relevancy.bger.ch auch im HTML. Strategie: erst streng als
+ * UTF-8, bei ungueltigen Bytes als windows-1252 (Obermenge von Latin-1). */
+function dekodiere(buf) {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch (e) { return new TextDecoder('windows-1252').decode(buf); }
+}
+function ladeSeite(pfad) { return dekodiere(fs.readFileSync(pfad)); }
 
 function domMitScript(html, url) {
   const dom = new JSDOM(html, { url: url || 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
@@ -35,38 +54,184 @@ function domMitScript(html, url) {
 /* ---------- 1. Einklapp-Regeln: Einzelfälle ---------- */
 console.log('\n[1] Einklapp-Regeln (Einzelfälle)');
 
-const EASY_FAELLE = [
-  // [Klammerinhalt, erwartet eingeklappt]
-  ['in: Kramer, Das Recht, N. 12 ff.; BGE 135 II 45', true],      // Literatur-Signal „in:"
-  ['vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45', true], // „vgl."
-  ['ATF 143 IV 27 consid. 2.5; JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP', true], // Rest nach Gesetz-Strip zu lang, „in:"/„Commentaire"
-  ['BGE 123 II 45', false],                                   // zu kurz (< 30)
-  ['Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann', false], // 30–100, keine Ziffern, kein Signal
-  ['29. März 2021', false],                                   // zu kurz
-  ['6B_94/2024', false],                                      // zu kurz
-  ['Art. 298b al. 1 CPP', false],                             // zu kurz
-  ['wegen versuchter ehebrecherischer Beziehung', false],     // keine Ziffern, kein Signal
-  ['Rz. 45', false],                                          // zu kurz (Regel 1 vor Literatur-Signal)
-  ['Art. 8 BV, Art. 13 BV, Art. 29 BV', false],               // nur Gesetzesverweise (Regel 3)
-  ['gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung', false], // Verweise + Füllwörter (Regel 3)
-  ['dazu BGE 141 IV 234 E. 3.2 sowie Urteil 4A_12/2020 vom 5. Mai 2020', true], // „Urteil"
-  ['reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60), true], // > 100 Zeichen (Regel 5, neu bereits ab 100 statt 300)
-  // Neue Fälle des Regelsatzes (v0.5.0):
-  ['in Verbindung mit Art. 97 Abs. 2', false],                // nur Verweis + Füllwort (Regel 3)
-  ['Art. 97 Abs. 2 und Art. 105 Abs. 3 BGG Umkehrschluss; vgl. BGE 135 V 412', true], // Rest zu lang für Regel 3, „vgl."
-  ['nullum crimen sine lege', false],                         // Latinismus (und < 30)
-  ['Gattungsschuld', false],                                  // inhaltliche Bemerkung (< 30)
-  ['ne bis in idem, so BGE 141 IV 234 E. 3.2', false],        // Latinismus schlägt Ziffern-Regel (Regel 2 vor 6)
-  ['BGE 141 IV 234 E. 3.2 und 6B_12/2020 vom 5. Mai', true]   // 30–100 Zeichen, >= 3 Ziffern, kein Signal (Regel 6)
+// Politik (Vorgabe der Autorin): Fundstellen einklappen – Rechtsprechung
+// (auch kurz) und Literatur. Alles andere ist Entscheidtext und bleibt offen.
+// [Kategorie, soll eingeklappt werden, Klammerinhalt]
+//   R = Rechtsprechung, B = Literatur (beide -> true)
+//   G = Gesetz, I = interner Verweis, T = Entscheidtext, L = Latinismus (alle -> false)
+const KORPUS = [
+  // === R: Rechtsprechung -> einklappen, auch kurz ===
+  ['R', true,  'BGE 123 II 328'],
+  ['R', true,  'BGE 135 II 45 E. 3.2 S. 47'],
+  ['R', true,  'ATF 143 IV 27 consid. 2.5'],
+  ['R', true,  'DTF 120 Ia 1 consid. 3'],
+  ['R', true,  'BGE 147 IV 73 E. 4.1.2; Urteil 6B_123/2020 vom 1. März 2021 E. 2.3'],
+  ['R', true,  'Urteil 6B_94/2024 vom 3. Juli 2024'],
+  ['R', true,  '6B_94/2024'],
+  ['R', true,  'Urteile 1C_45/2019 und 1C_46/2019 vom 12. Mai 2020, je E. 2'],
+  ['R', true,  'arrêt 6B_1234/2019 du 5 mars 2020 consid. 1.2'],
+  ['R', true,  'vgl. BGE 141 IV 234 E. 3.2; ne bis in idem'],
+  ['R', true,  'Art. 97 Abs. 2 BGG; vgl. BGE 135 V 412'],
+  ['R', true,  'ne bis in idem, so BGE 141 IV 234 E. 3.2'],
+  ['R', true,  'Pra 2019 Nr. 12'],
+  ['R', true,  'BVGE 2019 I 1 E. 4'],
+  ['R', true,  'Urteil des BVGer A-1234/2019 vom 3. Mai 2020'],
+  ['R', true,  'EGMR-Urteil Huber gegen Schweiz vom 23. Oktober 1990, Nr. 12794/87'],
+  ['R', true,  'was das Bundesgericht in BGE 135 II 45 ausdrücklich offengelassen hat'],
+  ['R', true,  'zum Ganzen BGE 146 IV 88 E. 1.3.1 mit Hinweisen'],
+  ['R', true,  'Urteil 6B_220/2011'],                                 // aus 6F_7/2012 (aza)
+  ['R', true,  'arrêts 6B_390/2018 précité consid. 5.1; 6B_910/2013 du 20 janvier 2014'],
+
+  // === G: Gesetzesverweise -> offen ===
+  ['G', false, 'Art. 12 Abs. 3 StGB'],
+  ['G', false, 'Art. 8 BV'],
+  ['G', false, 'Art. 8 BV, Art. 13 BV, Art. 29 BV'],
+  ['G', false, 'Art. 12 StGB; Art. 5 StPO; Art. 97 BGG; Art. 3 StPO; Art. 6 SchKG'],
+  ['G', false, 'Art. 5 Abs. 1 und Art. 9 BV sowie Art. 6 Ziff. 1 EMRK'],
+  ['G', false, 'Art. 319 Abs. 1 lit. a StPO i.V.m. Art. 310 StPO'],
+  ['G', false, 'Art. 260ter Ziff. 1 StGB'],
+  ['G', false, 'Art. 41 ff. OR'],
+  ['G', false, 'art. 12 al. 2 let. b CP'],
+  ['G', false, 'art. 12 cpv. 2 lett. b CP'],
+  ['G', false, 'Art. 8 Abs. 1 SchKG und Art. 17 SchKG'],
+  ['G', false, 'Art. 2 Abs. 2 ZGB in der bis zum 31. Dezember 2022 geltenden Fassung'],
+  ['G', false, 'aArt. 12 Abs. 1 StGB in der bis Ende 2006 geltenden Fassung'],
+  ['G', false, 'Bundesgesetz vom 16. Dezember 2005 über die Ausländerinnen und Ausländer, SR 142.20'],
+  ['G', false, 'Art. 28 Abs. 2 des Bundesgesetzes über den Datenschutz, SR 235.1'],
+  ['G', false, 'Art. 12 StGB in der Fassung gemäss Ziff. I des Bundesgesetzes vom 13. Dezember 2002, AS 2006 3459'],
+  ['G', false, 'Art. 6 Ziff. 1 EMRK, Art. 14 Abs. 1 UNO-Pakt II, Art. 29 Abs. 2 BV'],
+  ['G', false, 'vgl. Art. 12 StGB'],
+  ['G', false, 'Art. 97 Abs. 1 BGG und Art. 105 Abs. 2 BGG, dazu Art. 42 Abs. 2 BGG'],
+  ['G', false, 'gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung'],
+  ['G', false, 'in Verbindung mit Art. 97 Abs. 2'],
+  ['G', false, 'Art. 74 Abs. 2 lit. a BGG in Verbindung mit Art. 75 Abs. 1 BGG'],
+  ['G', false, 'Art. 105 Abs. 1 und 2 BGG; Art. 97 Abs. 1 BGG'],
+  ['G', false, '§ 823 BGB'],
+  ['G', false, 'Art. 8 BV e contrario'],
+  ['G', false, 'Art. 12 Abs. 1 lit. a und b StPO analog'],
+
+  // === I: interne Verweise auf den eigenen Entscheid -> offen ===
+  ['I', false, 'vgl. dazu die Ausführungen in E. 4.2 hiernach'],
+  ['I', false, 'vgl. E. 3.2 des angefochtenen Entscheids'],
+  ['I', false, 'dazu eingehend E. 5.4.1 nachfolgend'],
+  ['I', false, 'vgl. bereits vorne E. 2.1 sowie hinten E. 6'],
+  ['I', false, 'E. 3.2'],
+  ['I', false, 'oben E. 2'],
+  ['I', false, 'consid. 4.1 supra'],
+
+  // === T: Entscheidtext, Beträge, Mengen, Daten, Bemerkungen -> offen ===
+  ['T', false, 'wobei die Vorinstanz verbindlich von einem Deliktsbetrag von rund 250 000 Franken ausgegangen ist'],
+  ['T', false, 'Fr. 20\'000.--'],
+  ['T', false, 'rund CHF 200\'000'],
+  ['T', false, '300 Kilogramm Heroingemisch'],
+  ['T', false, 'die Beschwerdeführerin macht insoweit zu Recht geltend, dass die Vorinstanz den Sachverhalt unvollständig festgestellt hat'],
+  ['T', false, 'was die Vorinstanz in ihrem Entscheid vom 12. Januar 2021 zutreffend erwogen hat'],
+  ['T', false, 'geboren am 29. März 2001'],
+  ['T', false, '29. März 2021'],
+  ['T', false, 'zum Ganzen sogleich, insbesondere zur Frage der Verjährung'],
+  ['T', false, 'im Folgenden: die Beschwerdegegnerin 2'],
+  ['T', false, 'nachfolgend: Versicherung'],
+  ['T', false, 'recte: Beschwerdegegner'],
+  ['T', false, 'Hervorhebungen und Kürzungen jeweils nur hier, im Original anders'],
+  ['T', false, 'Hervorhebung nur hier'],
+  ['T', false, 'sic'],
+  ['T', false, 'Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann'],
+  ['T', false, 'wegen versuchter ehebrecherischer Beziehung'],
+  ['T', false, 'sogenannte mittelbare Täterschaft'],
+  ['T', false, 'unbestritten und aktenkundig'],
+  ['T', false, 'reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60)],
+  ['T', false, 'Rz. 45'],
+  ['T', false, 'S. 12 des angefochtenen Urteils'],
+  ['T', false, 'act. 12'],
+  ['T', false, 'Urk. 5 S. 3'],
+  // Eigenes Aktenzeichen im Rubrum (BGE 152 IV 1): nichts nachzuschlagen
+  ['T', false, 'dossier 6B_399/2024'],
+  ['T', false, 'Verfahren 6B_1/2020'],
+  ['T', false, 'ci-après: le recourant'],
+  ['T', false, 'cf. consid. 4.4 non publié'],
+
+  // === L: Latinismen und Fachbegriffe -> offen (ohne Liste) ===
+  ['L', false, 'in casu war die Frist bereits abgelaufen'],
+  ['L', false, 'ne bis in idem'],
+  ['L', false, 'nullum crimen sine lege'],
+  ['L', false, 'in dubio pro reo'],
+  ['L', false, 'dolus eventualis'],
+  ['L', false, 'dolus eventualis, vom Vorsatz umfasst'],
+  ['L', false, 'culpa in contrahendo'],
+  ['L', false, 'res iudicata'],
+  ['L', false, 'iura novit curia'],
+  ['L', false, 'actio libera in causa, ein seit langem anerkanntes Rechtsinstitut'],
+  ['L', false, 'venire contra factum proprium, vgl. dazu sogleich'],
+  ['L', false, 'pacta sunt servanda'],
+  ['L', false, 'reformatio in peius'],
+  ['L', false, 'nemo tenetur se ipsum accusare'],
+  ['L', false, 'condicio sine qua non'],
+  ['L', false, 'Gattungsschuld'],
+  ['L', false, 'error in persona vel obiecto'],
+  ['L', false, 'lex mitior'],
+
+  // === B: Literatur -> einklappen ===
+  ['B', true,  'vgl. STRATENWERTH/WOHLERS, Handkommentar, 4. Aufl. 2022, N. 12 zu Art. 111 StGB'],
+  ['B', true,  'in: Basler Kommentar, Strafrecht I, 4. Aufl. 2019, N. 25 zu Art. 12 StGB'],
+  ['B', true,  'NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, Art. 12 N. 44'],
+  ['B', true,  'cf. DUPONT/MARTIN, Commentaire romand, 2e éd. 2021, n. 12 ad art. 41 CO'],
+  ['B', true,  'SCHMID/JOSITSCH, Handbuch des schweizerischen Strafprozessrechts, 3. Aufl. 2017, Rz. 1234'],
+  ['B', true,  'HURTADO POZO, Droit pénal, partie générale, 2008, n. 1234 ss'],
+  ['B', true,  'TRECHSEL/PIETH, Praxiskommentar, 4. Aufl. 2021, N. 8 zu Art. 111 StGB'],
+  ['B', true,  'in: Kramer, Das Recht, N. 12 ff.'],
+  ['B', true,  'vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45'],
+  ['B', true,  'JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP'],
+  ['B', true,  'vgl. MEIER, in: ZStrR 2020, S. 45 ff.'],
+  ['B', true,  'Niggli/Wiprächtiger, BSK StGB, 4. Aufl. 2019, N. 5 zu Art. 47'],
+  ['B', true,  'a.a.O., N. 12'],
+  ['B', true,  'op. cit., p. 45'],
+  ['B', true,  'MÜLLER, AJP 2019, S. 1234 ff.'],
+  ['B', true,  'Art. 12 StGB; STRATENWERTH, AT I, 4. Aufl. 2011, § 9 N. 12'],
+  ['B', true,  'DONATSCH, Strafrecht III, 11. Aufl. 2018, S. 12'],
+  ['B', true,  'BSK StPO-Schmid, Art. 10 N. 3'],
+  ['B', true,  'Kommentar zur ZPO, Hrsg. Sutter-Somm/Hasenböhler/Leuenberger, 3. Aufl. 2016, N. 12 zu Art. 55'],
+  // Online-Quelle mit Abrufdatum (BGE 152 IV 1)
+  ['B', true,  'cf. Le Petit Robert en ligne, consulté le 28 juillet 2025'],
+  ['B', true,  'Duden online, abgerufen am 3. Mai 2024'],
 ];
 
 {
   const dom = domMitScript('<!doctype html><html><body><div class="eit"><div class="paraatf">Test</div></div></body></html>');
   const R = dom.window.BGerReader;
-  EASY_FAELLE.forEach(function (fall) {
-    const ergebnis = R.sollEingeklapptWerden(fall[0]);
-    pruefe('sollEingeklapptWerden("' + fall[0].slice(0, 40) + '") === ' + fall[1], ergebnis === fall[1], 'war ' + ergebnis);
+  const proKat = {};
+  KORPUS.forEach(function (fall) {
+    const ergebnis = R.sollEingeklapptWerden(fall[2]);
+    const gut = ergebnis === fall[1];
+    proKat[fall[0]] = proKat[fall[0]] || { ok: 0, fehl: 0 };
+    proKat[fall[0]][gut ? 'ok' : 'fehl']++;
+    pruefe('[' + fall[0] + '] ' + (fall[1] ? 'einklappen' : 'offen') + ': "' + fall[2].slice(0, 48) + '"',
+      gut, 'war ' + ergebnis + ' – ' + R.begruendung(fall[2]));
   });
+  const zeilen = Object.keys(proKat).sort().map(function (k) {
+    return k + ' ' + proKat[k].ok + '/' + (proKat[k].ok + proKat[k].fehl);
+  });
+  console.log('  Übersicht nach Kategorie: ' + zeilen.join('   '));
+
+  // begruendung() liefert die Ursache, damit ein Fehlschlag sofort lesbar ist.
+  pruefe('begruendung: Rechtsprechung', R.begruendung('BGE 123 II 328') === 'Rechtsprechung');
+  pruefe('begruendung: Literatur mit Punktzahl', /^Literatur \(\d+ Punkte/.test(R.begruendung('MÜLLER, AJP 2019, S. 1234 ff.')),
+    R.begruendung('MÜLLER, AJP 2019, S. 1234 ff.'));
+  pruefe('begruendung: offen', R.begruendung('Art. 8 BV') === 'offen');
+  // Normalisierung: geschützte Leerzeichen der Website dürfen nichts ändern.
+  pruefe('geschütztes Leerzeichen in "BGE\u00A0135\u00A0II\u00A045" stört nicht',
+    R.sollEingeklapptWerden('BGE\u00A0135\u00A0II\u00A045') === true);
+  pruefe('geschütztes Leerzeichen in "Art.\u00A012\u00A0StGB" stört nicht',
+    R.sollEingeklapptWerden('Art.\u00A012\u00A0Abs.\u00A03\u00A0StGB') === false);
+}
+
+/* ---------- 1b. Fixture-Dekodierung ---------- */
+console.log('\n[1b] Fixture-Dekodierung');
+{
+  const latin1 = Buffer.from([0x70, 0x72, 0xE9, 0x63, 0x69, 0x74, 0xE9]);      // "précité" in Latin-1
+  const utf8 = Buffer.from('précité', 'utf8');
+  pruefe('Latin-1-Bytes werden zu "précité"', dekodiere(latin1) === 'précité', JSON.stringify(dekodiere(latin1)));
+  pruefe('UTF-8-Bytes bleiben "précité"', dekodiere(utf8) === 'précité', JSON.stringify(dekodiere(utf8)));
+  pruefe('kein Ersatzzeichen U+FFFD im Ergebnis', dekodiere(latin1).indexOf('\uFFFD') === -1);
 }
 
 /* ---------- 2. Klammer-Stack: verschachtelt & unbalanciert ---------- */
@@ -219,7 +384,7 @@ console.log('\n[4] Echte Entscheidseite (BGE 152 IV 1)');
 
 const ECHTE_SEITE = process.env.BGER_FIXTURE || path.join(__dirname, 'fixtures', 'bger_test.html');
 if (fs.existsSync(ECHTE_SEITE)) {
-  const html = fs.readFileSync(ECHTE_SEITE, 'utf8');
+  const html = ladeSeite(ECHTE_SEITE);
   const vorher = { links: (html.match(/<a /g) || []).length };
 
   const dom = domMitScript(html);
@@ -338,7 +503,7 @@ console.log('\n[6] aza- und relevancy-Seiten');
 
 const AZA_FIXTURE = process.env.BGER_AZA_FIXTURE || path.join(__dirname, 'fixtures', 'bger_aza.html');
 if (fs.existsSync(AZA_FIXTURE)) {
-  const html = fs.readFileSync(AZA_FIXTURE, 'utf8');
+  const html = ladeSeite(AZA_FIXTURE);
   const dom = domMitScript(html, 'https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?type=show_document');
   const doc = dom.window.document;
   const R = dom.window.BGerReader;
@@ -359,7 +524,7 @@ if (fs.existsSync(AZA_FIXTURE)) {
 
 const RELEVANCY_FIXTURE = process.env.BGER_RELEVANCY_FIXTURE || path.join(__dirname, 'fixtures', 'bger_relevancy.html');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
-  const html = fs.readFileSync(RELEVANCY_FIXTURE, 'utf8');
+  const html = ladeSeite(RELEVANCY_FIXTURE);
   const dom = domMitScript(html, 'http://relevancy.bger.ch/php/clir/http/index.php?type=show_document');
   const doc = dom.window.document;
 
@@ -373,7 +538,7 @@ if (fs.existsSync(RELEVANCY_FIXTURE)) {
 /* ---------- 7. Spaltenbreite (Haarlinien) ---------- */
 console.log('\n[7] Spaltenbreite');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
-  const html = fs.readFileSync(RELEVANCY_FIXTURE, 'utf8');
+  const html = ladeSeite(RELEVANCY_FIXTURE);
   const dom = domMitScript(html);
   const doc = dom.window.document;
   const host = doc.getElementById('bkl-panel-host');
@@ -793,11 +958,272 @@ console.log('\n[12] Seitenrahmen-Theming');
     iBodyLink + ' < ' + iEitLink + ' < ' + iSchutz);
 }
 
+/* ---------- 13. Aufwandstrennung bei Bedienung (Regler-Performance) ---------- */
+console.log('\n[13] Aufwandstrennung bei Bedienung');
+{
+  // Dokument mit einklappbaren Klammern, damit ein Neuaufbau messbar waere.
+  let absaetze = '';
+  for (let i = 0; i < 12; i++) {
+    absaetze += '<div class="paraatf">Erwaegung ' + i + ': Dies gilt ohne Weiteres ' +
+      '(vgl. STRATENWERTH/WOHLERS, Handkommentar, 4. Aufl. 2022, N. ' + i +
+      ' zu Art. 111 StGB), was zutrifft.</div>';
+  }
+  const DOK = '<!doctype html><html><body><div class="eit"><div class="middle">' +
+    absaetze + '</div></div></body></html>';
+
+  const dom = new JSDOM(DOK, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+  dom.window.localStorage.setItem('bger-reader-einstellungen-v2',
+    JSON.stringify({ aktiv: true, klammern: true }));
+  dom.window.eval(SCRIPT);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+
+  const foldsStart = doc.querySelectorAll('.bkl-fold').length;
+  pruefe('Ausgangslage: Klammern sind eingeklappt', foldsStart === 12, foldsStart + ' Folds');
+
+  // (a) Typografie-Aenderung darf die Folds NICHT neu aufbauen.
+  // Nachweis ueber Objektidentitaet: derselbe DOM-Knoten wie vorher.
+  const foldVorher = doc.querySelector('.bkl-fold');
+  const groesse = shadow.getElementById('bkl-groesse');
+  groesse.value = '26';
+  groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+
+  pruefe('Schriftgroesse wirkt sofort (CSS-Variable gesetzt)',
+    doc.documentElement.style.getPropertyValue('--bkl-size') === '26px',
+    doc.documentElement.style.getPropertyValue('--bkl-size'));
+  pruefe('Wertanzeige neben dem Regler nachgefuehrt',
+    shadow.getElementById('bkl-groesse-w').textContent === '26px',
+    shadow.getElementById('bkl-groesse-w').textContent);
+  pruefe('Typografie-Aenderung baut die Folds NICHT neu auf (identischer Knoten)',
+    doc.querySelector('.bkl-fold') === foldVorher);
+
+  // (b) Von Hand aufgeklappte Stelle muss beim Verstellen offen bleiben.
+  const knopf = foldVorher.querySelector('.bkl-toggle');
+  knopf.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  pruefe('Fold laesst sich von Hand aufklappen', foldVorher.classList.contains('bkl-offen'));
+
+  groesse.value = '20';
+  groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  const farbe = shadow.getElementById('bkl-farbe');
+  farbe.value = 'dunkel';
+  farbe.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+
+  pruefe('aufgeklappte Stelle bleibt nach Schrift-/Farbwechsel offen',
+    foldVorher.classList.contains('bkl-offen') && foldVorher.isConnected);
+
+  // (c) Klammern-Schalter muss weiterhin neu aufbauen.
+  const klammern = shadow.getElementById('bkl-klammern');
+  klammern.checked = false;
+  klammern.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Klammern-Schalter aus: alle Folds entfernt',
+    doc.querySelectorAll('.bkl-fold').length === 0);
+  klammern.checked = true;
+  klammern.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Klammern-Schalter ein: Folds wieder aufgebaut',
+    doc.querySelectorAll('.bkl-fold').length === 12,
+    doc.querySelectorAll('.bkl-fold').length + ' Folds');
+
+  // (d) Lesemodus-Schalter baut ebenfalls neu auf.
+  const aktiv = shadow.getElementById('bkl-aktiv');
+  aktiv.checked = false;
+  aktiv.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  pruefe('Lesemodus aus: Folds entfernt und Klasse weg',
+    doc.querySelectorAll('.bkl-fold').length === 0 &&
+    !doc.documentElement.classList.contains('bkl-aktiv'));
+}
+
+/* ---------- 13b. Live-Sync (storage.onChanged) folgt derselben Aufwandstrennung ---------- */
+console.log('\n[13b] Live-Sync: Eigen-Echo und Aufwandstrennung');
+{
+  // Chrome meldet ueber storage.onChanged auch die Schreibvorgaenge DIESER
+  // Seite. Ohne Schutz wuerde jeder Reglerzug (-> Speichern -> onChanged)
+  // die Folds neu aufbauen – die Regression aus dem Merge des Pop-up-Syncs.
+  const dom = new JSDOM(SYNTHESE, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+  const speicher = {};
+  const listener = [];
+  dom.window.chrome = {
+    storage: {
+      local: {
+        get: function (key, cb) { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); },
+        set: function (paket, cb) {
+          Object.keys(paket).forEach(function (k) { speicher[k] = JSON.parse(JSON.stringify(paket[k])); });
+          if (cb) cb();
+        }
+      },
+      onChanged: { addListener: function (fn) { listener.push(fn); } }
+    },
+    runtime: { lastError: null }
+  };
+  dom.window.eval(SCRIPT);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+  const SCHLUESSEL = 'bger-reader-einstellungen-v2';
+
+  pruefe('onChanged-Listener registriert', listener.length === 1);
+
+  // Lesemodus ueber das Panel einschalten -> Folds entstehen, Speicher wird beschrieben.
+  const aktiv = shadow.getElementById('bkl-aktiv');
+  aktiv.checked = true;
+  aktiv.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  const foldVorher = doc.querySelector('.bkl-fold');
+  pruefe('Folds vorhanden', !!foldVorher);
+
+  // (a) Eigen-Echo: der gerade gespeicherte Stand kommt als onChanged zurueck.
+  listener[0]({ [SCHLUESSEL]: { newValue: JSON.parse(JSON.stringify(speicher[SCHLUESSEL])) } }, 'local');
+  pruefe('Eigen-Echo baut die Folds NICHT neu auf (identischer Knoten)',
+    doc.querySelector('.bkl-fold') === foldVorher);
+
+  // (b) Fremde Typografie-Aenderung (aus dem Pop-up): Stil ja, Folds nein.
+  const nurGroesse = Object.assign({}, speicher[SCHLUESSEL], { schriftgroesse: 24 });
+  listener[0]({ [SCHLUESSEL]: { newValue: nurGroesse } }, 'local');
+  pruefe('Fremde Schriftgroesse wirkt sofort (24px)',
+    doc.documentElement.style.getPropertyValue('--bkl-size') === '24px');
+  pruefe('Fremde Typografie-Aenderung baut die Folds NICHT neu auf',
+    doc.querySelector('.bkl-fold') === foldVorher);
+  pruefe('Panel zeigt den fremden Wert', shadow.getElementById('bkl-groesse').value === '24');
+
+  // (c) Fremdes Umschalten der Klammern: Folds muessen weg bzw. neu.
+  const ohneKlammern = Object.assign({}, nurGroesse, { klammern: false });
+  listener[0]({ [SCHLUESSEL]: { newValue: ohneKlammern } }, 'local');
+  pruefe('Fremdes Ausschalten der Klammern entfernt die Folds',
+    doc.querySelectorAll('.bkl-fold').length === 0);
+  const mitKlammern = Object.assign({}, ohneKlammern, { klammern: true });
+  listener[0]({ [SCHLUESSEL]: { newValue: mitKlammern } }, 'local');
+  pruefe('Fremdes Einschalten der Klammern baut die Folds wieder auf',
+    doc.querySelectorAll('.bkl-fold').length === 2, doc.querySelectorAll('.bkl-fold').length + ' Folds');
+}
+
+/* ---------- 14. Speicher-Buendelung (Throttle mit fuehrender Kante) ---------- */
+console.log('\n[14] Speicher-Buendelung');
+{
+  const dom = new JSDOM(
+    '<!doctype html><html><body><div class="eit"><div class="paraatf">Test</div></div></body></html>',
+    { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true }
+  );
+  const SCHLUESSEL = 'bger-reader-einstellungen-v2';
+  const speicher = {};
+  let schreibvorgaenge = 0;
+  dom.window.chrome = {
+    storage: {
+      local: {
+        get: function (key, cb) { cb({}); },
+        set: function (paket) {
+          schreibvorgaenge++;
+          // Wie die echte API: Momentaufnahme ablegen, nicht die Referenz auf
+          // das weiterlaufende Einstellungsobjekt (sonst misst der Test nur
+          // den Endzustand).
+          Object.keys(paket).forEach(function (k) {
+            speicher[k] = JSON.parse(JSON.stringify(paket[k]));
+          });
+        }
+      }
+    }
+  };
+  dom.window.eval(SCRIPT);
+
+  const shadow = dom.window.document.getElementById('bkl-panel-host').shadowRoot;
+  const groesse = shadow.getElementById('bkl-groesse');
+
+  schreibvorgaenge = 0;
+
+  // Ein Reglerzug ueber den gesamten erlaubten Bereich (min=12, max=30):
+  // 19 Ereignisse unmittelbar hintereinander, erster Wert 12, letzter 30.
+  for (let px = 12; px <= 30; px++) {
+    groesse.value = String(px);
+    groesse.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  }
+
+  pruefe('erster Wert wird sofort geschrieben (fuehrende Kante)',
+    schreibvorgaenge >= 1 && speicher[SCHLUESSEL] && speicher[SCHLUESSEL].schriftgroesse === 12,
+    JSON.stringify(speicher[SCHLUESSEL]));
+  pruefe('19 Reglerbewegungen erzeugen genau 1 Schreibvorgang',
+    schreibvorgaenge === 1, schreibvorgaenge + ' Schreibvorgaenge');
+
+  // Seite wird verlassen: ausstehender Wert muss nachgeschrieben werden.
+  dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+  pruefe('pagehide schreibt den ausstehenden Wert nach',
+    schreibvorgaenge === 2, schreibvorgaenge + ' Schreibvorgaenge');
+  pruefe('nachgeschrieben wird der ZULETZT eingestellte Wert (kein Datenverlust)',
+    speicher[SCHLUESSEL].schriftgroesse === 30, JSON.stringify(speicher[SCHLUESSEL]));
+
+  // Kein Schreibvorgang mehr offen -> weiteres pagehide darf nichts tun.
+  dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+  pruefe('kein doppeltes Schreiben ohne ausstehende Aenderung',
+    schreibvorgaenge === 2, schreibvorgaenge + ' Schreibvorgaenge');
+}
+
+/* ---------- 15. Versions-Konsistenz (eine Quelle der Wahrheit) ---------- */
+console.log('\n[15] Versions-Konsistenz');
+{
+  const WURZEL = path.join(__dirname, '..');
+  const manifestRoh = fs.readFileSync(path.join(WURZEL, 'extension', 'manifest.json'), 'utf8');
+  const manifest = JSON.parse(manifestRoh);
+  const SEMVER = /^\d+\.\d+\.\d+$/;
+
+  pruefe('Manifest-Version ist gueltiges MAJOR.MINOR.PATCH',
+    SEMVER.test(manifest.version), manifest.version);
+
+  // Der Changelog muss die Manifest-Version als neuesten Eintrag fuehren.
+  const changelogPfad = path.join(WURZEL, 'CHANGELOG.md');
+  pruefe('CHANGELOG.md existiert', fs.existsSync(changelogPfad));
+  if (fs.existsSync(changelogPfad)) {
+    const changelog = fs.readFileSync(changelogPfad, 'utf8');
+    const eintraege = changelog.match(/^## (\d+\.\d+\.\d+)/gm) || [];
+    const neuester = eintraege.length ? eintraege[0].replace('## ', '') : null;
+    pruefe('neuester CHANGELOG-Eintrag entspricht der Manifest-Version',
+      neuester === manifest.version,
+      'Changelog: ' + neuester + ', Manifest: ' + manifest.version);
+
+    // Keine doppelten Eintraege – sonst ist unklar, welcher gilt.
+    const nummern = eintraege.map(function (e) { return e.replace('## ', ''); });
+    pruefe('keine doppelten Versionen im CHANGELOG',
+      nummern.length === new Set(nummern).size, nummern.join(', '));
+
+    pruefe('kein unausgefuellter TODO-Eintrag im CHANGELOG',
+      changelog.indexOf('TODO: Änderung hier beschreiben') === -1);
+  }
+
+  // Im ausgelieferten Teil darf die Version NUR im Manifest stehen.
+  const contentRoh = fs.readFileSync(path.join(WURZEL, 'extension', 'content.js'), 'utf8');
+  pruefe('extension/content.js enthaelt keine eigene Versionsnummer',
+    !/@version|"version"\s*:/.test(contentRoh));
+
+  // Das Archiv fuehrt seine eigene Zaehlung und wird bewusst NICHT mitgezogen.
+  const archivPfad = path.join(WURZEL, 'archiv', 'bger-reader.user.js');
+  if (fs.existsSync(archivPfad)) {
+    const archiv = fs.readFileSync(archivPfad, 'utf8');
+    pruefe('archiviertes Userscript behaelt seine eingefrorene Version 2.1.0',
+      /@version\s+2\.1\.0/.test(archiv));
+  }
+
+  // Die Werkzeuge muessen vorhanden und aufrufbar sein.
+  pruefe('tools/version.js vorhanden',
+    fs.existsSync(path.join(WURZEL, 'tools', 'version.js')));
+  pruefe('tools/release.sh vorhanden',
+    fs.existsSync(path.join(WURZEL, 'tools', 'release.sh')));
+
+  // Das Paket muss unter der selbstgesetzten Grenze bleiben.
+  const GRENZE_KB = 1023;
+  const fontsDir = path.join(WURZEL, 'extension', 'fonts');
+  function verzeichnisBytes(dir) {
+    if (!fs.existsSync(dir)) return 0;
+    return fs.readdirSync(dir).reduce(function (summe, name) {
+      const voll = path.join(dir, name);
+      const st = fs.statSync(voll);
+      return summe + (st.isDirectory() ? verzeichnisBytes(voll) : st.size);
+    }, 0);
+  }
+  const roheGroesseKb = Math.ceil(verzeichnisBytes(path.join(WURZEL, 'extension')) / 1024);
+  pruefe('extension/ bleibt unter ' + GRENZE_KB + ' KB (ungepackt, ZIP ist kleiner)',
+    roheGroesseKb < GRENZE_KB, roheGroesseKb + ' KB');
+  void fontsDir;
+}
+
 /* ---------- 13. v0.5.6: Mittiges Pop-up-Fenster beim Icon-Klick ---------- */
-console.log('\n[13] Mittiges Pop-up-Fenster (Icon-Klick, v0.5.6)');
+console.log('\n[16] Mittiges Pop-up-Fenster (Icon-Klick, v0.5.6)');
 
 /* Dieser Block ist asynchron (Promise-Ketten in background.js) und beendet
- * den Lauf daher selbst: das Ergebnis wird am Ende von Block [13] gedruckt. */
+ * den Lauf daher selbst: das Ergebnis wird am Ende von Block [16] gedruckt. */
 (async function () {
   const EXT = path.join(__dirname, '..', 'extension');
   const BG_PFAD = path.join(EXT, 'background.js');
@@ -1068,13 +1494,13 @@ console.log('\n[13] Mittiges Pop-up-Fenster (Icon-Klick, v0.5.6)');
       doc.documentElement.classList.contains('bkl-aktiv'));
   }
 
-  /* ---------- Ergebnis (gehört zu Block [13], s. dessen Kommentar) ---------- */
+  /* ---------- Ergebnis (gehört zu Block [16], s. dessen Kommentar) ---------- */
   console.log('\n========================================');
   console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
   process.exit(fehlgeschlagen ? 1 : 0);
 })().catch(function (e) {
   fehlgeschlagen++;
-  console.log('  ❌ Block [13] abgebrochen: ' + e.message);
+  console.log('  ❌ Block [16] abgebrochen: ' + e.message);
   console.log('\n========================================');
   console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
   process.exit(1);
