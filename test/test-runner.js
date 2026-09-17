@@ -425,9 +425,9 @@ console.log('\n[4] Panel und Stile');
   pruefe('Beschriftungen: einschalten / Hintergrund / einfach / Ausrichtung / Spalten / Absatzabstand',
     label('bkl-aktiv') === 'einschalten' && label('bkl-farbe') === 'Hintergrund' && label('bkl-klammern') === 'einfach' &&
     label('bkl-ausrichtung') === 'Ausrichtung' && label('bkl-spalten') === 'Spalten' && label('bkl-absatz') === 'Absatzabstand');
-  pruefe('Schriftart-Dropdown: 8 Optionen in fester Reihenfolge, Hintergrund: Nacht zuletzt',
+  pruefe('Schriftart-Dropdown: 9 Optionen in fester Reihenfolge, Hintergrund: Nacht zuletzt',
     Array.prototype.map.call(wert('bkl-art').options, function (o) { return o.value; }).join(',') ===
-      'atkinson,opendyslexic,comicneue,garamond,liberation-sans,liberation-serif,sans,serif' &&
+      'atkinson,luciole,opendyslexic,comicneue,garamond,liberation-sans,liberation-serif,sans,serif' &&
     Array.prototype.map.call(wert('bkl-farbe').options, function (o) { return o.value; }).join(',') === 'hell,sepia,dunkel,kontrast,nacht');
   const ohne = [];
   shadow.querySelectorAll('button, input, select').forEach(function (el) {
@@ -442,7 +442,7 @@ console.log('\n[4] Panel und Stile');
   pruefe('Pink: accent-color für Regler/Häkchen, Schliessen-Knopf #d63384',
     /accent-color:\s*#d63384/.test(panelCss) && /#bkl-schliessen\s*\{[^}]*background:\s*#d63384/.test(panelCss));
   pruefe('Dropdown-Vorschau: CSS-Regeln für alle Schriftarten und Hintergründe',
-    ['atkinson', 'opendyslexic', 'comicneue', 'garamond', 'liberation-sans', 'liberation-serif', 'sans', 'serif']
+    ['atkinson', 'luciole', 'opendyslexic', 'comicneue', 'garamond', 'liberation-sans', 'liberation-serif', 'sans', 'serif']
       .every(function (k) { return panelCss.indexOf('#bkl-art option[value="' + k + '"]') !== -1; }) &&
     ['hell', 'sepia', 'dunkel', 'kontrast', 'nacht']
       .every(function (k) { return panelCss.indexOf('#bkl-farbe option[value="' + k + '"]') !== -1; }));
@@ -614,7 +614,7 @@ console.log('\n[5] Speicher und Live-Sync');
 console.log('\n[6] Paket');
 {
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
-  const FONTS = ['atkinson-hyperlegible-next', 'eb-garamond', 'comic-neue', 'opendyslexic', 'liberation-serif', 'liberation-sans'];
+  const FONTS = ['atkinson-hyperlegible-next', 'luciole', 'eb-garamond', 'comic-neue', 'opendyslexic', 'liberation-serif', 'liberation-sans'];
   const fontDateien = [];
   FONTS.forEach(function (f) { [400, 700].forEach(function (w) { fontDateien.push(f + '-latin-' + w + '.woff2'); }); });
   let fontBytes = 0;
@@ -624,7 +624,7 @@ console.log('\n[6] Paket');
     fontBytes += fs.statSync(p).size;
     return false;
   });
-  pruefe('12 WOFF2-Dateien vorhanden, gesamt < 300 KB', fehlend.length === 0 && fontBytes < 300 * 1024,
+  pruefe('14 WOFF2-Dateien vorhanden, gesamt < 400 KB', fehlend.length === 0 && fontBytes < 400 * 1024,
     fehlend.join(',') + ' ' + Math.round(fontBytes / 1024) + ' KB');
   const war = (manifest.web_accessible_resources || [])[0] || {};
   pruefe('Manifest: fonts/*.woff2 für alle drei bger.ch-Muster freigegeben, Icons 16/48/128 vorhanden',
@@ -636,8 +636,8 @@ console.log('\n[6] Paket');
     }));
   const mitRuntime = domMitChrome(SYNTHESE, {}, { getURL: function (p) { return 'chrome-extension://testid/' + p; } });
   const css = mitRuntime.doc.getElementById('bkl-style').textContent;
-  pruefe('@font-face: 12 Regeln über runtime.getURL mit font-display swap; ohne runtime (jsdom) keine',
-    (css.match(/@font-face/g) || []).length === 12 &&
+  pruefe('@font-face: 14 Regeln über runtime.getURL mit font-display swap; ohne runtime (jsdom) keine',
+    (css.match(/@font-face/g) || []).length === 14 &&
     css.indexOf('chrome-extension://testid/fonts/atkinson-hyperlegible-next-latin-400.woff2') !== -1 &&
     /font-display:\s*swap/.test(css) &&
     domMitScript(SYNTHESE).window.document.getElementById('bkl-style').textContent.indexOf('@font-face') === -1);
@@ -751,16 +751,16 @@ console.log('\n[7] Pop-up-Fenster');
       /font-size:\s*16px/.test(popupCss) && /input\[type="checkbox"\]\s*\{[^}]*width:\s*22px/.test(popupCss));
     const fontUrls = [];
     popupCss.replace(/url\("(fonts\/[^"]+)"\)/g, function (m2, u) { fontUrls.push(u); return m2; });
-    pruefe('Pop-up-CSS: pink, Vorschau-Regeln für alle Schriftarten/Hintergründe, 6 @font-face auf existierende Dateien',
+    pruefe('Pop-up-CSS: pink, Vorschau-Regeln für alle Schriftarten/Hintergründe, 7 @font-face auf existierende Dateien',
       /accent-color:\s*#d63384/.test(popupCss) && /#bkl-schliessen\s*\{[^}]*background:\s*#d63384/.test(popupCss) &&
-      ['atkinson', 'opendyslexic', 'comicneue', 'garamond', 'liberation-sans', 'liberation-serif', 'sans', 'serif']
+      ['atkinson', 'luciole', 'opendyslexic', 'comicneue', 'garamond', 'liberation-sans', 'liberation-serif', 'sans', 'serif']
         .every(function (k) { return popupCss.indexOf('#bkl-art option[value="' + k + '"]') !== -1; }) &&
       [['hell', '#ffffff', '#1a1a1a'], ['sepia', '#f4ecd8', '#3b2f20'], ['dunkel', '#181818', '#e8e8e8'],
        ['kontrast', '#000000', '#ffffff'], ['nacht', '#2b1518', '#f3e3e3']].every(function (t) {
         return new RegExp('#bkl-farbe\\[data-wert="' + t[0] + '"\\]\\s*\\{\\s*background:\\s*' + t[1] + ';\\s*color:\\s*' + t[2]).test(popupCss) &&
           new RegExp(t[0] + ":\\s*\\{ bg: '" + t[1] + "', fg: '" + t[2] + "'").test(SCRIPT);
       }) &&
-      fontUrls.length === 6 && fontUrls.every(function (u) { return fs.existsSync(path.join(EXT, u)); }));
+      fontUrls.length === 7 && fontUrls.every(function (u) { return fs.existsSync(path.join(EXT, u)); }));
   }
 
   // popup.js: Schlüssel/Standards wie content.js, lädt, speichert, synchronisiert

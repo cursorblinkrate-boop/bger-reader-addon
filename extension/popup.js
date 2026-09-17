@@ -16,7 +16,7 @@
   const STANDARDS = {
     aktiv: false,               // Lesemodus ein/aus
     schriftgroesse: 18,         // px
-    schriftart: 'serif',        // serif | sans | atkinson | garamond | opendyslexic | comicneue | liberation-serif | liberation-sans
+    schriftart: 'serif',        // serif | sans | atkinson | luciole | garamond | opendyslexic | comicneue | liberation-serif | liberation-sans
     schriftstaerke: 'normal',   // normal | fett
     zeilenabstand: 1.6,         // Faktor
     buchstabenabstand: 0,       // px

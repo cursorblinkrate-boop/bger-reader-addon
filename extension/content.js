@@ -411,7 +411,7 @@
   const STANDARDS = {
     aktiv: false,               // Lesemodus ein/aus
     schriftgroesse: 18,         // px
-    schriftart: 'serif',        // serif | sans | atkinson | garamond | opendyslexic | comicneue | liberation-serif | liberation-sans
+    schriftart: 'serif',        // serif | sans | atkinson | luciole | garamond | opendyslexic | comicneue | liberation-serif | liberation-sans
     schriftstaerke: 'normal',   // normal | fett
     zeilenabstand: 1.6,         // Faktor
     buchstabenabstand: 0,       // px
@@ -673,6 +673,7 @@
   // Schriften zurück, nichts bricht).
   const FONT_DATEIEN = [
     { familie: 'Atkinson Hyperlegible Next', basis: 'atkinson-hyperlegible-next' },
+    { familie: 'Luciole',                    basis: 'luciole' },
     { familie: 'EB Garamond',                basis: 'eb-garamond' },
     { familie: 'Dyslexie-Leseschrift',       basis: 'opendyslexic' },
     { familie: 'Comic Neue',                 basis: 'comic-neue' },
@@ -717,6 +718,7 @@
     serif: 'Georgia, "Times New Roman", Times, serif',
     sans: 'Verdana, Arial, Helvetica, sans-serif',
     atkinson: '"Atkinson Hyperlegible Next", Verdana, Arial, Helvetica, sans-serif',
+    luciole: '"Luciole", Verdana, Arial, Helvetica, sans-serif',
     garamond: '"EB Garamond", Georgia, "Times New Roman", Times, serif',
     opendyslexic: '"Dyslexie-Leseschrift", Verdana, Arial, Helvetica, sans-serif',
     comicneue: '"Comic Neue", "Comic Sans MS", Verdana, sans-serif',
@@ -1106,9 +1108,10 @@ ${vorschauCss()}
           <label for="bkl-art">Schriftart</label>
           <select id="bkl-art" data-tooltip="Schriftart wählen (Vorschau in der Liste)" aria-label="Schriftart wählen">
             <option value="atkinson">Atkinson Hyperlegible</option>
+            <option value="luciole">Luciole</option>
             <option value="opendyslexic">OpenDyslexic</option>
             <option value="comicneue">Comic Neue</option>
-            <option value="garamond">EB Garamond (Buchschrift)</option>
+            <option value="garamond">EB Garamond</option>
             <option value="liberation-sans">Liberation Sans (Arial-ähnlich)</option>
             <option value="liberation-serif">Liberation Serif (Times-ähnlich)</option>
             <option value="sans">System Sans</option>

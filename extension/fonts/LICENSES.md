@@ -1,7 +1,8 @@
 # Font-Lizenzen
 
 Alle gebündelten Schriften stehen unter der SIL Open Font License 1.1
-(Lizenztext: [OFL.txt](OFL.txt)). Die WOFF2-Dateien in diesem Verzeichnis
+(Lizenztext: [OFL.txt](OFL.txt)); einzige Ausnahme ist Luciole
+(Creative Commons BY 4.0, siehe unten). Die WOFF2-Dateien in diesem Verzeichnis
 sind Latin-Subsets (U+0020–007E, U+00A0–00FF, U+2010–2027, U+2030–203A,
 U+20AC; Schweizer Umlaute/Akzente, § ¶ † ‡ € £, Interpunktion, Ligaturen),
 erzeugt mit `tools/subset-fonts.py` (fontTools, font-display: swap,
@@ -21,6 +22,19 @@ und Comic Neue deklarieren keine Reserved Font Names und behalten ihre Namen.
 - Lizenz: SIL OFL 1.1
 - Copyright 2020-2024 The Atkinson Hyperlegible Next Project Authors
   (https://github.com/googlefonts/atkinson-hyperlegible-next)
+
+## Luciole 1.001 (Regular 400, Bold 700)
+
+- Quelle: https://www.luciole-vision.com (ZIP „Luciole", TTF)
+- Schrift für sehbehinderte Menschen, entwickelt vom Centre Technique
+  Régional pour la Déficience Visuelle (CTRDV) mit dem Studio typographies.fr
+- Lizenz: **Creative Commons Attribution 4.0 International (CC BY 4.0)**,
+  https://creativecommons.org/licenses/by/4.0/legalcode
+- Luciole © Laurent Bourcellier & Jonathan Perez
+- Namensnennung (CC BY): siehe diese Datei; Familienname unverändert
+- Hinweis: Der Bold-Schnitt ist im Font als usWeightClass 600 eingetragen,
+  wird aber per @font-face als font-weight 700 eingebunden. Nur Regular und
+  Bold gebündelt (keine Kursiven; Entscheidtext verwendet keine).
 
 ## EB Garamond 1.003 (Regular 400, Bold 700)
 

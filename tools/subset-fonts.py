@@ -40,6 +40,8 @@ UNICODES = "U+0020-007E,U+00A0-00FF,U+2010-2027,U+2030-203A,U+20AC"
 FONTS = [
     ("AtkinsonHyperlegibleNext[wght].ttf", "atkinson-hyperlegible-next",
      [(400, "400"), (700, "700")], "Atkinson Hyperlegible Next"),
+    ("Luciole/Luciole-Regular.ttf", "luciole", [(None, "400")], "Luciole"),
+    ("Luciole/Luciole-Bold.ttf", "luciole", [(None, "700")], "Luciole"),
     ("EBGaramond[wght].ttf", "eb-garamond",
      [(400, "400"), (700, "700")], "EB Garamond"),
     ("comicneue-ComicNeue-Regular.ttf", "comic-neue", [(None, "400")], "Comic Neue"),

@@ -80,6 +80,7 @@ input[type="checkbox"] { accent-color: #d63384; }
    WOFF2-Dateien werden hier nur für die Vorschau geladen (Regular 400).
    Familiennamen und Stacks identisch zu SCHRIFTARTEN in content.js. */
 @font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/atkinson-hyperlegible-next-latin-400.woff2") format("woff2"); }
+@font-face { font-family: "Luciole";                    font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/luciole-latin-400.woff2") format("woff2"); }
 @font-face { font-family: "EB Garamond";                font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/eb-garamond-latin-400.woff2") format("woff2"); }
 @font-face { font-family: "Dyslexie-Leseschrift";       font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/opendyslexic-latin-400.woff2") format("woff2"); }
 @font-face { font-family: "Comic Neue";                 font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/comic-neue-latin-400.woff2") format("woff2"); }
@@ -87,6 +88,7 @@ input[type="checkbox"] { accent-color: #d63384; }
 @font-face { font-family: "BGEReader Sans";             font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/liberation-sans-latin-400.woff2") format("woff2"); }
 
 #bkl-art option[value="atkinson"],         #bkl-art[data-wert="atkinson"]         { font-family: "Atkinson Hyperlegible Next", Verdana, Arial, Helvetica, sans-serif; }
+#bkl-art option[value="luciole"],          #bkl-art[data-wert="luciole"]          { font-family: "Luciole", Verdana, Arial, Helvetica, sans-serif; }
 #bkl-art option[value="opendyslexic"],     #bkl-art[data-wert="opendyslexic"]     { font-family: "Dyslexie-Leseschrift", Verdana, Arial, Helvetica, sans-serif; }
 #bkl-art option[value="comicneue"],        #bkl-art[data-wert="comicneue"]        { font-family: "Comic Neue", "Comic Sans MS", Verdana, sans-serif; }
 #bkl-art option[value="garamond"],         #bkl-art[data-wert="garamond"]         { font-family: "EB Garamond", Georgia, "Times New Roman", Times, serif; }

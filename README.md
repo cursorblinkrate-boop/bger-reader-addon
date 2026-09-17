@@ -23,6 +23,7 @@ http://relevancy.bger.ch/*
 ## Schriftarten / Fonts
 
 - Atkinson Hyperlegible Next (https://www.brailleinstitute.org) 
+- Luciole (https://www.luciole-vision.com, CC BY 4.0)
 - opendyslexic (https://opendyslexic.org)
 - Serif, Sans Serif
 - etc.

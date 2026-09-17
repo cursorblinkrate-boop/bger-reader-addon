@@ -13,6 +13,14 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.8.0 — 2026-09-17
+
+- Neue Schriftart **Luciole** (Schrift für sehbehinderte Menschen vom
+  französischen CTRDV, Creative Commons BY 4.0): als WOFF2-Latin-Subset
+  gebündelt (Regular und Bold), im Dropdown direkt nach Atkinson Hyperlegible,
+  mit Vorschau. Lizenznachweis in `extension/fonts/LICENSES.md`.
+- Dropdown: „EB Garamond (Buchschrift)" heisst jetzt nur noch „EB Garamond".
+
 ## 0.7.0 — 2026-09-17
 
 - GUI nach Skizze der Autorin überarbeitet (Seiten-Panel und Pop-up-Fenster
