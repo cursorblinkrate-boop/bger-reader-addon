@@ -9,6 +9,12 @@ on:
   pull_request:
   workflow_dispatch: # erlaubt manuelles Starten über die GitHub-Oberfläche
 
+# Grundrecht für alle Jobs: nur lesen. Der Release-Job unten hebt das für
+# sich auf contents: write an. Ohne diesen Block warnt CodeQL (CWE-275),
+# weil das Token sonst mehr darf, als die Jobs brauchen.
+permissions:
+  contents: read
+
 jobs:
   # Pflichtlauf: ohne Fixtures, damit das Ergebnis nicht von der
   # Erreichbarkeit von bger.ch abhängt. Deckt die Blöcke ausser [4], [6], [7] ab.
