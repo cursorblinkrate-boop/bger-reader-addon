@@ -16,3 +16,4 @@ test/render/
 
 # Betriebssystem-Artefakte
 .DS_Store
+dist/

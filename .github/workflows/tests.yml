@@ -37,6 +37,9 @@ jobs:
       - name: Test-Suite
         run: node test/test-runner.js
 
+      - name: Paket baut und bleibt unter der Groessengrenze
+        run: bash tools/release.sh
+
   # Zusatzlauf: mit echten Entscheidseiten. Schlägt fehl, sobald bger.ch nicht
   # erreichbar ist oder sein HTML ändert – das ist wertvolle Information, darf
   # aber den Pflichtlauf nicht blockieren, deshalb continue-on-error.

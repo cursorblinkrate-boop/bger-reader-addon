@@ -935,6 +935,73 @@ console.log('\n[14] Speicher-Buendelung');
     schreibvorgaenge === 2, schreibvorgaenge + ' Schreibvorgaenge');
 }
 
+/* ---------- 15. Versions-Konsistenz (eine Quelle der Wahrheit) ---------- */
+console.log('\n[15] Versions-Konsistenz');
+{
+  const WURZEL = path.join(__dirname, '..');
+  const manifestRoh = fs.readFileSync(path.join(WURZEL, 'extension', 'manifest.json'), 'utf8');
+  const manifest = JSON.parse(manifestRoh);
+  const SEMVER = /^\d+\.\d+\.\d+$/;
+
+  pruefe('Manifest-Version ist gueltiges MAJOR.MINOR.PATCH',
+    SEMVER.test(manifest.version), manifest.version);
+
+  // Der Changelog muss die Manifest-Version als neuesten Eintrag fuehren.
+  const changelogPfad = path.join(WURZEL, 'CHANGELOG.md');
+  pruefe('CHANGELOG.md existiert', fs.existsSync(changelogPfad));
+  if (fs.existsSync(changelogPfad)) {
+    const changelog = fs.readFileSync(changelogPfad, 'utf8');
+    const eintraege = changelog.match(/^## (\d+\.\d+\.\d+)/gm) || [];
+    const neuester = eintraege.length ? eintraege[0].replace('## ', '') : null;
+    pruefe('neuester CHANGELOG-Eintrag entspricht der Manifest-Version',
+      neuester === manifest.version,
+      'Changelog: ' + neuester + ', Manifest: ' + manifest.version);
+
+    // Keine doppelten Eintraege – sonst ist unklar, welcher gilt.
+    const nummern = eintraege.map(function (e) { return e.replace('## ', ''); });
+    pruefe('keine doppelten Versionen im CHANGELOG',
+      nummern.length === new Set(nummern).size, nummern.join(', '));
+
+    pruefe('kein unausgefuellter TODO-Eintrag im CHANGELOG',
+      changelog.indexOf('TODO: Änderung hier beschreiben') === -1);
+  }
+
+  // Im ausgelieferten Teil darf die Version NUR im Manifest stehen.
+  const contentRoh = fs.readFileSync(path.join(WURZEL, 'extension', 'content.js'), 'utf8');
+  pruefe('extension/content.js enthaelt keine eigene Versionsnummer',
+    !/@version|"version"\s*:/.test(contentRoh));
+
+  // Das Archiv fuehrt seine eigene Zaehlung und wird bewusst NICHT mitgezogen.
+  const archivPfad = path.join(WURZEL, 'archiv', 'bger-reader.user.js');
+  if (fs.existsSync(archivPfad)) {
+    const archiv = fs.readFileSync(archivPfad, 'utf8');
+    pruefe('archiviertes Userscript behaelt seine eingefrorene Version 2.1.0',
+      /@version\s+2\.1\.0/.test(archiv));
+  }
+
+  // Die Werkzeuge muessen vorhanden und aufrufbar sein.
+  pruefe('tools/version.js vorhanden',
+    fs.existsSync(path.join(WURZEL, 'tools', 'version.js')));
+  pruefe('tools/release.sh vorhanden',
+    fs.existsSync(path.join(WURZEL, 'tools', 'release.sh')));
+
+  // Das Paket muss unter der selbstgesetzten Grenze bleiben.
+  const GRENZE_KB = 1023;
+  const fontsDir = path.join(WURZEL, 'extension', 'fonts');
+  function verzeichnisBytes(dir) {
+    if (!fs.existsSync(dir)) return 0;
+    return fs.readdirSync(dir).reduce(function (summe, name) {
+      const voll = path.join(dir, name);
+      const st = fs.statSync(voll);
+      return summe + (st.isDirectory() ? verzeichnisBytes(voll) : st.size);
+    }, 0);
+  }
+  const roheGroesseKb = Math.ceil(verzeichnisBytes(path.join(WURZEL, 'extension')) / 1024);
+  pruefe('extension/ bleibt unter ' + GRENZE_KB + ' KB (ungepackt, ZIP ist kleiner)',
+    roheGroesseKb < GRENZE_KB, roheGroesseKb + ' KB');
+  void fontsDir;
+}
+
 /* ---------- Ergebnis ---------- */
 console.log('\n========================================');
 console.log(bestanden + ' bestanden, ' + fehlgeschlagen + ' fehlgeschlagen');
