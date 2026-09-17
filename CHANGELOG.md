@@ -13,6 +13,16 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.6.1 — 2026-09-17
+
+- Renderfehler auf search.bger.ch behoben: Unterhalb der ersten
+  Bildschirmhöhe blieb links neben dem Entscheid eine weisse Fläche stehen
+  (alle Farbschemata ausser Weiss). Ursache: Das Site-CSS setzt
+  `html{background:#FFF}` und `body{height:100%}` – der eingefärbte `body`
+  endet nach einer Bildschirmhöhe, darunter schien das weisse `<html>` durch.
+  Jetzt wird `<html>` selbst mit eingefärbt. relevancy.bger.ch war nie
+  betroffen (kennt beide Regeln nicht). Test in Block [12] ergänzt.
+
 ## 0.6.0 — 2026-09-17
 
 - Bedienung entkoppelt: Typografie- und Farbänderungen bauen die Klammer-Folds

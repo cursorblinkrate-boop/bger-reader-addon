@@ -939,6 +939,10 @@ console.log('\n[12] Seitenrahmen-Theming');
   pruefe('CSS: body-Regel färbt Seitengrund und Grundtext ein',
     /html\.bkl-aktiv body\s*\{[^}]*var\(--bkl-bg\)/.test(cssText) &&
     /html\.bkl-aktiv body\s*\{[^}]*var\(--bkl-fg\)/.test(cssText));
+  // search.bger.ch: html{background:#FFF} + body{height:100%} – ohne eigene
+  // html-Regel scheint unterhalb der ersten Bildschirmhöhe Weiss durch.
+  pruefe('CSS: <html> selbst wird eingefärbt (Zeichenfläche unterhalb des body)',
+    /html\.bkl-aktiv\s*\{[^}]*background-color:\s*var\(--bkl-bg\)\s*!important/.test(cssText));
   pruefe('CSS: generelle Link-Regel für die ganze Seite (body a)',
     /html\.bkl-aktiv body a\s*\{[^}]*var\(--bkl-link\)/.test(cssText));
   pruefe('CSS: Formular-Schutz (input/select/textarea/button hell, Fold-Pfeile ausgenommen)',

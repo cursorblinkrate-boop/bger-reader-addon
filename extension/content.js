@@ -518,6 +518,16 @@
     /* Seitenrahmen (Kopfband, linke Navigation, Seitengrund): liegt ausserhalb
        von div.eit und bliebe weiss – greller Mischzustand auf dunklen Schemata.
        Daher Seitengrund und Grundtext des gesamten Dokuments einfärben. */
+    /* Auch <html> selbst einfärben: search.bger.ch (Jahia-Rahmen) setzt
+       html{background:#FFF} und body{height:100%}. Der body ist damit nur eine
+       Bildschirmhöhe hoch, und weil <html> einen eigenen Hintergrund hat,
+       reicht die body-Farbe nicht bis auf die Zeichenfläche durch – unterhalb
+       der ersten Bildschirmhöhe schien links neben dem Entscheid das weisse
+       <html> durch. relevancy.bger.ch kennt keine der beiden Regeln, dort
+       trat der Fehler deshalb nie auf. */
+    html.bkl-aktiv {
+      background-color: var(--bkl-bg) !important;
+    }
     html.bkl-aktiv body {
       background-color: var(--bkl-bg) !important;
       color: var(--bkl-fg) !important;
