@@ -637,7 +637,6 @@
   }
 
   const ICONS = {
-    lupe:        'M14 14 L10.2 10.2 M11.5 6.75 a4.75 4.75 0 1 1 -9.5 0 a4.75 4.75 0 1 1 9.5 0 M6.75 4.5 v4.5 M4.5 6.75 h4.5',
     schliessen:  'M3 3 L13 13 M13 3 L3 13',
     buch:        'M2 4 c2 -1.3 4 -1.3 6 0 c2 -1.3 4 -1.3 6 0 v9 c-2 -1.3 -4 -1.3 -6 0 c-2 -1.3 -4 -1.3 -6 0 z M8 4 v9',
     groesse:     'M2 12.5 L5.5 3.5 L9 12.5 M3.4 9.5 h4.2 M12.5 3.5 v9 M12.5 3.5 l-1.5 2 M12.5 3.5 l1.5 2 M12.5 12.5 l-1.5 -2 M12.5 12.5 l1.5 -2',
@@ -653,6 +652,18 @@
     klammer:     'M6 3 c-2 1 -2.5 3 -2.5 5 s0.5 4 2.5 5 M10 3 c2 1 2.5 3 2.5 5 s-0.5 4 -2.5 5',
     pfeil:       'M6 4 L10 8 L6 12'
   };
+
+  /* Marken-Icon: Buch mit Smiley (angelehnt an das Extension-Icon).
+     Eigenes Markup, weil die Augen gefüllte Kreise sind (fill statt stroke). */
+  const ICON_BUCH_SMILE =
+    '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+    'aria-hidden="true" focusable="false">' +
+    '<path d="M2 4 c2 -1.3 4 -1.3 6 0 c2 -1.3 4 -1.3 6 0 v9 ' +
+    'c-2 -1.3 -4 -1.3 -6 0 c-2 -1.3 -4 -1.3 -6 0 z M8 4 v9 ' +
+    'M3.8 9.2 c1 1.1 2.5 1.5 4.2 1.5 c1.7 0 3.2 -0.4 4.2 -1.5"/>' +
+    '<circle cx="4.8" cy="6.4" r="0.55" fill="currentColor" stroke="none"/>' +
+    '<circle cx="11.2" cy="6.4" r="0.55" fill="currentColor" stroke="none"/></svg>';
 
   const panelCss = `
     :host { all: initial; }
@@ -810,10 +821,10 @@
     <style>${panelCss}</style>
     <button type="button" id="bkl-button"
             title="BGer Reader Einstellungen öffnen"
-            aria-label="BGer Reader Einstellungen öffnen">${svgIcon(ICONS.lupe)}</button>
+            aria-label="BGer Reader Einstellungen öffnen">${ICON_BUCH_SMILE}</button>
     <div id="bkl-panel" role="region" aria-label="BGer Reader Einstellungen" hidden>
       <div id="bkl-kopf">
-        <h2>${svgIcon(ICONS.lupe)} BGer Reader</h2>
+        <h2>${ICON_BUCH_SMILE} BGer Reader</h2>
         <button type="button" id="bkl-schliessen"
                 title="Einstellungen schliessen (Escape)"
                 aria-label="Einstellungen schliessen">${svgIcon(ICONS.schliessen)}</button>
