@@ -38,7 +38,10 @@ let gesamt = { klammern: 0, eingeklappt: 0 };
 const gruende = {};
 
 seiten.forEach(function (datei) {
-  const html = fs.readFileSync(datei, 'utf8');
+  // Als Buffer übergeben, nicht als String: die Seiten von bger.ch sind
+  // Latin-1, nicht UTF-8. jsdom liest dann wie ein Browser die deklarierte
+  // Kodierung aus dem HTML – sonst werden Akzente zu Ersatzzeichen.
+  const html = fs.readFileSync(datei);
   const dom = new JSDOM(html, { url: 'https://search.bger.ch/x', runScripts: 'outside-only', pretendToBeVisual: true });
   dom.window.eval(SCRIPT);
   const R = dom.window.BGerReader;

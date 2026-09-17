@@ -69,6 +69,8 @@ const KORPUS = [
   ['R', true,  'EGMR-Urteil Huber gegen Schweiz vom 23. Oktober 1990, Nr. 12794/87'],
   ['R', true,  'was das Bundesgericht in BGE 135 II 45 ausdrücklich offengelassen hat'],
   ['R', true,  'zum Ganzen BGE 146 IV 88 E. 1.3.1 mit Hinweisen'],
+  ['R', true,  'Urteil 6B_220/2011'],                                 // aus 6F_7/2012 (aza)
+  ['R', true,  'arrêts 6B_390/2018 précité consid. 5.1; 6B_910/2013 du 20 janvier 2014'],
 
   // === G: Gesetzesverweise -> offen ===
   ['G', false, 'Art. 12 Abs. 3 StGB'],
@@ -132,6 +134,11 @@ const KORPUS = [
   ['T', false, 'S. 12 des angefochtenen Urteils'],
   ['T', false, 'act. 12'],
   ['T', false, 'Urk. 5 S. 3'],
+  // Eigenes Aktenzeichen im Rubrum (BGE 152 IV 1): nichts nachzuschlagen
+  ['T', false, 'dossier 6B_399/2024'],
+  ['T', false, 'Verfahren 6B_1/2020'],
+  ['T', false, 'ci-après: le recourant'],
+  ['T', false, 'cf. consid. 4.4 non publié'],
 
   // === L: Latinismen und Fachbegriffe -> offen (ohne Liste) ===
   ['L', false, 'in casu war die Frist bereits abgelaufen'],
@@ -173,6 +180,9 @@ const KORPUS = [
   ['B', true,  'DONATSCH, Strafrecht III, 11. Aufl. 2018, S. 12'],
   ['B', true,  'BSK StPO-Schmid, Art. 10 N. 3'],
   ['B', true,  'Kommentar zur ZPO, Hrsg. Sutter-Somm/Hasenböhler/Leuenberger, 3. Aufl. 2016, N. 12 zu Art. 55'],
+  // Online-Quelle mit Abrufdatum (BGE 152 IV 1)
+  ['B', true,  'cf. Le Petit Robert en ligne, consulté le 28 juillet 2025'],
+  ['B', true,  'Duden online, abgerufen am 3. Mai 2024'],
 ];
 
 {
@@ -354,8 +364,11 @@ console.log('\n[4] Echte Entscheidseite (BGE 152 IV 1)');
 
 const ECHTE_SEITE = process.env.BGER_FIXTURE || path.join(__dirname, 'fixtures', 'bger_test.html');
 if (fs.existsSync(ECHTE_SEITE)) {
-  const html = fs.readFileSync(ECHTE_SEITE, 'utf8');
-  const vorher = { links: (html.match(/<a /g) || []).length };
+  // Buffer statt String: bger.ch liefert Latin-1; jsdom liest die im HTML
+  // deklarierte Kodierung wie ein Browser. Die Link-Zählung ist reines
+  // ASCII und darf latin1 verwenden.
+  const html = fs.readFileSync(ECHTE_SEITE);
+  const vorher = { links: (html.toString('latin1').match(/<a /g) || []).length };
 
   const dom = domMitScript(html);
   const doc = dom.window.document;
@@ -473,7 +486,7 @@ console.log('\n[6] aza- und relevancy-Seiten');
 
 const AZA_FIXTURE = process.env.BGER_AZA_FIXTURE || path.join(__dirname, 'fixtures', 'bger_aza.html');
 if (fs.existsSync(AZA_FIXTURE)) {
-  const html = fs.readFileSync(AZA_FIXTURE, 'utf8');
+  const html = fs.readFileSync(AZA_FIXTURE);
   const dom = domMitScript(html, 'https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?type=show_document');
   const doc = dom.window.document;
   const R = dom.window.BGerReader;
@@ -494,7 +507,7 @@ if (fs.existsSync(AZA_FIXTURE)) {
 
 const RELEVANCY_FIXTURE = process.env.BGER_RELEVANCY_FIXTURE || path.join(__dirname, 'fixtures', 'bger_relevancy.html');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
-  const html = fs.readFileSync(RELEVANCY_FIXTURE, 'utf8');
+  const html = fs.readFileSync(RELEVANCY_FIXTURE);
   const dom = domMitScript(html, 'http://relevancy.bger.ch/php/clir/http/index.php?type=show_document');
   const doc = dom.window.document;
 
@@ -508,7 +521,7 @@ if (fs.existsSync(RELEVANCY_FIXTURE)) {
 /* ---------- 7. Spaltenbreite (Haarlinien) ---------- */
 console.log('\n[7] Spaltenbreite');
 if (fs.existsSync(RELEVANCY_FIXTURE)) {
-  const html = fs.readFileSync(RELEVANCY_FIXTURE, 'utf8');
+  const html = fs.readFileSync(RELEVANCY_FIXTURE);
   const dom = domMitScript(html);
   const doc = dom.window.document;
   const host = doc.getElementById('bkl-panel-host');

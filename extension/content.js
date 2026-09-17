@@ -124,7 +124,14 @@
     // Praxis des Bundesgerichts, EGMR/EuGH
     const WEITERE_RSPR_RE = /\bPra\s+\d{2,4}\s+Nr\.?\s*\d+|\b(?:EGMR|CourEDH|ECHR|EuGH|CJUE|CJEU)\b[^;]*\d|\bC-\d{1,4}\/\d{2}\b/;
 
+    // Das EIGENE Aktenzeichen im Rubrum ("dossier 6B_399/2024", "Verfahren
+    // 6B_1/2020") verweist auf nichts Nachzuschlagendes – es bleibt offen.
+    // Ein zitiertes Urteil ("Urteil 6B_220/2011", "arrêt 6B_390/2018") ist
+    // dagegen eine Fundstelle.
+    const EIGENES_DOSSIER_RE = /^(?:dossier|Verfahren|Verfahrensnummer|procédure|procedimento|cause|causa|incarto|Geschäfts-?Nr\.?|Geschäftsnummer)\s+\d[A-Z]{1,2}[_.]\d{1,4}\/\d{2,4}$/i;
+
     function istRechtsprechung(s) {
+      if (EIGENES_DOSSIER_RE.test(s)) return false;
       return BGE_RE.test(s) || AKTENZEICHEN_RE.test(s) || WEITERE_RSPR_RE.test(s);
     }
 
@@ -205,6 +212,10 @@
       { re: /\b(?:a\.\s*a\.\s*O\.|op\.\s*cit\.|loc\.\s*cit\.|ibid(?:em)?\.?|ebd\.|passim)/i, punkte: 3, name: 'Rückverweis' },
       // Herausgeber
       { re: /\b(?:Hrsg|Hg|éd|eds|a cura di|dir)\.|\bHerausgeber/i, punkte: 1, name: 'Hrsg' },
+      // Online-Quelle mit Abrufdatum: "consulté le", "abgerufen am", "zuletzt besucht"
+      { re: /\b(?:consulté le|consultée le|abgerufen am|abgerufen|zuletzt (?:besucht|abgerufen|eingesehen)|besucht am|eingesehen am|consultato il|accessed|visited)\b/i, punkte: 2, name: 'Abrufdatum' },
+      // Online-Hinweis oder Adresse
+      { re: /\b(?:en ligne|online|im Internet|www\.)|https?:\/\//i, punkte: 1, name: 'online' },
       // Randnote/Seite: N. 12, Rz. 45, S. 123, p. 45, n° 12
       { re: /\b(?:N|Rz|Rn|Nr|S|p|pp|pag|n|nn|no)\.?\s*\d|\bn°\s*\d/, punkte: 1, name: 'Fundstelle' },
       // Erscheinungsjahr (Tagesdaten werden vorher entfernt)

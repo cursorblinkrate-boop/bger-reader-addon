@@ -35,7 +35,14 @@ hinten bei Korrekturen.
   Entscheidung.
 - `tools/klammern-report.js`: jede Klammer echter Entscheidseiten mit
   Entscheidung und Begründung; läuft in der CI, Ergebnis als Artefakt.
-- Testblock [1] auf 112 Fälle in sechs Kategorien erweitert.
+- Erste Prüfung an echtem Text (CI-Report, BGE 152 IV 1 und 6F_7/2012):
+  56 von 58 Klammern richtig. Die zwei Ermessensfälle sind nachgezogen:
+  das eigene Aktenzeichen im Rubrum („dossier 6B_399/2024") bleibt offen;
+  Online-Quellen mit Abrufdatum („consulté le", „abgerufen am") zählen als
+  Literatur.
+- Fixtures werden wie im Browser dekodiert (bger.ch liefert Latin-1, nicht
+  UTF-8); vorher wurden Akzente in den Tests zu Ersatzzeichen.
+- Testblock [1] auf 120 Fälle in sechs Kategorien erweitert.
 
 ## 0.5.6 — 2026-09-17
 
