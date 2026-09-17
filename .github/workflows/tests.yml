@@ -76,3 +76,48 @@ jobs:
           name: klammern-report
           path: klammern-report.txt
           retention-days: 30
+
+  # Paket veröffentlichen: nach jedem Push auf main, aber nur wenn der
+  # Pflichtlauf grün ist und die Version im Manifest noch kein Release hat.
+  # Ergebnis: github.com/<repo>/releases mit bger-reader-<version>.zip als
+  # Anhang – ein fester Download-Ort, an dem jede Datei ihre Version im
+  # Namen trägt. Das Release-Tag (v0.6.2) markiert zugleich den Commit.
+  release:
+    name: Paket als GitHub-Release veröffentlichen
+    needs: suite
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: jsdom installieren (release.sh führt die Suite nochmals aus)
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: Paket bauen
+        run: bash tools/release.sh
+
+      - name: Release anlegen, falls die Version neu ist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node tools/version.js)"
+          TAG="v$VERSION"
+          DATEI="dist/bger-reader-$VERSION.zip"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG existiert bereits – nichts zu tun."
+            exit 0
+          fi
+          # Release-Notizen = der Abschnitt dieser Version aus CHANGELOG.md
+          NOTIZEN="$(awk -v kopf="## $VERSION " 'index($0, kopf) == 1 { f = 1; next } /^## / { if (f) exit } f' CHANGELOG.md)"
+          gh release create "$TAG" "$DATEI" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "BGer Reader $VERSION" \
+            --notes "${NOTIZEN:-Siehe CHANGELOG.md.}"
+          echo "Release $TAG angelegt: $DATEI"

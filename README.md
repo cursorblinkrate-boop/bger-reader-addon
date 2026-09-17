@@ -6,6 +6,13 @@
 
 *(Firefox / Edge) in Planung...)*
 
+## Download
+
+Fertige Pakete für Chrome / Brave / Edge / Firefox liegen unter
+**[Releases](https://github.com/cursorblinkrate-boop/bger-reader-addon/releases)**:
+`bger-reader-<version>.zip`, der Dateiname trägt die Version. Jedes Release
+entsteht automatisch aus `main`, nachdem die Test-Suite grün war.
+
 ## Unterstützte Seiten / Supported Pages
 
 https://search.bger.ch/*

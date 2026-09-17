@@ -50,10 +50,17 @@ tools/version.js          Version anzeigen/erhöhen (patch|minor|major|x.y.z),
                           ergänzt zugleich einen CHANGELOG-Eintrag
 tools/release.sh          baut dist/bger-reader-<version>.zip aus extension/,
                           prüft Tests, Grösse (< 1023 KB) und Prüfsumme
-CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft
+CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
+                          der Abschnitt der aktuellen Version wird zur
+                          Release-Notiz auf GitHub
 .github/workflows/        CI: Suite läuft bei jedem Push automatisch auf
                           GitHub (Pflichtlauf ohne Fixtures, Zusatzlauf mit
-                          Fixtures nicht blockierend)
+                          Fixtures nicht blockierend). Bei Push auf main mit
+                          grünem Pflichtlauf zudem GitHub-Release v<version>
+                          mit dist/bger-reader-<version>.zip als Anhang –
+                          DER Download-Ort für das Store-Paket
+                          (github.com/…/releases), nie „Download ZIP" des
+                          Repos (heisst immer gleich, enthält alles)
 archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
                           Userscript v2.1.0) – NICHT pflegen, nicht als Vorlage
                           nehmen, Änderungen nur in extension/content.js
