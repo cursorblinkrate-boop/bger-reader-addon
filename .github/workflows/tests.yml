@@ -4,6 +4,9 @@
 # damit nicht mehr allein an Disziplin.
 name: Tests
 
+permissions:
+  contents: read
+
 on:
   push:
   pull_request:
