@@ -17,3 +17,6 @@ test/render/
 # Betriebssystem-Artefakte
 .DS_Store
 dist/
+
+# Python-Bytecode (tools/subset-fonts.py)
+__pycache__/
