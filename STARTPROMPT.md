@@ -35,6 +35,9 @@ test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
                           bger_relevancy.html (BGE 152 IV 1, relevancy)
 tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
                           mit Plausibilitätscheck
+archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
+                          Userscript v2.1.0) – NICHT pflegen, nicht als Vorlage
+                          nehmen, Änderungen nur in extension/content.js
 
 == SETUP AUF FRISCHEM KLON ==
   git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git

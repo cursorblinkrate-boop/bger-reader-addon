@@ -1,8 +1,9 @@
 /* Tests für den BGer Reader – Kernlogik gegen echte und synthetische Seiten.
  * Aufruf: node test-runner.js [pfad-zum-skript]
  *
- * Standard: testet extension/content.js (Extension-Port); falls nicht vorhanden,
- * ../bger-reader.user.js (archiviertes Userscript). Beide Pfade werden unterstützt.
+ * Getestet wird ausschliesslich extension/content.js (das Produkt). Ein
+ * abweichender Pfad laesst sich als Argument uebergeben; einen stillen Fallback
+ * auf archiv/bger-reader.user.js gibt es bewusst nicht (siehe archiv/README.md).
  *
  * Voraussetzungen: npm install jsdom
  * Echte Fixtures liegen in test/fixtures/ (bger_test.html, bger_aza.html,
@@ -14,9 +15,17 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const STANDARD_PFAD = fs.existsSync(path.join(__dirname, '..', 'extension', 'content.js'))
-  ? path.join(__dirname, '..', 'extension', 'content.js')
-  : path.join(__dirname, '..', 'bger-reader.user.js');
+const STANDARD_PFAD = path.join(__dirname, '..', 'extension', 'content.js');
+
+// Kein Fallback auf archiv/bger-reader.user.js: ein stiller Rueckfall auf den
+// eingefrorenen Userscript-Stand wuerde eine gruene Suite melden, obwohl gar
+// nicht das ausgelieferte Skript getestet wurde.
+if (!process.argv[2] && !fs.existsSync(STANDARD_PFAD)) {
+  console.error('FEHLER: extension/content.js nicht gefunden.');
+  console.error('Erwartet unter: ' + STANDARD_PFAD);
+  console.error('Die Suite testet ausschliesslich das Extension-Skript.');
+  process.exit(2);
+}
 
 const SCRIPT = fs.readFileSync(process.argv[2] || STANDARD_PFAD, 'utf8');
 
