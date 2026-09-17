@@ -348,6 +348,26 @@
     } catch (e) { /* Speichern ist schön, aber nicht kritisch */ }
   }
 
+  /* Klammer-Zähler für das mittige Pop-up-Fenster veröffentlichen (gleicher
+     lokaler Speicher, getrennter Schlüssel): das Fenster zeigt ihn an, ohne
+     dass Nachrichten an Tabs oder zusätzliche Rechte nötig wären. */
+  const ZAEHLER_SCHLUESSEL = 'bger-reader-zaehler';
+
+  function publiziereZaehler(anzahl) {
+    if (!extensionStorage) return; // jsdom/localStorage-Fallback: kein Fenster-Publikum
+    try {
+      const paket = {};
+      paket[ZAEHLER_SCHLUESSEL] = { anzahl: anzahl, zeit: Date.now() };
+      if (verwendetPromises) {
+        extensionStorage.set(paket).catch(function () {});
+      } else {
+        extensionStorage.set(paket, function () {
+          if (extensionApi.runtime && extensionApi.runtime.lastError) return;
+        });
+      }
+    } catch (e) { /* Zähler-Anzeige ist nett, nicht kritisch */ }
+  }
+
   /* ================================================================== */
   /* CSS – nur Klasse + CSS-Variablen, Seitenstruktur bleibt unberührt    */
   /* ================================================================== */
@@ -609,6 +629,7 @@
   }
 
   function aktualisiereZaehler(anzahl) {
+    publiziereZaehler(anzahl); // Spiegel für das Pop-up-Fenster
     const z = shadow.getElementById('bkl-zaehler');
     if (!z) return;
     z.textContent = anzahl > 0
@@ -1004,6 +1025,30 @@
     einstellungen = Object.assign({}, STANDARDS);
     allesAnwenden();
   });
+
+  /* ================================================================== */
+  /* LIVE-SYNC MIT DEM POP-UP-FENSTER                                     */
+  /* ================================================================== */
+
+  /* Änderungen aus dem mittigen Pop-up-Fenster (background.js öffnet es per
+     Icon-Klick, popup.js schreibt in denselben Speicher) live auf dieser
+     Seite anwenden. Bewusst KEIN erneutes Speichern hier: sonst Ping-Pong
+     über onChanged. Der eigene Zähler-Schlüssel wird ignoriert. */
+  if (extensionApi && extensionApi.storage &&
+      extensionApi.storage.onChanged &&
+      typeof extensionApi.storage.onChanged.addListener === 'function') {
+    try {
+      extensionApi.storage.onChanged.addListener(function (aenderungen, bereich) {
+        if (bereich !== 'local') return;
+        const diff = aenderungen && aenderungen[STORAGE_KEY];
+        if (!diff || !diff.newValue) return;
+        einstellungen = bereinige(Object.assign({}, STANDARDS, diff.newValue));
+        wendeStileAn();
+        verarbeiteKlammern();
+        aktualisiereAnzeige();
+      });
+    } catch (e) { /* ohne Live-Sync geht es auch */ }
+  }
 
   /* ================================================================== */
   /* START                                                                */

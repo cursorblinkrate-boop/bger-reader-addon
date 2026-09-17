@@ -1,0 +1,127 @@
+/* BGer Reader – Pop-up-Fenster: grössere Bedienfläche als das Seiten-Panel.
+   Gleiche Farben/Bedienelemente, nur großzügiger (eigenes Fenster statt 340px-Panel). */
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  background: #ffffff;
+  color: #222222;
+  padding: 16px 22px 20px 22px;
+  min-width: 440px;
+}
+
+#bkl-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d63384;
+}
+
+#bkl-schliessen {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: #f4f4f4;
+  color: #222222;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#bkl-schliessen:hover { background: #e6e6e6; }
+
+.bkl-bereich-titel {
+  font-size: 15px;
+  font-weight: bold;
+  color: #555555;
+  margin: 12px 0 4px 0;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #dddddd;
+}
+
+.bkl-zeile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+.bkl-icon {
+  flex: 0 0 20px;
+  display: inline-flex;
+  color: #444444;
+}
+.bkl-icon svg { display: block; }
+label { flex: 1; color: #222222; }
+input[type="range"] { width: 230px; height: 24px; }
+select { width: 232px; font-size: 15px; padding: 4px; }
+input[type="checkbox"] { width: 22px; height: 22px; }
+.bkl-wert {
+  width: 52px;
+  text-align: right;
+  color: #555555;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Toggle für den Detail-Bereich (echter Button, aria-expanded) */
+#bkl-details-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: #f4f4f4;
+  color: #222222;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: left;
+}
+#bkl-details-toggle:hover { background: #e6e6e6; }
+#bkl-details-toggle .bkl-pfeil { display: inline-flex; }
+/* statische Drehung, absichtlich ohne Transition/Animation */
+#bkl-details-toggle[aria-expanded="true"] .bkl-pfeil svg { transform: rotate(90deg); }
+#bkl-details[hidden] { display: none; }
+
+.bkl-knopfreihe { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+button.bkl-aktion {
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: #f4f4f4;
+  color: #222222;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 15px;
+}
+button.bkl-aktion:hover { background: #e6e6e6; }
+
+/* Sichtbarer Fokus-Rahmen für Tastaturbedienung */
+#bkl-schliessen:focus-visible,
+#bkl-details-toggle:focus-visible,
+button.bkl-aktion:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #1a56cc;
+  outline-offset: 2px;
+}
+
+.bkl-hinweis { font-size: 13px; color: #666666; margin-top: 10px; }

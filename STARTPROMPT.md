@@ -24,9 +24,15 @@ extension/content.js      ~1020 Zeilen, ALLES in einer Datei: Einklapp-Logik,
                           Inline-SVG-Icons (svgIcon() + ICONS-Map, Marken-Icon
                           ICON_BUCH_SMILE), chrome.storage.local-Persistenz
 extension/manifest.json   Manifest V3, Version hier bumpen
+extension/background.js   Service Worker/Event-Seite: Icon-Klick oeffnet
+                          popup.html als mittiges Fenster (windows.create,
+                          Fenster-ID in storage.session, Fokus statt Duplikat)
+extension/popup.html/.css/.js  Einstellungen im mittigen Fenster: gleiche
+                          Bedienelemente wie das Seiten-Panel, Sync mit der
+                          Seite ueber storage.onChanged (keine neuen Rechte)
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
 extension/icons/          icon16/48/128.png (pinkes Buch-Icon)
-test/test-runner.js       ~800 Zeilen, Suite ohne Framework, Blöcke [1]–[12]
+test/test-runner.js       ~1080 Zeilen, Suite ohne Framework, Blöcke [1]–[13]
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
 test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
@@ -41,12 +47,12 @@ tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
   cd bger-reader-addon
   bash tools/fetch-fixtures.sh
   cd test && npm install jsdom && node test-runner.js
-Erwartung: 150/150 grün. Ohne Fixtures deckt die Suite nur ~87 % ab
+Erwartung: 189/189 grün. Ohne Fixtures deckt die Suite nur ~80 % ab
 (Blöcke [4], [6], [7] werden übersprungen) — also immer erst Fixtures laden.
 jsdom ist die einzige Test-Abhängigkeit.
 
 == REGELN ==
-1. Vor jedem Push: volle Suite 150/150. Bei DOM-/Panel-Änderungen zusätzlich
+1. Vor jedem Push: volle Suite 189/189. Bei DOM-/Panel-Änderungen zusätzlich
    node test/render-check.js.
 2. Nutzersichtbare Änderung = Version in extension/manifest.json erhöhen
    (Patch-Stelle, aktuell 0.5.x). Reine Test-/Tool-Commits ohne Bump.
