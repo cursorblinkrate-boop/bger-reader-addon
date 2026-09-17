@@ -129,7 +129,7 @@
     z.textContent = anzahl > 0
       ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' eingeklappt (Pfeil ▸ anklicken zum Aufklappen).'
       : (einstellungen.aktiv && einstellungen.klammern
-        ? 'Keine Klammern eingeklappt. Regel: Gesetzesverweise und inhaltliche Bemerkungen bleiben offen, Literatur und lange Klammern werden eingeklappt.'
+        ? 'Keine Klammern eingeklappt. Regel: Fundstellen (Rechtsprechung, Literatur) werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen.'
         : '');
   }
 

@@ -13,6 +13,13 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.6.2 — 2026-09-17
+
+- Pop-up-Fenster: Tooltip der Klammern-Checkbox und Hinweistext beschrieben noch
+  die alte Regel „Literatur und lange Klammern" aus Versionen vor 0.6.0. Jetzt
+  derselbe Wortlaut wie im Seiten-Panel: Fundstellen (Rechtsprechung, Literatur)
+  werden eingeklappt, Gesetzesverweise und Entscheidtext bleiben offen.
+
 ## 0.6.1 — 2026-09-17
 
 - Renderfehler auf search.bger.ch behoben: Unterhalb der ersten
