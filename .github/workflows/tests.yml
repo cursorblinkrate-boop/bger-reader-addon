@@ -63,3 +63,15 @@ jobs:
 
       - name: Test-Suite mit Fixtures
         run: node test/test-runner.js
+
+      # Klammer-Report: jede Klammer der echten Entscheidseiten mit der
+      # Entscheidung der Heuristik. Liegt nach dem Lauf unter "Artifacts"
+      # zum Herunterladen – das ist die Prüfung an echtem Text.
+      - name: Klammer-Report erzeugen
+        run: node tools/klammern-report.js > klammern-report.txt && tail -12 klammern-report.txt
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: klammern-report
+          path: klammern-report.txt
+          retention-days: 30

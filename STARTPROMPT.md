@@ -18,7 +18,8 @@ Manifest V3, vanilla JS, keine Build-Pipeline, keine Frameworks.
 Repo: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
 == STRUKTUR ==
-extension/content.js      ALLES in einer Datei: Einklapp-Logik,
+extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
+                          Konstanten POLITIK am Anfang des Regelkerns),
                           Shadow-DOM-Panel (pinkfarbener Button unten rechts),
                           Panel-CSS als Template-Literal (const panelCss),
                           Inline-SVG-Icons (svgIcon() + ICONS-Map, Marken-Icon
@@ -36,6 +37,9 @@ test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
                           bger_relevancy.html (BGE 152 IV 1, relevancy)
 tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
                           mit Plausibilitätscheck
+tools/klammern-report.js  jede Klammer der echten Fixtures mit Entscheidung
+                          und Begründung – DAS Werkzeug für die Trefferquote;
+                          läuft auch in der CI (Artefakt "klammern-report")
 tools/version.js          Version anzeigen/erhöhen (patch|minor|major|x.y.z),
                           ergänzt zugleich einen CHANGELOG-Eintrag
 tools/release.sh          baut dist/bger-reader-<version>.zip aus extension/,

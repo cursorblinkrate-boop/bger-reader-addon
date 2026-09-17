@@ -74,55 +74,185 @@
       return ergebnis;
     }
 
-    /* ---------- Einklapp-Regeln (fester, vorhersagbarer Regelsatz) ---------- */
-    // Priorität, der erste Treffer entscheidet – jede Stelle bleibt einzeln
-    // manuell aufklappbar (reversibel):
-    //   1. < 30 Zeichen:   nie einklappen (Jahreszahlen, Geschäftsnummern …)
-    //   2. Latinismus / inhaltliche Bemerkung (nullum crimen, in casu,
-    //      Gattungsschuld …): nie – das ist Entscheidtext, keine Literatur
-    //   3. im Wesentlichen nur Gesetzesverweise (Art.-Angaben + Füllwörter,
-    //      Rest <= 15 Zeichen): nie – Erwägungs-Verweise bleiben offen
-    //   4. Literatur-/Zitat-Signale (vgl., in:, Kommentar, S. 12, Urteil …):
-    //      immer einklappen
-    //   5. > 100 Zeichen:  immer einklappen, Inhalt egal
-    //   6. dazwischen:     nur bei >= 3 Ziffern (0–9) im Inhalt
-    const KLAMMER_MIN_LAENGE = 30;
-    const KLAMMER_MAX_LAENGE = 100;
-    const GESETZ_REST_MAX = 15;
-    const ZIFFERN_MIN = 3;
+    /* ---------- Einklapp-Regeln ---------- */
+    // Grundsatz (Vorgabe der Autorin): Eingeklappt wird, was FUNDSTELLE ist.
+    // Fundstellen lesen sich wie eine Rechnung – Zahlenketten, deren Inhalt
+    // man nicht im Kopf hat (BGE 135 II 45 E. 3.2 S. 47) – und lenken ab.
+    // Alles andere ist Entscheidtext und bleibt offen, auch wenn Zahlen
+    // darin vorkommen: Gesetzesverweise (Art. 8 BV – der Gehalt muss ohnehin
+    // verstanden werden), Beträge, Mengen, Daten, interne Verweise auf die
+    // eigenen Erwägungen (E. 4.2), inhaltliche Bemerkungen, Latinismen.
+    //
+    // Länge und Ziffernanzahl sind KEIN Kriterium mehr. Eine Klammer wird
+    // nur eingeklappt, wenn sie positiv als Fundstelle erkannt ist.
+    //
+    // Ablauf pro Klammer:
+    //   1. Normalisieren (geschützte Leerzeichen, Apostrophe der Website).
+    //   2. Rechtsprechung irgendwo im Inhalt -> einklappen, auch wenn kurz
+    //      (BGE 123 II 328 allein ist bereits eine Fundstelle).
+    //   3. Sonst am Semikolon in Segmente teilen (Schweizer Zitierkonvention
+    //      für getrennte Fundstellen) und jedes Segment auf bibliografische
+    //      FORM prüfen – Autorensignatur, Auflage, "in:", Werktyp, Zeitschrift,
+    //      Randnote, Erscheinungsjahr sammeln Punkte. Ein Segment, das nur
+    //      aus Gesetzesverweisen besteht, zählt nicht; erkennbare Prosa
+    //      braucht eine höhere Schwelle.
+    //   4. Kein Segment erreicht die Schwelle -> offen.
+    // Jede Stelle bleibt einzeln aufklappbar (reversibel).
 
-    const LATEINISMUS_RE = /\b(nullum crimen|nullem crimen|nulla poena|ne bis in idem|in dubio pro reo|in casu|in aeternum|ex officio|de lege (lata|ferenda)|prima facie|a priori|a posteriori|ad hoc|per se|inter alia|mutatis mutandis|sui generis|vice versa|sensu (stricto|lato)|eo ipso|ceteris paribus|Gattungsschuld|Stückschuld|Spezies(schuld)?)\b/i;
+    /* Politik – hier umstellen, wenn sich die Vorgabe ändert. */
+    const POLITIK = {
+      rechtsprechungEinklappen: true,   // BGE/ATF/DTF, Urteile mit Aktenzeichen
+      literaturEinklappen: true,        // Kommentare, Aufsätze, Lehrbücher
+      literaturSchwelle: 3,             // Punkte, ab denen ein Segment Literatur ist
+      literaturSchwelleProsa: 5         // strengere Schwelle, wenn das Segment wie ein Satz aussieht
+    };
 
-    // Gesetzesverweis: Art./art. + Zahl, optionale Abs./al./lit./ch.-Angaben,
-    // optionale Aufzählung (bis/und/,/;) und Gesetzeskürzel aus 2–6
-    // Grossbuchstaben (BV, StGB, BGG, UVG, OR, ZGB, LTF, CP, CPP …).
-    const GESETZESVERWEIS_RE = /\b[Aa]rt\.?\s*\d+[a-z]?\s*([Aa]bs?\.?\s*\d+)?\s*(al\.?\s*\d+)?\s*(lit\.?\s*[a-z])?\s*(ch\.?\s*\d+)?(\s*(bis|und|,|;|-|–)\s*\d+[a-z]?\s*([Aa]bs?\.?\s*\d+)?\s*(al\.?\s*\d+)?\s*(lit\.?\s*[a-z])?)*(\s*[A-ZÄÖÜ]{2,6}\b)?/g;
-
-    // Literatur-Signale. Kein reines \b am Anfang: JS-\b ist ASCII-only und
-    // würde z. B. „éd." verfehlen; das Prefix verhindert umgekehrt
-    // Fehltreffer in Wörtern wie „enfin:".
-    const LITERATUR_RE = /(?:^|[^\wÀ-ÿ])(vgl\.|cf\.|in:|Kommentar|Commentaire|Hrsg\.?|Aufl\.|éd\.|Urteil|arrêt|op\.\s*cit\.|Rz\.|S\.\s*\d|p\.\s*\d|fn\.|Fn\.|consulté le|abgerufen|JdT|ZStrR|Rabels)/i;
-
-    // Prüft, ob der Inhalt nach Entfernen aller Gesetzesverweise, Füllwörter,
-    // Satzzeichen und Ziffern praktisch leer ist (<= GESETZ_REST_MAX Zeichen).
-    function nurGesetzesverweise(inhalt) {
-      let rest = inhalt.replace(GESETZESVERWEIS_RE, ' ');
-      rest = rest.replace(/in Verbindung mit|i\.V\.m\.|in der hier massgeblichen Fassung|i\.S\.v\.|i\.S\.d\./gi, ' ');
-      rest = rest.replace(/\b(gemäss|gemäß|sowie|und|oder|Abs?|al|lit|ch)\b\.?/gi, ' ');
-      rest = rest.replace(/[^\p{L}\s]/gu, ' '); // Satzzeichen und Ziffern
-      rest = rest.replace(/\s+/g, ' ').trim();
-      return rest.length <= GESETZ_REST_MAX;
+    function normalisiere(s) {
+      return s
+        .replace(/[     ]/g, ' ')  // geschützte/schmale Leerzeichen
+        .replace(/[’‘ʼ´`]/g, "'")       // typografische Apostrophe
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
+    /* ---- Rechtsprechung: jede Fundstelle genügt ---- */
+    // Amtliche Sammlung: BGE 135 II 45, ATF 143 IV 27, DTF 120 Ia 1, BVGE 2019 I 1
+    const BGE_RE = /\b(?:BGE|ATF|DTF)\s+\d{1,3}\s+[IVX]{1,4}[ab]?\s+\d{1,4}\b|\bBVGE\s+(?:19|20)\d{2}\s+[IVX]{1,4}\s+\d{1,4}\b|\bTPF\s+(?:19|20)\d{2}\s+\d{1,4}\b/;
+    // Aktenzeichen: 6B_123/2020, 1C_45/2019, 6S.12/2004 (BGer); A-1234/2019 (BVGer);
+    // SK.2019.12, BB.2020.5 (BStGer). Nicht: "S. 12", "N. 12" (Leerzeichen dazwischen).
+    const AKTENZEICHEN_RE = /(?:^|[^A-Za-z0-9])(?:\d[A-Z]{1,2}[_.]\d{1,4}\/\d{2,4}|[A-Z]-\d{1,5}\/\d{4}|[A-Z]{2}\.(?:19|20)\d{2}\.\d{1,4})\b/;
+    // Praxis des Bundesgerichts, EGMR/EuGH
+    const WEITERE_RSPR_RE = /\bPra\s+\d{2,4}\s+Nr\.?\s*\d+|\b(?:EGMR|CourEDH|ECHR|EuGH|CJUE|CJEU)\b[^;]*\d|\bC-\d{1,4}\/\d{2}\b/;
+
+    function istRechtsprechung(s) {
+      return BGE_RE.test(s) || AKTENZEICHEN_RE.test(s) || WEITERE_RSPR_RE.test(s);
+    }
+
+    /* ---- Gesetzesverweise: Veto für Segmente, die nur daraus bestehen ---- */
+    // Erlasskürzel generisch: 2–10 Buchstaben mit mindestens zwei Grossbuchstaben
+    // (BV, OR, StGB, SchKG, BetmG, VStrR, LTF, CPP …), optional römischer
+    // Zusatz (UNO-Pakt II). Keine Liste nötig – jede künftige Abkürzung passt.
+    const KUERZEL = '(?=[A-Za-zÄÖÜäöü\\-]{2,10}\\b)(?:[a-zäöü\\-]*[A-ZÄÖÜ]){2}[A-Za-zÄÖÜäöü\\-]*(?:\\s+[IVX]{1,3}\\b)?';
+    // Untergliederung nach der Artikelzahl (Abs., al., cpv., Ziff., ch., n., lit., let., lett., Bst., Satz)
+    const GLIED = '(?:\\s*(?:Abs|al|cpv|Ziff|ch|n|lit|let|lett|Bst|Satz|Halbsatz|Unterabs|para|par)\\.?\\s*[\\divx]+[a-z]?\\b\\.?)*';
+    const ZAHL = '\\d+[a-z]{0,6}(?:\\s*(?:bis|ter|quater|quinquies|sexies|septies|octies|novies|decies)\\b)?';
+    const FF = '(?:\\s*(?:ff|f)\\.)?';
+    const VERBINDER = '(?:\\s*(?:und|et|e|sowie|oder|ou|o|bzw\\.|resp\\.|i\\.\\s*V\\.\\s*m\\.|in Verbindung mit|en relation avec|in combinazione con|,|-|–|bis)\\s*)';
+    const ARTIKEL = '(?:\\b(?:a|alt|n)?(?:[Aa]rt(?:\\.|ikel|icle|icolo)?|§|§§|Par\\.?|Ziff\\.|Ziffer)\\s*' + ZAHL + GLIED + FF + ')';
+    const FOLGE = '(?:' + VERBINDER + '(?:[Aa]rt\\.?\\s*)?' + ZAHL + GLIED + FF + ')*';
+    const GESETZESVERWEIS_RE = new RegExp(ARTIKEL + FOLGE + '(?:\\s*' + KUERZEL + ')?', 'g');
+
+    // Erlassnennung ausgeschrieben, Fundstellen der Sammlungen, Fassungsangaben.
+    const ERLASS_TEXT_RE = /\b(?:Bundesgesetz|Bundesverfassung|Verordnung|Gesetz|Reglement|Konkordat|Übereinkommen|Abkommen|Loi fédérale|Ordonnance|Constitution|Legge federale|Ordinanza|Costituzione)\b(?:\s+(?:vom|du|del|della)\s+\d{1,2}\.?\s*\S+\s+(?:19|20)\d{2})?(?:\s+(?:über|betreffend|zum|zur|sur|concernant|relative à|su|sulla|sul|sui|sugli)\s+[^,;()]+)?/gi;
+    const SAMMLUNG_RE = /\b(?:SR|RS|AS|RO|RU|BBl|FF)\s+\d{1,4}(?:[.\s]\d{1,4})*\b/g;
+    const FASSUNG_RE = /\b(?:in der (?:bis(?: zum| Ende| am)?|ab|seit|vom|am)\s+[^,;()]+?\s+(?:geltenden|gültigen|massgeblichen|massgebenden|anwendbaren)\s+Fassung|in der (?:hier |damals |heute )?(?:massgeblichen|massgebenden|geltenden|ursprünglichen|alten|neuen) Fassung|in der Fassung (?:vom|gemäss|nach)\s+[^,;()]+|in Kraft (?:seit|bis|getreten am)\s+[^,;()]+|aufgehoben (?:per|am|mit)\s+[^,;()]+|dans sa (?:teneur|version) (?:en vigueur|applicable)[^,;()]*|nella versione (?:in vigore|applicabile)[^,;()]*)/gi;
+    const DATUM_RE = /\b\d{1,2}\.?\s*(?:Januar|Februar|März|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre|gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|Jan|Feb|Mär|Apr|Jun|Jul|Aug|Sep|Sept|Okt|Nov|Dez)\.?\s+(?:19|20)\d{2}\b|\b\d{1,2}\.\d{1,2}\.(?:19|20)\d{2}\b/g;
+    const FUELLWORT_RE = /\b(?:gemäss|gemäß|nach|gestützt auf|im Sinne (?:von|des|der)|i\.\s*S\.\s*(?:v|d)\.|au sens de|ai sensi|selon|conformément à|vgl\.|cf\.|siehe|s\.|dazu|hierzu|hiezu|auch|insbesondere|namentlich|sowie|und|oder|bzw\.|je|jeweils|analog|sinngemäss|sinngemäß|per analogiam|e contrario|a contrario|Umkehrschluss|Abs|al|lit|ch|Ziff|erster|zweiter|dritter|erste|zweite|dritte|Satz|Halbsatz|zweiter Halbsatz|in fine|a\.E\.|am Ende|Ingress|Einleitungssatz|Randtitel|Marginalie|Sachüberschrift|Titel|Kapitel|Abschnitt|des|der|die|das|den|dem|le|la|les|il|lo|di|del|della|dell')\b\.?/gi;
+
+    function hatGesetzesmarker(s) {
+      return /\b(?:a|alt|n)?[Aa]rt(?:\.|ikel|icle|icolo)?\s*\d|§\s*\d|\b(?:SR|RS)\s+\d|\b(?:Bundesgesetz|Verordnung|Loi fédérale|Ordonnance|Legge federale|Ordinanza)\b/.test(s);
+    }
+
+    // Entfernt alles, was zu einem Gesetzesverweis gehört. Was übrig bleibt,
+    // ist der "Rest" – Text, der kein Gesetz ist.
+    function ohneGesetz(s) {
+      return s
+        .replace(FASSUNG_RE, ' ')
+        .replace(ERLASS_TEXT_RE, ' ')
+        .replace(SAMMLUNG_RE, ' ')
+        .replace(GESETZESVERWEIS_RE, ' ')
+        .replace(DATUM_RE, ' ')
+        .replace(FUELLWORT_RE, ' ')
+        .replace(/[^\p{L}\s]/gu, ' ')   // Satzzeichen und Ziffern
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    // Segment besteht im Wesentlichen aus Gesetzesverweisen: Rest ist klein,
+    // und zwar RELATIV zur Länge (eine Kette aus acht Verweisen darf mehr
+    // Rest haben als ein einzelner).
+    function nurGesetzesverweise(segment) {
+      if (!hatGesetzesmarker(segment)) return false;
+      const rest = ohneGesetz(segment);
+      return rest.length <= Math.max(15, Math.round(segment.length * 0.2));
+    }
+
+    /* ---- Prosa: Segment sieht aus wie ein Satz ---- */
+    const FUNKTIONSWORT_RE = /\b(?:dass|weil|wobei|sofern|soweit|obwohl|obschon|indem|zumal|welche[rsn]?|dessen|deren|ist|sind|war|waren|hat|haben|hatte|hatten|wird|werden|wurde|wurden|kann|können|konnte|muss|müssen|musste|soll|sollen|darf|dürfen|nicht|nur|bereits|jedoch|allerdings|insoweit|zutreffend|zu Recht|offensichtlich|unbestritten|est|sont|était|a été|ont|peut|doit|que|qui|dont|è|sono|era|che|cui)\b/g;
+
+    function istProsa(segment) {
+      const treffer = segment.match(FUNKTIONSWORT_RE);
+      return !!treffer && treffer.length >= 2;
+    }
+
+    /* ---- Literatur: Punkte für bibliografische Form ---- */
+    const LITERATUR_SIGNALE = [
+      // Autorensignatur in Kapitälchen mit Komma: STRATENWERTH, / NIGGLI/WIPRÄCHTIGER,
+      { re: /\b[A-ZÄÖÜ][A-ZÄÖÜ'\-]{3,}(?:\s+[A-ZÄÖÜ][A-ZÄÖÜ'\-]{3,})*(?:\s*\/\s*[A-ZÄÖÜ][A-ZÄÖÜ'\-]{3,})*\s*,/, punkte: 2, name: 'Autor' },
+      // Autorenpaar in Normalschrift: Niggli/Wiprächtiger
+      { re: /\b[A-ZÄÖÜ][a-zäöüéèàçâêîôû]{2,}(?:-[A-ZÄÖÜ][a-zäöü]+)?\s*\/\s*[A-ZÄÖÜ][a-zäöüéèàçâêîôû]{2,}/, punkte: 2, name: 'Autor/Autor' },
+      // Auflage: 4. Aufl. / 4. A. / 2e éd. / 3a ed.
+      { re: /\b\d{1,2}\.\s*(?:Aufl|A)\.|\b\d{1,2}(?:e|ème|re|ère|a|st|nd|rd|th)?\s*(?:éd|ed|ediz|Aufl)\./i, punkte: 2, name: 'Auflage' },
+      // "in:" leitet Sammelband/Zeitschrift ein
+      { re: /(?:^|[\s(])in\s*:/i, punkte: 2, name: 'in:' },
+      // Werktyp und Fachverlage
+      { re: /\b(?:Kommentar|Commentaire|Commentario|Handkommentar|Praxiskommentar|Kurzkommentar|Handbuch|Lehrbuch|Grundriss|Traité|Précis|Manuel|Trattato|Festschrift|Festgabe|Gedenkschrift|Diss\.|Dissertation|Habil\.|Habilitation|Schulthess|Stämpfli|Helbing|Dike|Nomos|Orell Füssli)\b/, punkte: 2, name: 'Werk' },
+      // Kommentar-Kürzel mit Bearbeiter: BSK StPO-Schmid, OFK ZGB-Müller, CR CP-Dupont
+      { re: /\b(?:BSK|BK|ZK|OFK|CHK|SHK|KuKo|CR|CS|CPra|BeK|HK|PK|SK)\b\s*(?:[A-Za-zÄÖÜäöü]{2,10}\s*)?[-–]\s*[A-ZÄÖÜ][a-zäöüéè]+/, punkte: 2, name: 'Kommentar-Kürzel' },
+      // Zeitschriftenkürzel
+      { re: /\b(?:ZStrR|AJP|PJA|SJZ|RSJ|JdT|ZBJV|ZSR|RDS|ZBl|SZW|RSDA|ZBGR|FamPra|SZS|RSAS|ARV|DTA|ZZZ|BJM|GesKR|ASA|StR|RDAF|SemJud|RPS|Jusletter|plädoyer|forumpoenale|sic!|Anwaltsrevue|AnwR|ZKE|ZESAR|SJIR|SRIEL|ZVR|iusNet|ius\.full)\b/, punkte: 2, name: 'Zeitschrift' },
+      // Rückverweis auf bereits zitiertes Werk
+      { re: /\b(?:a\.\s*a\.\s*O\.|op\.\s*cit\.|loc\.\s*cit\.|ibid(?:em)?\.?|ebd\.|passim)/i, punkte: 3, name: 'Rückverweis' },
+      // Herausgeber
+      { re: /\b(?:Hrsg|Hg|éd|eds|a cura di|dir)\.|\bHerausgeber/i, punkte: 1, name: 'Hrsg' },
+      // Randnote/Seite: N. 12, Rz. 45, S. 123, p. 45, n° 12
+      { re: /\b(?:N|Rz|Rn|Nr|S|p|pp|pag|n|nn|no)\.?\s*\d|\bn°\s*\d/, punkte: 1, name: 'Fundstelle' },
+      // Erscheinungsjahr (Tagesdaten werden vorher entfernt)
+      { re: /\b(?:19|20)\d{2}\b/, punkte: 1, name: 'Jahr' }
+    ];
+
+    function literaturPunkte(segment) {
+      // Gesetzesverweise und Tagesdaten vorher entfernen: "Art. 6 EMRK," darf
+      // nicht als Autorensignatur zählen, "12. Januar 2021" nicht als Jahr.
+      const s = segment.replace(GESETZESVERWEIS_RE, ' ').replace(DATUM_RE, ' ');
+      let punkte = 0;
+      LITERATUR_SIGNALE.forEach(function (sig) {
+        if (sig.re.test(s)) punkte += sig.punkte;
+      });
+      return punkte;
+    }
+
+    function istLiteratur(segment) {
+      if (nurGesetzesverweise(segment)) return false;   // Veto: reiner Gesetzesverweis
+      const punkte = literaturPunkte(segment);
+      const schwelle = istProsa(segment) ? POLITIK.literaturSchwelleProsa : POLITIK.literaturSchwelle;
+      return punkte >= schwelle;
+    }
+
+    /* ---- Entscheidung pro Klammer ---- */
     function sollEingeklapptWerden(klammerInhalt) {
-      const len = klammerInhalt.length;
-      if (len < KLAMMER_MIN_LAENGE) return false;                 // Regel 1
-      if (LATEINISMUS_RE.test(klammerInhalt)) return false;       // Regel 2
-      if (nurGesetzesverweise(klammerInhalt)) return false;       // Regel 3
-      if (LITERATUR_RE.test(klammerInhalt)) return true;          // Regel 4
-      if (len > KLAMMER_MAX_LAENGE) return true;                  // Regel 5
-      const ziffern = klammerInhalt.match(/\d/g);                 // Regel 6
-      return !!ziffern && ziffern.length >= ZIFFERN_MIN;
+      const text = normalisiere(klammerInhalt);
+      if (!text) return false;
+      if (POLITIK.rechtsprechungEinklappen && istRechtsprechung(text)) return true;
+      if (!POLITIK.literaturEinklappen) return false;
+      return text.split(/\s*;\s*/).some(istLiteratur);
+    }
+
+    // Für Diagnose und Tests: erklärt, WARUM eine Klammer eingeklappt wird.
+    function begruendung(klammerInhalt) {
+      const text = normalisiere(klammerInhalt);
+      if (!text) return 'leer';
+      if (istRechtsprechung(text)) return 'Rechtsprechung';
+      const segmente = text.split(/\s*;\s*/);
+      for (let i = 0; i < segmente.length; i++) {
+        const seg = segmente[i];
+        if (nurGesetzesverweise(seg)) continue;
+        const punkte = literaturPunkte(seg);
+        const prosa = istProsa(seg);
+        const schwelle = prosa ? POLITIK.literaturSchwelleProsa : POLITIK.literaturSchwelle;
+        if (punkte >= schwelle) return 'Literatur (' + punkte + ' Punkte' + (prosa ? ', Prosa-Schwelle' : '') + ')';
+      }
+      return 'offen';
     }
 
     /* ---------- Ein-/Ausklappen (reversibel, formatierungserhaltend) ---------- */
@@ -172,7 +302,7 @@
 
     function blockVerarbeiten(block) {
       const t = textKarteAufbauen(block);
-      if (!t.gesamt || t.gesamt.length < KLAMMER_MIN_LAENGE) return 0;
+      if (!t.gesamt) return 0;
 
       // Nur Top-Level-Klammern: verschachtelte Klammern bleiben Teil des
       // Inhalts ihrer äusseren Klammer, es gibt kein Fold im Fold.
@@ -250,6 +380,7 @@
       textKarteAufbauen: textKarteAufbauen,
       klammernFinden: klammernFinden,
       sollEingeklapptWerden: sollEingeklapptWerden,
+      begruendung: begruendung,
       blockVerarbeiten: blockVerarbeiten,
       einzelnUmschalten: einzelnUmschalten,
       alleUmschalten: alleUmschalten,
@@ -614,7 +745,7 @@
     z.textContent = anzahl > 0
       ? anzahl + ' Klammerbemerkung' + (anzahl === 1 ? '' : 'en') + ' eingeklappt (Pfeil ▸ anklicken zum Aufklappen).'
       : (einstellungen.aktiv && einstellungen.klammern
-        ? 'Keine Klammern eingeklappt. Regel: Gesetzesverweise und inhaltliche Bemerkungen bleiben offen, Literatur und lange Klammern werden eingeklappt.'
+        ? 'Keine Klammern eingeklappt. Regel: Fundstellen (Rechtsprechung, Literatur) werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen.'
         : '');
   }
 
@@ -875,7 +1006,7 @@
         <div class="bkl-zeile">
           <span class="bkl-icon">${svgIcon(ICONS.klammer)}</span>
           <label for="bkl-klammern">Klammern einklappen</label>
-          <input type="checkbox" id="bkl-klammern" title="Klammerbemerkungen einklappen (Regel: Gesetzesverweise und inhaltliche Bemerkungen bleiben offen, Literatur und lange Klammern werden eingeklappt)" aria-label="Klammerbemerkungen einklappen">
+          <input type="checkbox" id="bkl-klammern" title="Klammerbemerkungen einklappen (Regel: Fundstellen wie BGE-Zitate und Literatur werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen)" aria-label="Klammerbemerkungen einklappen">
         </div>
       </div>
 

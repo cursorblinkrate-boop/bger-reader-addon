@@ -13,6 +13,30 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.6.0 — 2026-09-17
+
+- **Einklapp-Heuristik neu gebaut.** Grundsatz nach Vorgabe der Autorin:
+  Eingeklappt wird, was *Fundstelle* ist – Rechtsprechung (BGE/ATF/DTF,
+  Urteile mit Aktenzeichen, auch kurz) und Literatur. Alles andere ist
+  Entscheidtext und bleibt offen: Gesetzesverweise, Beträge, Mengen, Daten,
+  interne Verweise (E. 4.2), inhaltliche Bemerkungen, Latinismen.
+- Länge und Ziffernanzahl sind kein Kriterium mehr (die alten Regeln 5 und 6
+  hielten Daten, Beträge und Erwägungsnummern für Zitate).
+- Gesetzesverweise: Erlasskürzel generisch erkannt (StGB, SchKG, BetmG,
+  VStrR …), dazu aArt., SR/AS/BBl, ausgeschriebene Erlasse, Fassungsangaben,
+  italienische Gliederung (cpv., lett.), Restbudget relativ zur Länge.
+- Latinismus-Liste ersatzlos entfernt – Prosa wird an der Satzstruktur
+  erkannt, nicht an einem Wörterbuch.
+- Literatur über bibliografische Form (Autorensignatur, Auflage, „in:",
+  Werktyp, Zeitschrift, Kommentar-Kürzel, Randnote, Jahr) mit Punkteschwelle;
+  „vgl." allein ist kein Signal mehr.
+- Politik als Konstanten (`POLITIK`) am Anfang des Regelkerns, umstellbar
+  ohne Eingriff in die Logik. `BGerReader.begruendung()` erklärt jede
+  Entscheidung.
+- `tools/klammern-report.js`: jede Klammer echter Entscheidseiten mit
+  Entscheidung und Begründung; läuft in der CI, Ergebnis als Artefakt.
+- Testblock [1] auf 112 Fälle in sechs Kategorien erweitert.
+
 ## 0.5.6 — 2026-09-17
 
 - Bedienung entkoppelt: Typografie- und Farbänderungen bauen die Klammer-Folds

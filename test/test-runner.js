@@ -44,38 +44,164 @@ function domMitScript(html, url) {
 /* ---------- 1. Einklapp-Regeln: Einzelfälle ---------- */
 console.log('\n[1] Einklapp-Regeln (Einzelfälle)');
 
-const EASY_FAELLE = [
-  // [Klammerinhalt, erwartet eingeklappt]
-  ['in: Kramer, Das Recht, N. 12 ff.; BGE 135 II 45', true],      // Literatur-Signal „in:"
-  ['vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45', true], // „vgl."
-  ['ATF 143 IV 27 consid. 2.5; JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP', true], // Rest nach Gesetz-Strip zu lang, „in:"/„Commentaire"
-  ['BGE 123 II 45', false],                                   // zu kurz (< 30)
-  ['Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann', false], // 30–100, keine Ziffern, kein Signal
-  ['29. März 2021', false],                                   // zu kurz
-  ['6B_94/2024', false],                                      // zu kurz
-  ['Art. 298b al. 1 CPP', false],                             // zu kurz
-  ['wegen versuchter ehebrecherischer Beziehung', false],     // keine Ziffern, kein Signal
-  ['Rz. 45', false],                                          // zu kurz (Regel 1 vor Literatur-Signal)
-  ['Art. 8 BV, Art. 13 BV, Art. 29 BV', false],               // nur Gesetzesverweise (Regel 3)
-  ['gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung', false], // Verweise + Füllwörter (Regel 3)
-  ['dazu BGE 141 IV 234 E. 3.2 sowie Urteil 4A_12/2020 vom 5. Mai 2020', true], // „Urteil"
-  ['reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60), true], // > 100 Zeichen (Regel 5, neu bereits ab 100 statt 300)
-  // Neue Fälle des Regelsatzes (v0.5.0):
-  ['in Verbindung mit Art. 97 Abs. 2', false],                // nur Verweis + Füllwort (Regel 3)
-  ['Art. 97 Abs. 2 und Art. 105 Abs. 3 BGG Umkehrschluss; vgl. BGE 135 V 412', true], // Rest zu lang für Regel 3, „vgl."
-  ['nullum crimen sine lege', false],                         // Latinismus (und < 30)
-  ['Gattungsschuld', false],                                  // inhaltliche Bemerkung (< 30)
-  ['ne bis in idem, so BGE 141 IV 234 E. 3.2', false],        // Latinismus schlägt Ziffern-Regel (Regel 2 vor 6)
-  ['BGE 141 IV 234 E. 3.2 und 6B_12/2020 vom 5. Mai', true]   // 30–100 Zeichen, >= 3 Ziffern, kein Signal (Regel 6)
+// Politik (Vorgabe der Autorin): Fundstellen einklappen – Rechtsprechung
+// (auch kurz) und Literatur. Alles andere ist Entscheidtext und bleibt offen.
+// [Kategorie, soll eingeklappt werden, Klammerinhalt]
+//   R = Rechtsprechung, B = Literatur (beide -> true)
+//   G = Gesetz, I = interner Verweis, T = Entscheidtext, L = Latinismus (alle -> false)
+const KORPUS = [
+  // === R: Rechtsprechung -> einklappen, auch kurz ===
+  ['R', true,  'BGE 123 II 328'],
+  ['R', true,  'BGE 135 II 45 E. 3.2 S. 47'],
+  ['R', true,  'ATF 143 IV 27 consid. 2.5'],
+  ['R', true,  'DTF 120 Ia 1 consid. 3'],
+  ['R', true,  'BGE 147 IV 73 E. 4.1.2; Urteil 6B_123/2020 vom 1. März 2021 E. 2.3'],
+  ['R', true,  'Urteil 6B_94/2024 vom 3. Juli 2024'],
+  ['R', true,  '6B_94/2024'],
+  ['R', true,  'Urteile 1C_45/2019 und 1C_46/2019 vom 12. Mai 2020, je E. 2'],
+  ['R', true,  'arrêt 6B_1234/2019 du 5 mars 2020 consid. 1.2'],
+  ['R', true,  'vgl. BGE 141 IV 234 E. 3.2; ne bis in idem'],
+  ['R', true,  'Art. 97 Abs. 2 BGG; vgl. BGE 135 V 412'],
+  ['R', true,  'ne bis in idem, so BGE 141 IV 234 E. 3.2'],
+  ['R', true,  'Pra 2019 Nr. 12'],
+  ['R', true,  'BVGE 2019 I 1 E. 4'],
+  ['R', true,  'Urteil des BVGer A-1234/2019 vom 3. Mai 2020'],
+  ['R', true,  'EGMR-Urteil Huber gegen Schweiz vom 23. Oktober 1990, Nr. 12794/87'],
+  ['R', true,  'was das Bundesgericht in BGE 135 II 45 ausdrücklich offengelassen hat'],
+  ['R', true,  'zum Ganzen BGE 146 IV 88 E. 1.3.1 mit Hinweisen'],
+
+  // === G: Gesetzesverweise -> offen ===
+  ['G', false, 'Art. 12 Abs. 3 StGB'],
+  ['G', false, 'Art. 8 BV'],
+  ['G', false, 'Art. 8 BV, Art. 13 BV, Art. 29 BV'],
+  ['G', false, 'Art. 12 StGB; Art. 5 StPO; Art. 97 BGG; Art. 3 StPO; Art. 6 SchKG'],
+  ['G', false, 'Art. 5 Abs. 1 und Art. 9 BV sowie Art. 6 Ziff. 1 EMRK'],
+  ['G', false, 'Art. 319 Abs. 1 lit. a StPO i.V.m. Art. 310 StPO'],
+  ['G', false, 'Art. 260ter Ziff. 1 StGB'],
+  ['G', false, 'Art. 41 ff. OR'],
+  ['G', false, 'art. 12 al. 2 let. b CP'],
+  ['G', false, 'art. 12 cpv. 2 lett. b CP'],
+  ['G', false, 'Art. 8 Abs. 1 SchKG und Art. 17 SchKG'],
+  ['G', false, 'Art. 2 Abs. 2 ZGB in der bis zum 31. Dezember 2022 geltenden Fassung'],
+  ['G', false, 'aArt. 12 Abs. 1 StGB in der bis Ende 2006 geltenden Fassung'],
+  ['G', false, 'Bundesgesetz vom 16. Dezember 2005 über die Ausländerinnen und Ausländer, SR 142.20'],
+  ['G', false, 'Art. 28 Abs. 2 des Bundesgesetzes über den Datenschutz, SR 235.1'],
+  ['G', false, 'Art. 12 StGB in der Fassung gemäss Ziff. I des Bundesgesetzes vom 13. Dezember 2002, AS 2006 3459'],
+  ['G', false, 'Art. 6 Ziff. 1 EMRK, Art. 14 Abs. 1 UNO-Pakt II, Art. 29 Abs. 2 BV'],
+  ['G', false, 'vgl. Art. 12 StGB'],
+  ['G', false, 'Art. 97 Abs. 1 BGG und Art. 105 Abs. 2 BGG, dazu Art. 42 Abs. 2 BGG'],
+  ['G', false, 'gemäss Art. 41 Abs. 1 OR und Art. 42 OR sowie Art. 8 BV in der hier massgeblichen Fassung'],
+  ['G', false, 'in Verbindung mit Art. 97 Abs. 2'],
+  ['G', false, 'Art. 74 Abs. 2 lit. a BGG in Verbindung mit Art. 75 Abs. 1 BGG'],
+  ['G', false, 'Art. 105 Abs. 1 und 2 BGG; Art. 97 Abs. 1 BGG'],
+  ['G', false, '§ 823 BGB'],
+  ['G', false, 'Art. 8 BV e contrario'],
+  ['G', false, 'Art. 12 Abs. 1 lit. a und b StPO analog'],
+
+  // === I: interne Verweise auf den eigenen Entscheid -> offen ===
+  ['I', false, 'vgl. dazu die Ausführungen in E. 4.2 hiernach'],
+  ['I', false, 'vgl. E. 3.2 des angefochtenen Entscheids'],
+  ['I', false, 'dazu eingehend E. 5.4.1 nachfolgend'],
+  ['I', false, 'vgl. bereits vorne E. 2.1 sowie hinten E. 6'],
+  ['I', false, 'E. 3.2'],
+  ['I', false, 'oben E. 2'],
+  ['I', false, 'consid. 4.1 supra'],
+
+  // === T: Entscheidtext, Beträge, Mengen, Daten, Bemerkungen -> offen ===
+  ['T', false, 'wobei die Vorinstanz verbindlich von einem Deliktsbetrag von rund 250 000 Franken ausgegangen ist'],
+  ['T', false, 'Fr. 20\'000.--'],
+  ['T', false, 'rund CHF 200\'000'],
+  ['T', false, '300 Kilogramm Heroingemisch'],
+  ['T', false, 'die Beschwerdeführerin macht insoweit zu Recht geltend, dass die Vorinstanz den Sachverhalt unvollständig festgestellt hat'],
+  ['T', false, 'was die Vorinstanz in ihrem Entscheid vom 12. Januar 2021 zutreffend erwogen hat'],
+  ['T', false, 'geboren am 29. März 2001'],
+  ['T', false, '29. März 2021'],
+  ['T', false, 'zum Ganzen sogleich, insbesondere zur Frage der Verjährung'],
+  ['T', false, 'im Folgenden: die Beschwerdegegnerin 2'],
+  ['T', false, 'nachfolgend: Versicherung'],
+  ['T', false, 'recte: Beschwerdegegner'],
+  ['T', false, 'Hervorhebungen und Kürzungen jeweils nur hier, im Original anders'],
+  ['T', false, 'Hervorhebung nur hier'],
+  ['T', false, 'sic'],
+  ['T', false, 'Beschwerdeführer, vertreten durch Rechtsanwalt Mustermann'],
+  ['T', false, 'wegen versuchter ehebrecherischer Beziehung'],
+  ['T', false, 'sogenannte mittelbare Täterschaft'],
+  ['T', false, 'unbestritten und aktenkundig'],
+  ['T', false, 'reine Textklammer ohne eine einzige Ziffer, aber sehr lang: ' + 'Wort '.repeat(60)],
+  ['T', false, 'Rz. 45'],
+  ['T', false, 'S. 12 des angefochtenen Urteils'],
+  ['T', false, 'act. 12'],
+  ['T', false, 'Urk. 5 S. 3'],
+
+  // === L: Latinismen und Fachbegriffe -> offen (ohne Liste) ===
+  ['L', false, 'in casu war die Frist bereits abgelaufen'],
+  ['L', false, 'ne bis in idem'],
+  ['L', false, 'nullum crimen sine lege'],
+  ['L', false, 'in dubio pro reo'],
+  ['L', false, 'dolus eventualis'],
+  ['L', false, 'dolus eventualis, vom Vorsatz umfasst'],
+  ['L', false, 'culpa in contrahendo'],
+  ['L', false, 'res iudicata'],
+  ['L', false, 'iura novit curia'],
+  ['L', false, 'actio libera in causa, ein seit langem anerkanntes Rechtsinstitut'],
+  ['L', false, 'venire contra factum proprium, vgl. dazu sogleich'],
+  ['L', false, 'pacta sunt servanda'],
+  ['L', false, 'reformatio in peius'],
+  ['L', false, 'nemo tenetur se ipsum accusare'],
+  ['L', false, 'condicio sine qua non'],
+  ['L', false, 'Gattungsschuld'],
+  ['L', false, 'error in persona vel obiecto'],
+  ['L', false, 'lex mitior'],
+
+  // === B: Literatur -> einklappen ===
+  ['B', true,  'vgl. STRATENWERTH/WOHLERS, Handkommentar, 4. Aufl. 2022, N. 12 zu Art. 111 StGB'],
+  ['B', true,  'in: Basler Kommentar, Strafrecht I, 4. Aufl. 2019, N. 25 zu Art. 12 StGB'],
+  ['B', true,  'NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, Art. 12 N. 44'],
+  ['B', true,  'cf. DUPONT/MARTIN, Commentaire romand, 2e éd. 2021, n. 12 ad art. 41 CO'],
+  ['B', true,  'SCHMID/JOSITSCH, Handbuch des schweizerischen Strafprozessrechts, 3. Aufl. 2017, Rz. 1234'],
+  ['B', true,  'HURTADO POZO, Droit pénal, partie générale, 2008, n. 1234 ss'],
+  ['B', true,  'TRECHSEL/PIETH, Praxiskommentar, 4. Aufl. 2021, N. 8 zu Art. 111 StGB'],
+  ['B', true,  'in: Kramer, Das Recht, N. 12 ff.'],
+  ['B', true,  'vgl. MEIER/BRUNNER, Strafrecht, 2. Aufl. 2020, S. 123 ff.; KELLER, in: GS Bänziger, 2019, S. 45'],
+  ['B', true,  'JEANNERET/GAUTIER, in: Commentaire romand, 2019, n° 12 ad art. 298b CPP'],
+  ['B', true,  'vgl. MEIER, in: ZStrR 2020, S. 45 ff.'],
+  ['B', true,  'Niggli/Wiprächtiger, BSK StGB, 4. Aufl. 2019, N. 5 zu Art. 47'],
+  ['B', true,  'a.a.O., N. 12'],
+  ['B', true,  'op. cit., p. 45'],
+  ['B', true,  'MÜLLER, AJP 2019, S. 1234 ff.'],
+  ['B', true,  'Art. 12 StGB; STRATENWERTH, AT I, 4. Aufl. 2011, § 9 N. 12'],
+  ['B', true,  'DONATSCH, Strafrecht III, 11. Aufl. 2018, S. 12'],
+  ['B', true,  'BSK StPO-Schmid, Art. 10 N. 3'],
+  ['B', true,  'Kommentar zur ZPO, Hrsg. Sutter-Somm/Hasenböhler/Leuenberger, 3. Aufl. 2016, N. 12 zu Art. 55'],
 ];
 
 {
   const dom = domMitScript('<!doctype html><html><body><div class="eit"><div class="paraatf">Test</div></div></body></html>');
   const R = dom.window.BGerReader;
-  EASY_FAELLE.forEach(function (fall) {
-    const ergebnis = R.sollEingeklapptWerden(fall[0]);
-    pruefe('sollEingeklapptWerden("' + fall[0].slice(0, 40) + '") === ' + fall[1], ergebnis === fall[1], 'war ' + ergebnis);
+  const proKat = {};
+  KORPUS.forEach(function (fall) {
+    const ergebnis = R.sollEingeklapptWerden(fall[2]);
+    const gut = ergebnis === fall[1];
+    proKat[fall[0]] = proKat[fall[0]] || { ok: 0, fehl: 0 };
+    proKat[fall[0]][gut ? 'ok' : 'fehl']++;
+    pruefe('[' + fall[0] + '] ' + (fall[1] ? 'einklappen' : 'offen') + ': "' + fall[2].slice(0, 48) + '"',
+      gut, 'war ' + ergebnis + ' – ' + R.begruendung(fall[2]));
   });
+  const zeilen = Object.keys(proKat).sort().map(function (k) {
+    return k + ' ' + proKat[k].ok + '/' + (proKat[k].ok + proKat[k].fehl);
+  });
+  console.log('  Übersicht nach Kategorie: ' + zeilen.join('   '));
+
+  // begruendung() liefert die Ursache, damit ein Fehlschlag sofort lesbar ist.
+  pruefe('begruendung: Rechtsprechung', R.begruendung('BGE 123 II 328') === 'Rechtsprechung');
+  pruefe('begruendung: Literatur mit Punktzahl', /^Literatur \(\d+ Punkte/.test(R.begruendung('MÜLLER, AJP 2019, S. 1234 ff.')),
+    R.begruendung('MÜLLER, AJP 2019, S. 1234 ff.'));
+  pruefe('begruendung: offen', R.begruendung('Art. 8 BV') === 'offen');
+  // Normalisierung: geschützte Leerzeichen der Website dürfen nichts ändern.
+  pruefe('geschütztes Leerzeichen in "BGE\u00A0135\u00A0II\u00A045" stört nicht',
+    R.sollEingeklapptWerden('BGE\u00A0135\u00A0II\u00A045') === true);
+  pruefe('geschütztes Leerzeichen in "Art.\u00A012\u00A0StGB" stört nicht',
+    R.sollEingeklapptWerden('Art.\u00A012\u00A0Abs.\u00A03\u00A0StGB') === false);
 }
 
 /* ---------- 2. Klammer-Stack: verschachtelt & unbalanciert ---------- */
