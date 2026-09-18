@@ -1,14 +1,16 @@
-# Barrierefreie Bundesgerichtsentscheide
+# Barrierefreie Bundesgerichtsentscheide: Firefox, Chrome, Edge.
 
 [![Tests](https://github.com/cursorblinkrate-boop/bger-reader-addon/actions/workflows/tests.yml/badge.svg)](https://github.com/cursorblinkrate-boop/bger-reader-addon/actions/workflows/tests.yml)
 # Accessibility tool for Swiss Federal Supreme Court decisions
-# Browser-Extension for Chrome / Brave
+# designed to run fully *offline*, no data leaves the device! <3
 
-Runs entirely offline on your device. 
-No data is collected, transmitted, or stored outside your browser. 
-The only browser permission requested is storage, used to remember your reading preferences.
+Runs entirely offline, no frameworks or external dependencies.
+No data collected, transmitted, or stored outside your browser. 
+
+The only browser permission requested is (local.storage) = used to remember your reading preferences (font size etc.)
 
 ## Download
+wainting for store approval!
 
 Fertige Pakete für Chrome / Brave / Edge / Firefox liegen unter
 **[Releases](https://github.com/cursorblinkrate-boop/bger-reader-addon/releases)**:
