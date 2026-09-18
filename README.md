@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/cursorblinkrate-boop/bger-reader-addon/actions/workflows/tests.yml/badge.svg)](https://github.com/cursorblinkrate-boop/bger-reader-addon/actions/workflows/tests.yml)
 # Accessibility tool for Swiss Federal Supreme Court decisions
-# Runs entirely offline, no frameworks or external dependencies. <3
+# Runs entirely offline, no frameworks, no tracking, or external dependencies. <3
 
 No data collected, transmitted, or stored outside your browser. 
 The only browser permission requested is (local.storage) = used to remember your reading preferences (settings, font size etc.)
