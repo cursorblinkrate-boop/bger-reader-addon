@@ -1,4 +1,4 @@
-// BGer Reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung.
+// BGer Reader – unabhängiges Projekt, weder mit dem Schweizerischen Bundesgericht noch mit dem Bundesverwaltungsgericht oder Weblaw verbunden. 100 % offline, keine Datenerhebung.
 
 (function () {
   'use strict';
@@ -22,8 +22,11 @@
         const el = n.parentElement;
         // Seitenwechsel-Balken („BGE 152 IV 1 S. 7") liegen mitten im Absatz,
         // sind aber kein Entscheidtext: weder zur Länge noch zu den Ziffern
-        // einer Klammer zählen.
-        if (el && el.closest('script, style, .pagebreak')) continue;
+        // einer Klammer zählen. Ebenso die Beschriftungs-Chips der
+        // Markierungen auf bvger.weblaw.ch („Zitierte BVGE" samt Icons,
+        // .markedHtmlContentWrapper > span), die die App neben die
+        // markierte Stelle setzt.
+        if (el && el.closest('script, style, .pagebreak, .markedHtmlContentWrapper > span')) continue;
         knoten.push(n);
       }
       let gesamt = '';
@@ -116,8 +119,10 @@
     }
 
     /* ---- Rechtsprechung: jede Fundstelle genügt ---- */
-    // Amtliche Sammlung: BGE 135 II 45, ATF 143 IV 27, DTF 120 Ia 1, BVGE 2019 I 1
-    const BGE_RE = /\b(?:BGE|ATF|DTF)\s+\d{1,3}\s+[IVX]{1,4}[ab]?\s+\d{1,4}\b|\bBVGE\s+(?:19|20)\d{2}\s+[IVX]{1,4}\s+\d{1,4}\b|\bTPF\s+(?:19|20)\d{2}\s+\d{1,4}\b/;
+    // Amtliche Sammlung: BGE 135 II 45, ATF 143 IV 27, DTF 120 Ia 1, BVGE 2019 I 1.
+    // Bundesverwaltungsgericht nach Jahr/Nummer, wie das BVGer selbst zitiert
+    // (bvger.weblaw.ch): BVGE 2014/1, BVGE 2020 VII/4, ATAF 2007/6, DTAF 2010/53.
+    const BGE_RE = /\b(?:BGE|ATF|DTF)\s+\d{1,3}\s+[IVX]{1,4}[ab]?\s+\d{1,4}\b|\bBVGE\s+(?:19|20)\d{2}\s+[IVX]{1,4}\s+\d{1,4}\b|\b(?:BVGE|ATAF|DTAF)\s+(?:19|20)\d{2}(?:\s+[IVX]{1,4})?\/\d{1,4}\b|\bTPF\s+(?:19|20)\d{2}\s+\d{1,4}\b/;
     // Aktenzeichen: 6B_123/2020, 1C_45/2019, 6S.12/2004 (BGer); A-1234/2019 (BVGer);
     // SK.2019.12, BB.2020.5 (BStGer). Nicht: "S. 12", "N. 12" (Leerzeichen dazwischen).
     const AKTENZEICHEN_RE = /(?:^|[^A-Za-z0-9])(?:\d[A-Z]{1,2}[_.]\d{1,4}\/\d{2,4}|[A-Z]-\d{1,5}\/\d{4}|[A-Z]{2}\.(?:19|20)\d{2}\.\d{1,4})\b/;
@@ -428,7 +433,7 @@
 
   /* Speicher-Strategie (Privacy: 100 % offline, nichts verlässt das Gerät):
    * – Extension: browser.storage.local / chrome.storage.local → Einstellungen gelten domain-übergreifend
-   *   (search.bger.ch UND relevancy.bger.ch), bleiben aber lokal.
+   *   (search.bger.ch, relevancy.bger.ch UND bvger.weblaw.ch), bleiben aber lokal.
    * – Testumgebung (jsdom, keine Extension-API): localStorage-Fallback.
    * browser verwendet Promises, chrome unterstützt Callbacks.
    */
@@ -473,11 +478,23 @@
     fertig();
   }
 
+  /* Eigene Schreibvorgänge merken: storage.onChanged meldet auch die
+     Schreibvorgänge DIESER Seite (Echo), und zwar asynchron. Das Echo wird
+     am geschriebenen Paket erkannt, nicht am aktuellen Stand – der kann sich
+     in der Zwischenzeit weiterbewegt haben (zweite Einstellung innerhalb der
+     Bündelung), und das Echo des ersten Schreibens drehte sie sonst zurück. */
+  const eigeneSchreibvorgaenge = [];
+  function signatur(e) {
+    return JSON.stringify(Object.assign({}, STANDARDS, e || {}));
+  }
+
   function speichereEinstellungen() {
     try {
       if (extensionStorage) {
         const paket = {};
         paket[STORAGE_KEY] = einstellungen;
+        eigeneSchreibvorgaenge.push(signatur(einstellungen));
+        if (eigeneSchreibvorgaenge.length > 32) eigeneSchreibvorgaenge.shift();
         if (verwendetPromises) {
           extensionStorage.set(paket).catch(function () {});
         } else {
@@ -539,7 +556,12 @@
       color: var(--bkl-fg) !important;
     }
     /* Entscheidabsätze: Typografie. Absatzstruktur bleibt vollständig erhalten.
-       div.paraatf = BGE-Ansicht (clir/relevancy), div.para = aza-Ansicht (Weitere Urteile ab 2000). */
+       div.paraatf = BGE-Ansicht (clir/relevancy), div.para = aza-Ansicht (Weitere Urteile ab 2000),
+       .bkl-text (Block) und .bkl-text p = bvger.weblaw.ch (Klasse zur Laufzeit gesetzt,
+       siehe weblawTextblock; das Site-CSS fixiert am Segment Poppins 16px/28px
+       mit !important, die Absatzregel hier ist spezifischer). */
+    html.bkl-aktiv .bkl-text,
+    html.bkl-aktiv .bkl-text p,
     html.bkl-aktiv div.paraatf,
     html.bkl-aktiv div.para {
       font-family: var(--bkl-font) !important;
@@ -591,6 +613,7 @@
     /* Zeilenlänge begrenzen: NUR wenn eingestellt (> 0 Zeichen), Klasse bkl-maxw
        auf <html>. Im Standard bleibt der Text pixel-identisch an seiner
        Originalposition (kein margin:auto, kein max-width). */
+    html.bkl-aktiv.bkl-maxw .bkl-text p,
     html.bkl-aktiv.bkl-maxw div.paraatf,
     html.bkl-aktiv.bkl-maxw div.para {
       max-width: var(--bkl-maxw) !important;
@@ -600,12 +623,14 @@
 
     /* Ausrichtung: NUR bei Abweichung vom Seiten-Standard (linksbündig),
        Klasse bkl-ausrichtung auf <html>. */
+    html.bkl-aktiv.bkl-ausrichtung .bkl-text p,
     html.bkl-aktiv.bkl-ausrichtung div.paraatf,
     html.bkl-aktiv.bkl-ausrichtung div.para {
       text-align: var(--bkl-align) !important;
     }
 
     /* Absatzabstand: NUR wenn eingestellt (> 0 em), Klasse bkl-absatz auf <html>. */
+    html.bkl-aktiv.bkl-absatz .bkl-text p,
     html.bkl-aktiv.bkl-absatz div.paraatf,
     html.bkl-aktiv.bkl-absatz div.para {
       margin-bottom: var(--bkl-absatz) !important;
@@ -636,6 +661,35 @@
     html.bkl-aktiv div.eit .box .content {
       border-left-color: var(--bkl-border) !important;
       border-right-color: var(--bkl-border) !important;
+    }
+
+    /* ---- bvger.weblaw.ch (Bundesverwaltungsgericht) ----
+       Seitengrund (body #f1f3f3), Segment mit Titel/Datum/Text (#customContentSegment
+       #fcfefe, box-shadow) und Seitenleiste (Akkordeon mit Filtern, per ID und
+       !important auf hell fixiert) ans Schema anpassen. Die Site setzt ihre
+       Farben mit !important, teils per ID – daher hier ebenfalls per ID. */
+    html.bkl-aktiv .ui.segment,
+    html.bkl-aktiv #sideMenuCacheViewAccordionComputer,
+    html.bkl-aktiv #sideMenuCacheViewAccordionMobile,
+    html.bkl-aktiv .accordionLabelSideContentCacheView {
+      background: var(--bkl-bg) !important;
+      color: var(--bkl-fg) !important;
+      border-color: var(--bkl-border) !important;
+    }
+    html.bkl-aktiv .ui.header,
+    html.bkl-aktiv .titleLabel { color: var(--bkl-fg) !important; }
+    html.bkl-aktiv .ui.divider { border-color: var(--bkl-border) !important; }
+    /* Markierungen der Site (farbiger Grund hinter Fundstellen und
+       Stichwörtern, Klassen markedOccurrence_*) behalten dunklen Text –
+       wie der Highlight-Schutz auf bger.ch oben. */
+    html.bkl-aktiv .markedHtmlContentWrapper { color: #1a1a1a !important; }
+    /* Textbreite: die Site setzt die Breite des Spaltenrahmens um das Segment
+       nach Fensterbreite als Inline-Stil (z. B. 855px). Nur bei Abweichung vom
+       Standard (bkl-breite); Zuschlag 100px für die Innenränder des Segments,
+       damit der Reglerwert wie auf bger.ch die Textbreite meint. */
+    html.bkl-aktiv.bkl-breite .bkl-text-spalte {
+      width: calc(var(--bkl-spalte) + 100px) !important;
+      max-width: none !important;
     }
 
     /* Klammerbemerkungen (Disclosure-Pattern: echter Button, aria-expanded) */
@@ -765,6 +819,9 @@
     const html = document.documentElement;
     const e = einstellungen;
     const farben = FARBSCHEMATA[e.farbschema] || FARBSCHEMATA.hell;
+    // bvger.weblaw.ch: Textblock für das CSS markieren (Klasse bkl-text), auch
+    // wenn die Klammern aus sind – die Typografie braucht die Klasse ebenso.
+    if (IST_WEBLAW) weblawTextblock();
     if (!AUSRICHTUNGEN[e.ausrichtung]) e.ausrichtung = STANDARDS.ausrichtung;
 
     /* Abwärtskompatibilität/Defensive: unbekannte gespeicherte Werte
@@ -806,7 +863,52 @@
   /* KLammer-VERARBEITUNG ÜBER ALLE ENTSCHEIDABSÄTZE                     */
   /* ================================================================== */
 
+  /* ---------- Seitenprofil: bger.ch oder bvger.weblaw.ch ----------
+     bger.ch liefert fertiges HTML, jeder Entscheidabsatz ist ein div.paraatf
+     bzw. div.para. bvger.weblaw.ch (Bundesverwaltungsgericht) ist eine
+     React-App: die Seite kommt als leere Hülle, der Entscheid wird per
+     JavaScript nachgeladen und bei Navigation ohne Seiten-Neuladen ersetzt.
+     Der Text liegt als <p>-Folge (Rubrum als Tabellen mit <p> in den Zellen)
+     in einem Kind von #customContentSegment; Klassen tragen die Absätze
+     keine. Der Ort ist die einzige Verbindung zur App – keine API, keine
+     Anfragen, alles bleibt offline. */
+  const IST_WEBLAW = /(^|\.)weblaw\.ch$/.test(location.hostname);
+
+  // Liefert den Textblock des Entscheids (das Kind von #customContentSegment
+  // mit den Absätzen). Markiert ihn für das CSS mit der Klasse bkl-text und
+  // den Spaltenrahmen um das Segment mit bkl-text-spalte (Textbreite).
+  // Idempotent: wird nach jedem Nachladen erneut aufgerufen.
+  function weblawTextblock() {
+    const segment = document.getElementById('customContentSegment');
+    if (!segment) return null;
+    let block = null, meiste = 0;
+    Array.prototype.forEach.call(segment.children, function (kind) {
+      const n = kind.querySelectorAll('p').length;
+      if (n > meiste) { meiste = n; block = kind; }
+    });
+    if (!block) return null;
+    if (!block.classList.contains('bkl-text')) {
+      block.classList.add('bkl-text');
+      // Entscheidsprache für die Silbentrennung: die Hülle sagt lang="en",
+      // damit würde der Browser deutsche, französische und italienische
+      // Wörter nach englischen Regeln trennen. Erkennung am Rubrum
+      // („Urteil vom", „Arrêt du", „Sentenza del"); der Abstand vor dem
+      // Datum fehlt in manchen Entscheiden („Zwischenentscheidvom 11. …").
+      const rubrum = block.textContent.slice(0, 1200);
+      const sprache = /\bArrêt\s*du\b|\bDécision\s*(?:incidente\s*)?du\b/i.test(rubrum) ? 'fr'
+        : /\bSentenza\s*del\b|\bDecisione\s*(?:incidentale\s*)?del\b/i.test(rubrum) ? 'it'
+        : /(?:urteil|entscheid|verfügung)\s*vom\b/i.test(rubrum) ? 'de' : '';
+      if (sprache) block.lang = sprache;
+    }
+    if (segment.parentElement) segment.parentElement.classList.add('bkl-text-spalte');
+    return block;
+  }
+
   function entscheidBloecke() {
+    if (IST_WEBLAW) {
+      const block = weblawTextblock();
+      return block ? Array.prototype.slice.call(block.querySelectorAll('p')) : [];
+    }
     return Array.prototype.slice.call(document.querySelectorAll('div.paraatf, div.para'));
   }
 
@@ -818,6 +920,44 @@
     entscheidBloecke().forEach(function (block) {
       BGerReader.blockVerarbeiten(block);
     });
+  }
+
+  /* ---------- Nachgeladener Inhalt (bvger.weblaw.ch) ----------
+     Beim Start (document_idle) ist der Entscheid meist noch nicht da, und
+     die App ersetzt ihn später ohne Seiten-Neuladen: Navigation zu einem
+     anderen Entscheid, Markierungen ein/aus (der ganze Textblock wird neu
+     gesetzt, unsere Folds sind dann weg). Ein MutationObserver auf #root
+     meldet jede Änderung; ausgewertet wird gedrosselt (ein Timer, 150 ms)
+     und umgebaut nur, wenn sich der Textblock tatsächlich geändert hat –
+     Merkmal aus Element, Kindzahl und Textlänge, nach dem eigenen Umbau
+     neu gemerkt, damit die Pfeile der Folds keinen weiteren Umbau auslösen.
+     Klappen einer Klammer ändert nur Klassen und bleibt unbeachtet. */
+  function inhaltBeobachten() {
+    if (!IST_WEBLAW || typeof MutationObserver === 'undefined') return;
+    const wurzel = document.getElementById('root') || document.body;
+    let timer = null;
+    let block = null, merkmal = '';
+    function merkmalVon(b) {
+      return b ? b.childElementCount + ':' + b.textContent.length : '';
+    }
+    function merken() {
+      block = weblawTextblock();
+      merkmal = merkmalVon(block);
+    }
+    const beobachter = new MutationObserver(function () {
+      if (timer !== null) return;
+      timer = setTimeout(function () {
+        timer = null;
+        const b = weblawTextblock();
+        if (b === block && merkmalVon(b) === merkmal) return;
+        wendeStileAn();
+        verarbeiteKlammern();
+        merken();
+        beobachter.takeRecords(); // eigene Änderungen nicht erneut auswerten
+      }, 150);
+    });
+    beobachter.observe(wurzel, { childList: true, subtree: true });
+    merken();
   }
 
   /* ================================================================== */
@@ -1472,11 +1612,15 @@ ${vorschauCss()}
         if (bereich !== 'local') return;
         const diff = aenderungen && aenderungen[STORAGE_KEY];
         if (!diff || !diff.newValue) return;
-        const neu = bereinige(Object.assign({}, STANDARDS, diff.newValue));
         // Eigen-Echo: Chrome meldet auch die Schreibvorgänge DIESER Seite.
-        // Ist der Stand bereits identisch, gibt es nichts anzuwenden – sonst
-        // käme bei jedem Reglerzug der Fold-Neuaufbau durch die Hintertür
-        // zurück (und aufgeklappte Klammern fielen wieder zu).
+        // Am gemerkten Paket erkennen (eigeneSchreibvorgaenge) – sonst käme
+        // bei jedem Reglerzug der Fold-Neuaufbau durch die Hintertür zurück
+        // (und aufgeklappte Klammern fielen wieder zu), und das Echo eines
+        // älteren Schreibens würde eine jüngere Einstellung zurückdrehen.
+        const echo = eigeneSchreibvorgaenge.indexOf(signatur(diff.newValue));
+        if (echo !== -1) { eigeneSchreibvorgaenge.splice(echo, 1); return; }
+        const neu = bereinige(Object.assign({}, STANDARDS, diff.newValue));
+        // Stand bereits identisch (gleicher Wert aus dem Pop-up): nichts anzuwenden.
         if (JSON.stringify(neu) === JSON.stringify(einstellungen)) return;
         // Gleiche Aufwandstrennung wie bei der Bedienung im Panel: Folds nur
         // neu aufbauen, wenn aktiv oder klammern gekippt sind.
@@ -1499,6 +1643,7 @@ ${vorschauCss()}
     wendeStileAn();
     verarbeiteKlammern();
     aktualisiereAnzeige();
+    inhaltBeobachten(); // nur bvger.weblaw.ch: nachgeladenen Entscheid verarbeiten
     // Beim Start nur lesen: Ein Ladefehler darf gespeicherte Werte nicht
     // durch Standardwerte überschreiben. Gespeichert wird bei Bedienung.
   });

@@ -69,11 +69,21 @@
     } catch (e) { fertig({}); }
   }
 
+  /* Eigene Schreibvorgänge merken, damit der onChanged-Listener unten das
+     asynchrone Echo daran erkennt (wie in content.js): sonst setzt das Echo
+     eines älteren Schreibens bei schnellem Reglerzug den Regler zurück. */
+  const eigeneSchreibvorgaenge = [];
+  function signatur(e) {
+    return JSON.stringify(Object.assign({}, STANDARDS, e || {}));
+  }
+
   function speichereEinstellungen() {
     try {
       if (extensionStorage) {
         const paket = {};
         paket[STORAGE_KEY] = einstellungen;
+        eigeneSchreibvorgaenge.push(signatur(einstellungen));
+        if (eigeneSchreibvorgaenge.length > 32) eigeneSchreibvorgaenge.shift();
         if (verwendetPromises) {
           extensionStorage.set(paket).catch(function () {});
         } else {
@@ -256,10 +266,12 @@
       extensionApi.storage.onChanged.addListener(function (aenderungen, bereich) {
         if (bereich !== 'local') return;
         const diff = aenderungen && aenderungen[STORAGE_KEY];
-        if (diff && diff.newValue) {
-          einstellungen = bereinige(Object.assign({}, STANDARDS, diff.newValue));
-          aktualisiereAnzeige();
-        }
+        if (!diff || !diff.newValue) return;
+        // Eigen-Echo (siehe eigeneSchreibvorgaenge): nichts anzuwenden.
+        const echo = eigeneSchreibvorgaenge.indexOf(signatur(diff.newValue));
+        if (echo !== -1) { eigeneSchreibvorgaenge.splice(echo, 1); return; }
+        einstellungen = bereinige(Object.assign({}, STANDARDS, diff.newValue));
+        aktualisiereAnzeige();
       });
     } catch (e) { /* ohne Live-Sync geht es auch */ }
   }

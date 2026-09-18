@@ -9,7 +9,10 @@ nicht coden — du analysierst, fixt, testest und pushst vollständig selbst.
 
 == PROJEKT ==
 Extension für Entscheide des Schweizerischen Bundesgerichts
-(search.bger.ch, relevancy.bger.ch): Lesbarkeits-Ebene mit anpassbarer Typografie
+(search.bger.ch, relevancy.bger.ch) und des Bundesverwaltungsgerichts
+(bvger.weblaw.ch – React-App, Entscheid wird per JavaScript nachgeladen,
+Navigation ohne Seiten-Neuladen; content.js wartet per MutationObserver
+darauf, Seitenprofil IST_WEBLAW): Lesbarkeits-Ebene mit anpassbarer Typografie
 (Schriftart, -grösse, -stärke, Zeilen-/Buchstaben-/Wortabstand, Zeilenlänge,
 Textbreite, Silbentrennung, Farbschema inkl. Nachtmodus) und reversiblem
 Einklappen von Literatur-Klammerbemerkungen. Läuft 100 % offline, keine Daten.
@@ -43,10 +46,13 @@ test/test-runner.js       Suite ohne Framework, 7 nummerierte Blöcke, bewusst
                           Fehlschläge nennen die betroffenen Fälle
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
-test/fixtures/            drei echte Entscheid-HTMLs (nicht im Repo):
+test/fixtures/            drei echte Entscheid-HTMLs plus eine API-Antwort
+                          (nicht im Repo):
                           bger_test.html (BGE 152 IV 1, clir),
                           bger_aza.html (6F_7/2012, aza),
-                          bger_relevancy.html (BGE 152 IV 1, relevancy)
+                          bger_relevancy.html (BGE 152 IV 1, relevancy),
+                          bvger_test.json (B-7296/2025, bvger.weblaw.ch –
+                          JSON der Site-API, HTML im Feld "content")
 tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
                           mit Plausibilitätscheck
 tools/klammern-report.js  jede Klammer der echten Fixtures mit Entscheidung

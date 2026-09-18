@@ -13,6 +13,36 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.9.0 — 2026-09-18
+
+- Neue Site **bvger.weblaw.ch** (Bundesverwaltungsgericht): der Lesemodus
+  funktioniert jetzt auch auf den Entscheidseiten `…/cache?id=…`. Die Site
+  ist eine React-App – die Seite kommt leer an, der Entscheid wird per
+  JavaScript nachgeladen und bei Navigation ohne Seiten-Neuladen ersetzt.
+  content.js wartet darauf (MutationObserver auf `#root`, gedrosselt, Umbau
+  nur bei tatsächlich verändertem Textblock) und baut Typografie und Klammern
+  jedes Mal neu auf, auch nach dem Ein-/Ausschalten der Site-Markierungen.
+  Absätze sind dort `<p>` ohne Klassen im Segment `#customContentSegment`,
+  der Textblock erhält zur Laufzeit die Klasse `bkl-text`. Farbschema wirkt
+  auch auf Segment, Titel, Datum und Seitenleiste; Markierungen der Site
+  behalten dunklen Text; die Textbreite wirkt auf den Spaltenrahmen. Die
+  Entscheidsprache wird am Rubrum erkannt (`lang` für die Silbentrennung –
+  die Seite selbst sagt `en`). Keine Anfragen an die Site, weiterhin
+  100 % offline.
+- Klammer-Heuristik: BVGE-Zitate im Format Jahr/Nummer (`BVGE 2014/1`,
+  `BVGE 2020 VII/4`, `ATAF 2007/6`, `DTAF 2010/53`) gelten als
+  Rechtsprechung und werden eingeklappt.
+- Korrektur (Panel und Pop-up): zwei Einstellungen kurz nacheinander –
+  etwa Hintergrund und gleich darauf Schriftart – verloren die zweite, weil
+  das asynchrone Echo des ersten Schreibvorgangs (`storage.onChanged`) sie
+  zurückdrehte. Eigene Schreibvorgänge werden jetzt am Paket erkannt.
+- Manifest: Content-Skript und Fonts für bvger.weblaw.ch freigegeben;
+  Beschreibung auf höchstens 132 Zeichen gekürzt (Vorgabe des Chrome Web
+  Store).
+- Tests: Block [8] (bvger: Nachladen, Ersetzen, Navigation ohne Neuladen),
+  Fixture `bvger_test.json` (JSON der Site-API, lädt
+  `tools/fetch-fixtures.sh`), Klammer-Report liest es mit.
+
 ## 0.8.0 — 2026-09-17
 
 - Neue Schriftart **Luciole** (Schrift für sehbehinderte Menschen vom

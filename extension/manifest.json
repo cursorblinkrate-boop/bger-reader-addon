@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "BGer Reader",
-  "version": "0.8.0",
-  "description": "Lesbarkeitsebene fuer Entscheide des Schweizerischen Bundesgerichts (search.bger.ch, relevancy.bger.ch): Typografie und Farben anpassbar, Literaturklammern reversibel einklappbar. Laeuft 100 % offline und sammelt keine Daten.",
+  "version": "0.9.0",
+  "description": "Lesbarkeit fuer Entscheide des Bundesgerichts (bger.ch) und Bundesverwaltungsgerichts (bvger.weblaw.ch). 100 % offline, keine Daten.",
   "content_scripts": [
     {
       "matches": [
         "https://search.bger.ch/*",
         "https://relevancy.bger.ch/*",
-        "http://relevancy.bger.ch/*"
+        "http://relevancy.bger.ch/*",
+        "https://bvger.weblaw.ch/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
@@ -47,7 +48,8 @@
       "matches": [
         "https://search.bger.ch/*",
         "https://relevancy.bger.ch/*",
-        "http://relevancy.bger.ch/*"
+        "http://relevancy.bger.ch/*",
+        "https://bvger.weblaw.ch/*"
       ]
     }
   ]

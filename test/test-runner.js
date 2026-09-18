@@ -7,9 +7,9 @@
  *
  * Voraussetzungen: npm install jsdom
  * Echte Fixtures liegen in test/fixtures/ (bger_test.html, bger_aza.html,
- * bger_relevancy.html); Pfade per BGER_FIXTURE / BGER_AZA_FIXTURE /
- * BGER_RELEVANCY_FIXTURE ueberschreibbar. Ohne Fixtures werden die
- * Blöcke [4] und [6] übersprungen.
+ * bger_relevancy.html, bvger_test.json); Pfade per BGER_FIXTURE /
+ * BGER_AZA_FIXTURE / BGER_RELEVANCY_FIXTURE / BVGER_FIXTURE ueberschreibbar.
+ * Ohne Fixtures wird Block [3] übersprungen.
  */
 'use strict';
 const fs = require('fs');
@@ -45,6 +45,26 @@ function ladeSeite(pfad) { return dekodiere(fs.readFileSync(pfad)); }
 
 function domMitScript(html, url) {
   const dom = new JSDOM(html, { url: url || 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
+  dom.window.eval(SCRIPT);
+  return dom;
+}
+
+/* bvger.weblaw.ch: React-Hülle mit Segment (Titel, Datum, Trenner, leerer
+ * Block, Textblock) wie auf der echten Seite; der Entscheid wird wie in der
+ * App per innerHTML in den Textblock gesetzt (die API liefert ihn als
+ * komplettes HTML-Dokument). inhalt null = Entscheid noch nicht geladen. */
+const BVGER_URL = 'https://bvger.weblaw.ch/cache?guiLanguage=de&id=8cf30437-5df2-4a0f-885e-d44a19472144';
+function bvgerDom(inhalt, einstellungen) {
+  const huelle = '<!doctype html><html lang="en"><head><title>LEv4</title></head><body><div id="root" role="main">' +
+    '<div class="ui grid"><div class="column" style="width: 855px; max-width: 1150px;">' +
+    '<div id="customContentSegment" class="ui segment" style="overflow-x: scroll;">' +
+    '<div class="ui stretched grid"><h2 class="ui header">BVGer B-7296/2025</h2></div>' +
+    '<div><span class="titleLabel">Entscheiddatum: 04.09.2026</span></div><div class="ui divider"></div>' +
+    '<div style="margin: 50px;"></div><div id="bvger-text" style="margin: 50px;"></div>' +
+    '</div></div></div></div></body></html>';
+  const dom = new JSDOM(huelle, { url: BVGER_URL, runScripts: 'outside-only', pretendToBeVisual: true });
+  if (inhalt !== null) dom.window.document.getElementById('bvger-text').innerHTML = inhalt;
+  if (einstellungen) dom.window.localStorage.setItem(SCHLUESSEL, JSON.stringify(einstellungen));
   dom.window.eval(SCRIPT);
   return dom;
 }
@@ -115,6 +135,11 @@ const KORPUS = [
   ['R', true,  'zum Ganzen BGE 146 IV 88 E. 1.3.1 mit Hinweisen'],
   ['R', true,  'Urteil 6B_220/2011'],                                 // aus 6F_7/2012 (aza)
   ['R', true,  'arrêts 6B_390/2018 précité consid. 5.1; 6B_910/2013 du 20 janvier 2014'],
+  // Bundesverwaltungsgericht nach Jahr/Nummer (bvger.weblaw.ch, B-7296/2025 und F-268/2026)
+  ['R', true,  'cf. ATAF 2007/6 consid. 1'],
+  ['R', true,  'vgl. BVGE 2014/1 E. 4.3; 2011/48 E. 4.5'],
+  ['R', true,  'BVGE 2020 VII/4 E. 2.2 m.H.'],
+  ['R', true,  'cf. arrêt du TAF B-7601/2025 du 12 mai 2026 consid. 1.2 et la réf. cit.'],
 
   // === G: Gesetzesverweise -> offen ===
   ['G', false, 'Art. 12 Abs. 3 StGB'],
@@ -382,6 +407,27 @@ if (fs.existsSync(RELEVANCY_FIXTURE)) {
 } else {
   console.log('  ⚠️  bger_relevancy.html nicht gefunden, übersprungen.');
 }
+const BVGER_FIXTURE = process.env.BVGER_FIXTURE || path.join(__dirname, 'fixtures', 'bvger_test.json');
+if (fs.existsSync(BVGER_FIXTURE)) {
+  const dom = bvgerDom(JSON.parse(fs.readFileSync(BVGER_FIXTURE, 'utf8')).content);
+  const doc = dom.window.document;
+  const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+  const block = doc.getElementById('bvger-text');
+  const textVorher = block.textContent;
+  ereignis(dom, Object.assign(shadow.getElementById('bkl-aktiv'), { checked: true }), 'change');
+  const folds = doc.querySelectorAll('.bkl-fold');
+  const ataf = Array.prototype.some.call(folds, function (f) { return /ATAF 2007\/6 consid\. 1/.test(f.textContent); });
+  const ganz = Array.prototype.every.call(folds, function (f) {
+    return /^\(.*\)$/s.test(f.querySelector('.bkl-fold-content').textContent.trim());
+  });
+  ereignis(dom, Object.assign(shadow.getElementById('bkl-aktiv'), { checked: false }), 'change');
+  pruefe('bvger (B-7296/2025): <p> als Blöcke, bkl-text mit lang="fr", ATAF-Zitat eingeklappt, jeder Fold eine ganze Klammer, Roundtrip identisch',
+    block.querySelectorAll('p').length > 100 && block.classList.contains('bkl-text') && block.lang === 'fr' &&
+    folds.length > 10 && ataf && ganz && doc.querySelectorAll('.bkl-fold').length === 0 && block.textContent === textVorher,
+    folds.length + ' Folds');
+} else {
+  console.log('  ⚠️  bvger_test.json nicht gefunden, übersprungen.');
+}
 
 /* ---------- 4. Panel: Bedienung, Stile, Layout-Neutralität ---------- */
 console.log('\n[4] Panel und Stile');
@@ -608,6 +654,23 @@ console.log('\n[5] Speicher und Live-Sync');
   t.listener[0]({ [SCHLUESSEL]: { newValue: { aktiv: false } } }, 'session');
   pruefe('fremdes Ausschalten der Klammern entfernt Folds; andere Speicherbereiche werden ignoriert',
     nachAus === 0 && html.classList.contains('bkl-aktiv'));
+
+  // Echo eines älteren EIGENEN Schreibens (Chrome meldet es asynchron) darf eine
+  // jüngere Einstellung nicht zurückdrehen: Hintergrund schreibt sofort (führende
+  // Kante), Schriftart fällt in die Bündelung, dann trifft das Echo des ersten ein.
+  t.dom.window.dispatchEvent(new t.dom.window.Event('pagehide')); // ausstehende Bündelung leeren
+  const echtesNow = t.dom.window.Date.now;
+  t.dom.window.Date.now = function () { return echtesNow() + 10000; }; // Bündelungsfenster sicher vorbei
+  const farbeSel = t.shadow.getElementById('bkl-farbe');
+  farbeSel.value = 'sepia'; ereignis(t.dom, farbeSel, 'change');
+  const echoPaket = JSON.parse(JSON.stringify(speicher[SCHLUESSEL]));
+  const artSel = t.shadow.getElementById('bkl-art');
+  artSel.value = 'atkinson'; ereignis(t.dom, artSel, 'change');
+  t.listener[0]({ [SCHLUESSEL]: { newValue: echoPaket } }, 'local');
+  t.dom.window.Date.now = echtesNow;
+  pruefe('Echo eines älteren eigenen Schreibens dreht die jüngere Einstellung nicht zurück (Schriftart bleibt Atkinson)',
+    echoPaket.farbschema === 'sepia' && echoPaket.schriftart !== 'atkinson' &&
+    /Atkinson/.test(html.style.getPropertyValue('--bkl-font')) && artSel.value === 'atkinson');
 }
 
 /* ---------- 6. Paket: Fonts, Icons, Manifest, Version ---------- */
@@ -627,10 +690,11 @@ console.log('\n[6] Paket');
   pruefe('14 WOFF2-Dateien vorhanden, gesamt < 400 KB', fehlend.length === 0 && fontBytes < 400 * 1024,
     fehlend.join(',') + ' ' + Math.round(fontBytes / 1024) + ' KB');
   const war = (manifest.web_accessible_resources || [])[0] || {};
-  pruefe('Manifest: fonts/*.woff2 für alle drei bger.ch-Muster freigegeben, Icons 16/48/128 vorhanden',
+  const MUSTER = ['https://search.bger.ch/*', 'https://relevancy.bger.ch/*', 'http://relevancy.bger.ch/*', 'https://bvger.weblaw.ch/*'];
+  pruefe('Manifest: content.js und fonts/*.woff2 für alle vier Seiten-Muster (bger.ch, bvger.weblaw.ch), Beschreibung <= 132 Zeichen, Icons 16/48/128 vorhanden',
     (war.resources || []).indexOf('fonts/*.woff2') !== -1 &&
-    ['https://search.bger.ch/*', 'https://relevancy.bger.ch/*', 'http://relevancy.bger.ch/*']
-      .every(function (m) { return (war.matches || []).indexOf(m) !== -1; }) &&
+    MUSTER.every(function (m) { return (war.matches || []).indexOf(m) !== -1 && manifest.content_scripts[0].matches.indexOf(m) !== -1; }) &&
+    manifest.description.length <= 132 &&
     ['16', '48', '128'].every(function (g) {
       return fs.existsSync(path.join(EXT, manifest.icons[g])) && fs.existsSync(path.join(EXT, manifest.action.default_icon[g]));
     }));
@@ -801,6 +865,82 @@ console.log('\n[7] Pop-up-Fenster');
     listener[0]({ [SCHLUESSEL]: { newValue: { schriftgroesse: 26 } } }, 'local');
     pruefe('Änderung vom Seiten-Panel erscheint live im Fenster',
       doc.getElementById('bkl-groesse').value === '26' && doc.getElementById('bkl-groesse-w').textContent === '26');
+    // Echo eines älteren eigenen Schreibens (asynchron) setzt den Regler nicht zurück
+    const g = doc.getElementById('bkl-groesse');
+    g.value = '20'; ereignis(dom, g, 'input');
+    const echoPaket = JSON.parse(JSON.stringify(speicher[SCHLUESSEL]));
+    g.value = '30'; ereignis(dom, g, 'input');
+    listener[0]({ [SCHLUESSEL]: { newValue: echoPaket } }, 'local');
+    pruefe('Pop-up: Echo eines älteren eigenen Schreibens setzt den Regler nicht zurück (bleibt 30)',
+      echoPaket.schriftgroesse === 20 && g.value === '30' && doc.getElementById('bkl-groesse-w').textContent === '30');
+  }
+
+  /* ---------- 8. bvger.weblaw.ch: React-App, nachgeladener Entscheid ---------- */
+  console.log('\n[8] bvger.weblaw.ch');
+  /* Asynchron: der MutationObserver in content.js arbeitet gedrosselt (150 ms). */
+  {
+    const warte = function () { return new Promise(function (r) { setTimeout(r, 400); }); };
+    // Absatz mit Markierungs-Chip der Site (Zitat ATAF 2007/6 mit Beschriftung „Zitierte BVGE" und Icons)
+    const ABSAETZE = '<p id="b1"> 1.  Le Tribunal examine la recevabilité (cf. <span name="16180,16191" class="markedHtmlContentWrapper  markedOccurrence_wlclight8" style="white-space: nowrap;">ATAF 2007/6  <span class="wlclight8 "><i style="font-family: Poppins;">Zitierte BVGE</i><i aria-hidden="true" class="plus square icon"></i></span></span> consid. 1). </p>' +
+      '<p id="b2"> 2.  La recourante a qualité pour recourir (cf. art. 48 al. 1 PA). </p>';
+    const RUBRUM = '<title></title><table><tbody><tr><td><p> Cour II </p></td><td><p> Arrêt du 4 septembre 2026 </p><p> Pascal Richard (président du collège), </p></td></tr></tbody></table>';
+
+    // Start mit leerer Hülle (Entscheid noch nicht geladen), Lesemodus gespeichert an
+    const dom = bvgerDom(null, { aktiv: true });
+    const doc = dom.window.document;
+    const html = doc.documentElement;
+    const R = dom.window.BGerReader;
+    const cssText = doc.getElementById('bkl-style').textContent;
+    const block = doc.getElementById('bvger-text');
+    pruefe('Hülle ohne Entscheid: Lesemodus an, keine Blöcke/Folds; CSS: .bkl-text p in den Absatzregeln, Segment/Seitenleiste per ID, Markierungs-Schutz, Textbreite',
+      html.classList.contains('bkl-aktiv') && doc.querySelectorAll('.bkl-fold').length === 0 && !block.classList.contains('bkl-text') &&
+      /html\.bkl-aktiv \.bkl-text,\s*html\.bkl-aktiv \.bkl-text p,\s*html\.bkl-aktiv div\.paraatf/.test(cssText) &&
+      ['bkl-maxw', 'bkl-ausrichtung', 'bkl-absatz'].every(function (k) { return cssText.indexOf('html.bkl-aktiv.' + k + ' .bkl-text p,') !== -1; }) &&
+      /html\.bkl-aktiv #sideMenuCacheViewAccordionComputer[^{]*\{[^}]*var\(--bkl-bg\)/.test(cssText) &&
+      /html\.bkl-aktiv \.markedHtmlContentWrapper\s*\{[^}]*#1a1a1a/.test(cssText) &&
+      /html\.bkl-aktiv\.bkl-breite \.bkl-text-spalte\s*\{[^}]*var\(--bkl-spalte\)/.test(cssText));
+
+    // Entscheid wird nachgeladen (wie React: innerHTML des Textblocks)
+    block.innerHTML = RUBRUM + ABSAETZE;
+    await warte();
+    const fold = doc.querySelector('.bkl-fold');
+    pruefe('nachgeladen: bkl-text + lang="fr", Spaltenrahmen bkl-text-spalte, Zitat mit Chip eingeklappt (Chip-Text nicht im Klammertext), Gesetzesverweis offen',
+      block.classList.contains('bkl-text') && block.lang === 'fr' && doc.querySelector('.column').classList.contains('bkl-text-spalte') &&
+      doc.querySelectorAll('.bkl-fold').length === 1 && !!fold && fold.closest('p').id === 'b1' &&
+      !!fold.querySelector('.markedHtmlContentWrapper') && /^\(cf\. ATAF 2007\/6.*consid\. 1\)$/s.test(fold.querySelector('.bkl-fold-content').textContent.trim()) &&
+      R.textKarteAufbauen(doc.getElementById('b1')).gesamt.indexOf('Zitierte BVGE') === -1);
+
+    // Klappen ändert nur Klassen: der Observer baut nichts neu auf
+    klick(dom, fold.querySelector('.bkl-toggle'));
+    await warte();
+    // App ersetzt den Inhalt (Markierung ein/aus, anderer Entscheid): Folds neu
+    const foldVorher = doc.querySelector('.bkl-fold');
+    block.innerHTML = ABSAETZE.replace('ATAF 2007/6', 'ATAF 2014/24') + '<p id="b3"> 3.  Weiter (vgl. BVGE 2014/1 E. 4.3; 2011/48 E. 4.5). </p>';
+    await warte();
+    pruefe('Aufklappen bleibt erhalten; ersetzter Inhalt -> Folds neu aufgebaut (2), lang bleibt',
+      foldVorher === fold && fold.classList.contains('bkl-offen') &&
+      doc.querySelectorAll('.bkl-fold').length === 2 && doc.querySelector('.bkl-fold') !== fold && block.lang === 'fr');
+
+    // Navigation ohne Neuladen: Segment verschwindet (Dashboard) und kommt als neues Element zurück
+    const segment = doc.getElementById('customContentSegment');
+    const spalte = segment.parentElement;
+    spalte.removeChild(segment);
+    await warte();
+    const ohneSegment = doc.querySelectorAll('.bkl-fold').length;
+    const neu = doc.createElement('div');
+    neu.id = 'customContentSegment';
+    neu.className = 'ui segment';
+    neu.innerHTML = '<div class="ui stretched grid"><h2 class="ui header">BVGer E-5517/2021</h2></div>' +
+      '<div style="margin: 50px;"><p> Zwischenentscheidvom 4. September 2026 </p><p> 1. Das Gericht prüft (vgl. BVGE 2014/26 E. 5). </p><p> 2. Offen (Art. 105 AsylG). </p></div>';
+    spalte.appendChild(neu);
+    await warte();
+    const neuerBlock = neu.querySelector('.bkl-text');
+    const shadow = doc.getElementById('bkl-panel-host').shadowRoot;
+    const spalten = shadow.getElementById('bkl-spalten'); spalten.value = '2'; ereignis(dom, spalten, 'change');
+    const breite = shadow.getElementById('bkl-spalte'); breite.value = '900'; ereignis(dom, breite, 'input');
+    pruefe('Navigation: Dashboard ohne Folds; neuer Entscheid als neues Element: bkl-text + lang="de", 1 Fold; 2 Spalten -> Textblock ist Spalten-Container, Textbreite 900 -> bkl-breite',
+      ohneSegment === 0 && !!neuerBlock && neuerBlock.lang === 'de' && neu.querySelectorAll('.bkl-fold').length === 1 &&
+      neuerBlock.classList.contains('bkl-spalten-container') && html.classList.contains('bkl-breite'));
   }
 
   console.log('\n========================================');

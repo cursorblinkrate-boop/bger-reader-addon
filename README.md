@@ -18,6 +18,9 @@ entsteht automatisch aus `main`, nachdem die Test-Suite grün war.
 https://search.bger.ch/*
 https://relevancy.bger.ch/*
 http://relevancy.bger.ch/*
+https://bvger.weblaw.ch/* (Bundesverwaltungsgericht – der Entscheid wird dort
+per JavaScript nachgeladen; die Extension wartet darauf und folgt der
+Navigation ohne Seiten-Neuladen)
 
 
 ## Schriftarten / Fonts

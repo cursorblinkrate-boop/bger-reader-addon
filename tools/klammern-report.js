@@ -25,7 +25,7 @@ const SCRIPT = fs.readFileSync(path.join(ROOT, 'extension', 'content.js'), 'utf8
 const args = process.argv.slice(2);
 const nurEingeklappt = args.indexOf('--nur-eingeklappt') !== -1;
 const dateien = args.filter(function (a) { return a.indexOf('--') !== 0; });
-const STANDARD = ['bger_test.html', 'bger_aza.html', 'bger_relevancy.html']
+const STANDARD = ['bger_test.html', 'bger_aza.html', 'bger_relevancy.html', 'bvger_test.json']
   .map(function (n) { return path.join(ROOT, 'test', 'fixtures', n); });
 const seiten = dateien.length ? dateien : STANDARD.filter(fs.existsSync);
 
@@ -38,18 +38,29 @@ let gesamt = { klammern: 0, eingeklappt: 0 };
 const gruende = {};
 
 seiten.forEach(function (datei) {
-  // Wie ein Browser dekodieren: bger.ch liefert Latin-1. search.bger.ch nennt
-  // die Kodierung nur im HTTP-Header (den curl nicht speichert), relevancy
-  // auch im HTML. Daher: erst streng UTF-8, bei ungültigen Bytes windows-1252.
-  const roh = fs.readFileSync(datei);
-  let html;
-  try { html = new TextDecoder('utf-8', { fatal: true }).decode(roh); }
-  catch (e) { html = new TextDecoder('windows-1252').decode(roh); }
-  const dom = new JSDOM(html, { url: 'https://search.bger.ch/x', runScripts: 'outside-only', pretendToBeVisual: true });
+  const istBvger = /\.json$/i.test(datei);
+  let dom;
+  if (istBvger) {
+    // bvger.weblaw.ch: API-Antwort (JSON) mit dem Entscheid als HTML-Dokument
+    // im Feld content – wie die App per innerHTML in den Textblock setzen.
+    const json = JSON.parse(fs.readFileSync(datei, 'utf8'));
+    dom = new JSDOM('<!doctype html><html><body><div id="root"><div id="customContentSegment"><div style="margin: 50px;"></div></div></div></body></html>',
+      { url: 'https://bvger.weblaw.ch/cache', runScripts: 'outside-only', pretendToBeVisual: true });
+    dom.window.document.querySelector('#customContentSegment div').innerHTML = json.content;
+  } else {
+    // Wie ein Browser dekodieren: bger.ch liefert Latin-1. search.bger.ch nennt
+    // die Kodierung nur im HTTP-Header (den curl nicht speichert), relevancy
+    // auch im HTML. Daher: erst streng UTF-8, bei ungültigen Bytes windows-1252.
+    const roh = fs.readFileSync(datei);
+    let html;
+    try { html = new TextDecoder('utf-8', { fatal: true }).decode(roh); }
+    catch (e) { html = new TextDecoder('windows-1252').decode(roh); }
+    dom = new JSDOM(html, { url: 'https://search.bger.ch/x', runScripts: 'outside-only', pretendToBeVisual: true });
+  }
   dom.window.eval(SCRIPT);
   const R = dom.window.BGerReader;
   const doc = dom.window.document;
-  const bloecke = doc.querySelectorAll('div.paraatf, div.para');
+  const bloecke = doc.querySelectorAll(istBvger ? '#customContentSegment p' : 'div.paraatf, div.para');
 
   console.log('\n==== ' + path.basename(datei) + '  (' + bloecke.length + ' Absätze) ====');
   console.log('ENTSCHEID    BEGRÜNDUNG                       KLAMMERINHALT');

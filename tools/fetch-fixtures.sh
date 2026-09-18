@@ -21,10 +21,15 @@ if [ "${1:-}" = "--force" ]; then FORCE=1; fi
 UA="Mozilla/5.0 (Macintosh) bger-reader-addon Test-Fixtures"
 
 # name|url|erwartetes Merkmal (muss im HTML vorkommen, sonst Fehler)
+# bvger_test.json: bvger.weblaw.ch ist eine React-App, die Seite selbst ist
+# eine leere Hülle. Der Entscheid (B-7296/2025) kommt aus der API der Site
+# als JSON mit dem HTML im Feld "content" – genau das, was die App per
+# innerHTML in die Seite setzt. Die Suite baut daraus die Seitenstruktur.
 FIXTURES=(
   "bger_test.html|https://search.bger.ch/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&zoom=&type=show_document|class=\"paraatf\""
   "bger_aza.html|https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?type=show_document&highlight_docid=aza%3A%2F%2F24-09-2012-6F_7-2012|class=\"para\""
   "bger_relevancy.html|http://relevancy.bger.ch/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&type=show_document|class=\"paraatf\""
+  "bvger_test.json|https://bvger.weblaw.ch/api/.netlify/functions/singleDocQueryService/8cf30437-5df2-4a0f-885e-d44a19472144?guiLanguage=de|\"content\":\"<html"
 )
 
 fehler=0
