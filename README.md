@@ -4,7 +4,9 @@
 # Accessibility tool for Swiss Federal Supreme Court decisions
 # Browser-Extension for Chrome / Brave
 
-*(Firefox / Edge) in Planung...)*
+Runs entirely offline on your device. 
+No data is collected, transmitted, or stored outside your browser. 
+The only browser permission requested is storage, used to remember your reading preferences.
 
 ## Download
 
