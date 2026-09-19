@@ -107,6 +107,11 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         browser: [chromium, firefox]
+    # Auch auf Windows in bash (Git for Windows): PowerShell kennt "$JSDOM"
+    # als Umgebungsvariable nicht, die Installationsschritte liefen dort leer.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v5
 
