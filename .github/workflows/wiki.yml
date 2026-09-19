@@ -39,10 +39,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           WIKI="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
-          if git clone --quiet "$WIKI" "$RUNNER_TEMP/wiki" 2>/dev/null; then
+          if git clone --quiet "$WIKI" "$RUNNER_TEMP/wiki" 2>"$RUNNER_TEMP/clone.log"; then
             echo "vorhanden=1" >> "$GITHUB_ENV"
           else
-            echo "::warning::Das Wiki ist noch nicht eingerichtet (Settings → General → Features → Wikis einschalten und im Wiki eine erste Seite anlegen). Nichts veröffentlicht."
+            # Meist fehlt nur die erste Seite (git meldet "Repository not found").
+            # Zugangsdaten aus der Meldung entfernen, bevor sie ins Log geht.
+            GRUND="$(sed 's#://[^/@]*@#://#g' "$RUNNER_TEMP/clone.log" | tr '\n' ' ')"
+            echo "::warning::Wiki-Repository nicht erreichbar, nichts veröffentlicht. Meist fehlt die erste Seite: im Wiki-Tab anlegen (Inhalt egal), dann diesen Workflow erneut starten. Meldung von git: ${GRUND}"
           fi
 
       - name: Seiten kopieren, Links anpassen, pushen

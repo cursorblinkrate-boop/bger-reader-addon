@@ -16,12 +16,14 @@ bger reader ist bewusst klein gehalten: rund 2000 Zeilen gewöhnliches JavaScrip
 | `extension/icons/` | Symbol der Erweiterung in drei Grössen, Lizenznachweis der Zeilen-Icons |
 | `test/test-runner.js` | Test-Suite ohne Framework, acht nummerierte Blöcke |
 | `test/render-check.js` | Erzeugt Bildschirmfotos der Testseiten in allen Farbschemata zum Sichten |
-| `test/browser-smoke.js` | Smoke-Test der fertigen Erweiterung in echtem Chromium und Firefox |
+| `test/browser-smoke.js` | Smoke-Test der fertigen Erweiterung in echtem Chromium, Edge und Firefox |
+| `test/browser-umgebung.js` | Gemeinsame Basis für Smoke-Test und Screenshots: lokaler Server, der die Testseiten unter ihren echten Hostnamen ausliefert, und ein Adapter für Chromium, Edge und Firefox |
 | `test/fixtures/` | Echte Entscheidseiten für die Tests; nicht im Repository, werden per Skript geladen |
 | `tools/fetch-fixtures.sh` | Lädt die Testseiten und das Site-CSS der Gerichtsseiten |
 | `tools/klammern-report.js` | Listet jede Klammer der Testseiten mit Entscheidung und Begründung |
 | `tools/version.js` | Zeigt oder erhöht die Version und legt den Eintrag im Änderungsverlauf an |
 | `tools/release.sh` | Baut das Paket `dist/bger-reader-<Version>.zip` und prüft Tests, Grösse und Prüfsumme |
+| `tools/screenshots.js` | Erzeugt die Bilder für Store und Dokumentation, rund 30 Szenen je Browser, mit Bildunterschriften in einer `GALERIE.md` |
 | `tools/subset-fonts.py` | Erzeugt die WOFF2-Schriften reproduzierbar aus den Originaldateien |
 | `.github/workflows/tests.yml` | Automatische Tests bei jedem Push und das Release aus `main` |
 | `.github/workflows/wiki.yml` | Spiegelt den Ordner `wiki/` ins GitHub-Wiki |
@@ -70,8 +72,12 @@ Erwartet wird die letzte Zeile «0 fehlgeschlagen». Die Gesamtzahl der Prüfung
 cd test && npm install --no-save jsdom@30.1.0 playwright@1.56.1 selenium-webdriver@4.49.0
 (cd test && npx playwright install chromium)
 node test/browser-smoke.js chromium
+node test/browser-smoke.js edge
 node test/browser-smoke.js firefox
+node tools/screenshots.js chromium
 ```
+
+Edge verwendet das auf dem Rechner installierte Microsoft Edge und braucht keinen Download; Firefox und den passenden Treiber holt Selenium bei Bedarf selbst. Der letzte Befehl erzeugt die Bilder für Store und Dokumentation, wahlweise auch mit `edge` oder `firefox`.
 
 Zum Ausprobieren im eigenen Browser wird der Ordner `extension/` direkt als entpackte Erweiterung geladen, wie unter [Installation](Installation.md) beschrieben; nach jeder Änderung genügt ein Klick auf «Aktualisieren» auf der Erweiterungsseite und ein Neuladen der Entscheidseite.
 
@@ -90,7 +96,9 @@ Die Test-Suite in `test/test-runner.js` kommt ohne Test-Framework aus: eine klei
 | [7] Pop-up-Fenster | Das Fenster hat dieselben Bedienelemente, Icons und Vorschau-Regeln wie das Feld auf der Seite |
 | [8] bvger.weblaw.ch | Nachladen, Ersetzen, Navigation ohne Neuladen, Spracherkennung, Spalten und Textbreite |
 
-`test/render-check.js` erzeugt zusätzlich Bildschirmfotos der Testseiten in allen fünf Farbschemata; das Skript ist für die Sichtprüfung nach Änderungen an Panel oder CSS gedacht und setzt einen lokal installierten Chrome voraus. `test/browser-smoke.js` prüft die fertige Erweiterung in einem echten Chromium (steht für Chrome, Edge und Brave) und in Firefox: Einbindung über das Manifest auf der echten Adresse, Zusammenspiel mit dem CSS der Gerichtsseite, mitgelieferte Schriften, Speichern über ein Neuladen hinweg, Live-Abgleich zwischen Fenster und Seite, Druckansicht. Weil `search.bger.ch` hinter einem Bot-Schutz liegt, der automatisierten Browsern eine Captcha-Seite liefert, liefert der Smoke-Test die Testseiten von einem lokalen Server unter ihren echten Hostnamen aus; nur `bvger.weblaw.ch` wird live geladen und bei Nichterreichbarkeit mit Hinweis übersprungen. Die Bildschirmfotos landen in `test/smoke/<browser>/` und sollen angeschaut werden, nicht nur gezählt.
+`test/render-check.js` erzeugt zusätzlich Bildschirmfotos der Testseiten in allen fünf Farbschemata; das Skript ist für die Sichtprüfung nach Änderungen an Panel oder CSS gedacht und setzt einen lokal installierten Chrome voraus. `test/browser-smoke.js` prüft die fertige Erweiterung in einem echten Chromium (steht für Chrome und Brave), in Microsoft Edge und in Firefox: Einbindung über das Manifest auf der echten Adresse, Zusammenspiel mit dem CSS der Gerichtsseite, mitgelieferte Schriften, Speichern über ein Neuladen hinweg, Live-Abgleich zwischen Fenster und Seite, Druckansicht. Weil `search.bger.ch` hinter einem Bot-Schutz liegt, der automatisierten Browsern eine Captcha-Seite liefert, liefert ein lokaler Server aus `test/browser-umgebung.js` die Testseiten unter ihren echten Hostnamen aus, und derselbe Baustein stellt den einheitlichen Adapter für die drei Browser bereit; nur `bvger.weblaw.ch` wird live geladen und bei Nichterreichbarkeit mit Hinweis übersprungen. Die Bildschirmfotos landen in `test/smoke/<browser>/` und sollen angeschaut werden, nicht nur gezählt.
+
+`tools/screenshots.js` nutzt dieselbe Umgebung, um die Bilder für die Browser-Stores und die Dokumentation zu erzeugen: rund 30 Szenen je Browser mit jeder Schrift, jedem Hintergrund und jeder Einstellung, dem Einstellungsfenster, Übersichten über ein bis zwei Bildschirmseiten und der Druckansicht, im Store-Format von 1280 mal 800 Bildpunkten. Dazu entsteht eine `GALERIE.md` mit einer Bildunterschrift je Bild als Vorlage für README und Store-Texte. In der automatischen Prüfung liegen die Bilder als Artefakt `screenshots-<os>-<browser>` bei jedem Lauf.
 
 `tools/klammern-report.js` ist das Werkzeug für die Trefferquote der Klammerregeln: Es listet für die Testseiten jede Klammer mit der Entscheidung und der Begründung auf. Stimmt eine Zeile nicht, ist genau das der Fall, der als Testfall in Block [1] gehört. Der Report wird auch in der automatischen Prüfung erzeugt und liegt dort als herunterladbares Artefakt bei.
 
@@ -100,12 +108,12 @@ Die Versionsnummer steht an genau einer Stelle, in `extension/manifest.json`, un
 
 ## Vom Commit zum Release
 
-Bei jedem Push führt GitHub Actions die Tests aus. Der Pflichtlauf der Suite kommt ohne Testseiten aus, damit er nicht von der Erreichbarkeit der Gerichtsseiten abhängt. Ein zweiter Lauf mit den echten Entscheidseiten und dem Klammer-Report ist wertvoll, aber nicht blockierend, weil er bei einer Änderung am HTML der Gerichtsseite rot werden darf. Der Browser-Smoke-Test läuft auf Windows und Linux, jeweils in Chromium und Firefox, und hängt jedem Lauf die Bildschirmfotos als Artefakte an.
+Bei jedem Push führt GitHub Actions die Tests aus. Der Pflichtlauf der Suite kommt ohne Testseiten aus, damit er nicht von der Erreichbarkeit der Gerichtsseiten abhängt. Ein zweiter Lauf mit den echten Entscheidseiten und dem Klammer-Report ist wertvoll, aber nicht blockierend, weil er bei einer Änderung am HTML der Gerichtsseite rot werden darf. Der Browser-Smoke-Test läuft auf Windows und Linux, jeweils in Chromium, Edge und Firefox, und hängt jedem Lauf seine Bildschirmfotos als Artefakte an; im Anschluss erzeugt `tools/screenshots.js` die Bilder für Store und Dokumentation als weiteres Artefakt, ohne dass ein fehlendes Bild das Release blockieren könnte.
 
 ```mermaid
 flowchart LR
     Push["Push auf main"] --> Suite["Test-Suite ohne Testseiten"]
-    Push --> Smoke["Smoke-Test: Chromium und Firefox auf Windows und Linux"]
+    Push --> Smoke["Smoke-Test: Chromium, Edge und Firefox auf Windows und Linux"]
     Push --> Fixtures["Suite mit echten Entscheidseiten und Klammer-Report, nicht blockierend"]
     Suite --> Frage{"Suite und Smoke-Test grün und Version noch ohne Release?"}
     Smoke --> Frage
@@ -117,7 +125,7 @@ Sind Suite und Smoke-Test bei einem Push auf `main` grün und hat die Version im
 
 ## Arbeitsregeln
 
-Das Projekt wird von einer Person gepflegt und grösstenteils mit einem KI-Assistenten (Claude Code) entwickelt; `CLAUDE.md` und `STARTPROMPT.md` sind die Anweisungen dafür und zugleich die knappste Beschreibung der Spielregeln. Die wichtigsten davon: Änderungen gehen direkt auf `main`, ohne Feature-Branches und ohne Pull Requests. Vor jedem Push muss die volle Suite ohne Fehlschlag laufen, bei Änderungen an Panel oder CSS zusätzlich die Sichtprüfung per Bildschirmfoto. Neue Tests werden nur geschrieben, wenn sie eine konkrete Änderung absichern, und die Suite soll klein bleiben. Commit-Nachrichten sind auf Deutsch: eine Kurzzeile, eine Leerzeile, dann Aufzählungspunkte mit Begründung und einem Hinweis, wie die Änderung geprüft wurde. Neue Abhängigkeiten, Docker oder zusätzliche Umgebungen sind nicht erwünscht. SVG-Icons für das Feld haben einen Zeichenbereich von 16 mal 16, Strichstärke 1.5 bis 1.6 und färben sich über `currentColor`.
+Das Projekt wird von einer Person gepflegt und grösstenteils mit einem KI-Assistenten (Claude Code) entwickelt; `CLAUDE.md` und `STARTPROMPT.md` sind die Anweisungen dafür und zugleich die knappste Beschreibung der Spielregeln. Die wichtigsten davon: Änderungen gehen direkt auf `main`, ohne Feature-Branches und ohne Pull Requests. Vor jedem Push muss die volle Suite ohne Fehlschlag laufen, bei Änderungen an Panel oder CSS zusätzlich die Sichtprüfung per Bildschirmfoto, und vor einem Store-Upload werden die Bilder aus dem CI-Lauf angesehen, nicht nur der grüne Haken. Neue Tests werden nur geschrieben, wenn sie eine konkrete Änderung absichern, und die Suite soll klein bleiben. Commit-Nachrichten sind auf Deutsch: eine Kurzzeile, eine Leerzeile, dann Aufzählungspunkte mit Begründung und einem Hinweis, wie die Änderung geprüft wurde. Neue Abhängigkeiten, Docker oder zusätzliche Umgebungen sind nicht erwünscht. SVG-Icons für das Feld haben einen Zeichenbereich von 16 mal 16, Strichstärke 1.5 bis 1.6 und färben sich über `currentColor`.
 
 ## Wiki und Dokumentation pflegen
 
