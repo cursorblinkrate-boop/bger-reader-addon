@@ -13,6 +13,34 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.9.1 — 2026-09-19
+
+- Korrektur (Firefox): eine Einstellung, die kurz vor einem Seitenwechsel
+  gemacht wurde (innerhalb der 0,4 s Bündelung, etwa Hintergrund wählen und
+  sofort einen Link anklicken), ging in Firefox verloren – Firefox verwirft
+  den Schreibvorgang, den content.js erst beim Verlassen der Seite nachholt;
+  Chrome führt ihn aus. Auswahl und Häkchen sowie das Loslassen eines Reglers
+  speichern jetzt sofort, gebündelt wird nur noch während des Ziehens.
+  Gefunden vom neuen Browser-Smoke-Test.
+- Manifest: Mindestversionen erklärt – Chrome/Edge 121 (erst ab da darf
+  neben `service_worker` der Firefox-Eintrag `background.scripts` stehen;
+  ältere Browser verweigerten die Installation mit kryptischem Fehler, jetzt
+  nennt der Store die Voraussetzung) und Firefox 140 (erste Version, die
+  `data_collection_permissions` versteht; ältere Firefox-Versionen ignorierten
+  die Angabe „keine Datenerhebung").
+- Neu in der CI: Browser-Smoke-Test der fertigen Extension in echtem Chromium
+  und Firefox, auf Windows und Linux (`test/browser-smoke.js`). Die
+  Entscheidseiten werden dafür lokal unter ihren echten Hostnamen
+  ausgeliefert (search.bger.ch weist Headless-Browser mit Captcha ab).
+  Screenshots liegen jedem Lauf als Artefakt bei.
+- Lieferkette: das Release-ZIP entsteht in der CI direkt aus dem Commit
+  (`git archive`, reproduzierbar – gleicher Commit, gleiche Prüfsumme), ohne
+  npm-Installation in dem Job, der Schreibrechte hat; die volle SHA-256 liegt
+  als `.sha256`-Datei beim Release. Test-Abhängigkeiten (jsdom, Playwright,
+  Selenium) sind auf feste Versionen gesetzt.
+- Aufgeräumt: `archiv/` entfernt; das ursprüngliche Userscript 2.1.0 bleibt
+  als Git-Tag `userscript-2.1.0` erreichbar.
+
 ## 0.9.0 — 2026-09-18
 
 - Neue Site **bvger.weblaw.ch** (Bundesverwaltungsgericht): der Lesemodus
@@ -186,6 +214,6 @@ hinten bei Korrekturen.
 ## Vorgeschichte
 
 **Userscript 2.1.0 — 2026-09-12.** Ursprung des Projekts als
-Tampermonkey-Skript. Liegt eingefroren unter `archiv/bger-reader.user.js`.
-Seine Versionsnummer gehört zu jener Zählung und wird **nicht** mitgezogen —
-siehe `archiv/README.md`.
+Tampermonkey-Skript. Liegt eingefroren im Git-Tag `userscript-2.1.0`
+(auf GitHub unter „Tags"). Seine Versionsnummer gehört zu jener Zählung und
+wird **nicht** mitgezogen.

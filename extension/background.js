@@ -1,6 +1,9 @@
 // BGer Reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung.
 
-/* Hintergrund (Service Worker auf Chrome/Brave, Event-Seite auf Firefox ab 121):
+/* Hintergrund (Service Worker auf Chrome/Brave/Edge, Event-Seite auf Firefox;
+ * Mindestversionen stehen im Manifest: Chrome 121 – erst ab da darf neben
+ * service_worker auch background.scripts stehen –, Firefox 140 wegen
+ * data_collection_permissions):
  * Klick auf das Extension-Symbol öffnet die Einstellungen als mittiges
  * Pop-up-Fenster (eigenes Fenster, grössere Bedienfläche). Ein erneuter Klick
  * holt ein bereits offenes Fenster nach vorne, statt ein zweites zu öffnen.

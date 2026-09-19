@@ -20,7 +20,7 @@ const WURZEL = path.join(__dirname, '..');
 const EXT = path.join(WURZEL, 'extension');
 const STANDARD_PFAD = path.join(EXT, 'content.js');
 
-// Kein Fallback auf archiv/bger-reader.user.js (siehe archiv/README.md).
+// Kein Fallback auf das alte Userscript (Git-Tag userscript-2.1.0): geprüft wird nur das Produkt.
 if (!process.argv[2] && !fs.existsSync(STANDARD_PFAD)) {
   console.error('FEHLER: extension/content.js nicht gefunden: ' + STANDARD_PFAD);
   process.exit(2);
@@ -620,6 +620,16 @@ console.log('\n[5] Speicher und Live-Sync');
   t.dom.window.dispatchEvent(new t.dom.window.Event('pagehide'));
   pruefe('pagehide schreibt den letzten Wert genau einmal nach',
     t.gesetzt.length === 2 && speicher[SCHLUESSEL].schriftgroesse === 30);
+  // Loslassen eines Reglers (change) und Auswahl/Häkchen (change) schreiben
+  // sofort, auch innerhalb der Bündelung: Firefox verwirft den erst bei
+  // pagehide nachgeholten Schreibvorgang (Browser-Smoke-Test), Chrome nicht.
+  t.gesetzt.length = 0;
+  groesse.value = '16'; ereignis(t.dom, groesse, 'input'); ereignis(t.dom, groesse, 'change');
+  const farbeSofort = t.shadow.getElementById('bkl-farbe');
+  farbeSofort.value = 'sepia'; ereignis(t.dom, farbeSofort, 'change');
+  pruefe('Regler loslassen und Auswahl ändern schreiben sofort (2 Schreibvorgänge: 16px, sepia)',
+    t.gesetzt.length === 2 && speicher[SCHLUESSEL].schriftgroesse === 16 && speicher[SCHLUESSEL].farbschema === 'sepia',
+    t.gesetzt.length + ' Schreibvorgänge');
 
   // Aufwandstrennung: Typografie baut Folds nicht neu auf, aktiv/klammern schon
   const foldVorher = t.doc.querySelector('.bkl-fold');
@@ -649,7 +659,9 @@ console.log('\n[5] Speicher und Live-Sync');
     html.style.getPropertyValue('--bkl-size') === '24px' && t.doc.querySelector('.bkl-spalten-container') &&
     t.shadow.getElementById('bkl-groesse').value === '24' && t.doc.querySelector('.bkl-fold') === foldJetzt &&
     t.gesetzt.length === 0);
-  t.listener[0]({ [SCHLUESSEL]: { newValue: Object.assign({}, speicher[SCHLUESSEL], { klammern: false }) } }, 'local');
+  // zeilenabstand 1.7: das Fremd-Paket darf keinem eigenen Schreibvorgang gleichen,
+  // sonst gälte es als Echo (der Mock liefert keine Echos, die Signaturen bleiben).
+  t.listener[0]({ [SCHLUESSEL]: { newValue: Object.assign({}, speicher[SCHLUESSEL], { klammern: false, zeilenabstand: 1.7 }) } }, 'local');
   const nachAus = t.doc.querySelectorAll('.bkl-fold').length;
   t.listener[0]({ [SCHLUESSEL]: { newValue: { aktiv: false } } }, 'session');
   pruefe('fremdes Ausschalten der Klammern entfernt Folds; andere Speicherbereiche werden ignoriert',
@@ -734,10 +746,11 @@ console.log('\n[7] Pop-up-Fenster');
   const popupCss = fs.readFileSync(path.join(EXT, 'popup.css'), 'utf8');
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
 
-  pruefe('Manifest: action ohne default_popup, background als service_worker UND scripts, gecko >= 121',
+  pruefe('Manifest: action ohne default_popup, background als service_worker UND scripts, Mindestversionen Chrome >= 121 und Firefox >= 140',
     !!manifest.action.default_title && !manifest.action.default_popup &&
     manifest.background.service_worker === 'background.js' && (manifest.background.scripts || []).join(',') === 'background.js' &&
-    parseInt(manifest.browser_specific_settings.gecko.strict_min_version, 10) >= 121);
+    parseInt(manifest.minimum_chrome_version, 10) >= 121 &&
+    parseInt(manifest.browser_specific_settings.gecko.strict_min_version, 10) >= 140);
 
   // background.js mit gemockter chrome-API
   {

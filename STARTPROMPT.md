@@ -46,15 +46,26 @@ test/test-runner.js       Suite ohne Framework, 7 nummerierte Blöcke, bewusst
                           Fehlschläge nennen die betroffenen Fälle
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
+test/browser-smoke.js     Browser-Smoke-Test: die fertige Extension in echtem
+                          Chromium (Playwright) und Firefox (Selenium) – was
+                          jsdom nicht kann: Injektion über das Manifest,
+                          Site-CSS-Kaskade, gebündelte Fonts, Speichern über
+                          Neuladen, Pop-up mit Live-Sync, Druckansicht.
+                          Liefert die Fixtures lokal unter den ECHTEN Hostnamen
+                          aus (search.bger.ch hat einen Bot-Schutz, der
+                          Headless-Browser mit Captcha abweist); nur
+                          bvger.weblaw.ch läuft live und ist nur ein Hinweis.
+                          Screenshots nach test/smoke/<browser>/ – anschauen
 test/fixtures/            drei echte Entscheid-HTMLs plus eine API-Antwort
-                          (nicht im Repo):
+                          plus das Site-CSS von bger.ch (css/<familie>/),
+                          nicht im Repo:
                           bger_test.html (BGE 152 IV 1, clir),
                           bger_aza.html (6F_7/2012, aza),
                           bger_relevancy.html (BGE 152 IV 1, relevancy),
                           bvger_test.json (B-7296/2025, bvger.weblaw.ch –
                           JSON der Site-API, HTML im Feld "content")
-tools/fetch-fixtures.sh   lädt fehlende Fixtures per curl, idempotent,
-                          mit Plausibilitätscheck
+tools/fetch-fixtures.sh   lädt fehlende Fixtures und das Site-CSS per curl,
+                          idempotent, mit Plausibilitätscheck
 tools/klammern-report.js  jede Klammer der echten Fixtures mit Entscheidung
                           und Begründung – DAS Werkzeug für die Trefferquote;
                           läuft auch in der CI (Artefakt "klammern-report")
@@ -65,29 +76,45 @@ tools/release.sh          baut dist/bger-reader-<version>.zip aus extension/,
 CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           der Abschnitt der aktuellen Version wird zur
                           Release-Notiz auf GitHub
-.github/workflows/        CI: Suite läuft bei jedem Push automatisch auf
-                          GitHub (Pflichtlauf ohne Fixtures, Zusatzlauf mit
-                          Fixtures nicht blockierend). Bei Push auf main mit
-                          grünem Pflichtlauf zudem GitHub-Release v<version>
-                          mit dist/bger-reader-<version>.zip als Anhang –
-                          DER Download-Ort für das Store-Paket
-                          (github.com/…/releases), nie „Download ZIP" des
-                          Repos (heisst immer gleich, enthält alles)
-archiv/                   eingefrorene Vorgängerstände (bger-reader.user.js,
-                          Userscript v2.1.0) – NICHT pflegen, nicht als Vorlage
-                          nehmen, Änderungen nur in extension/content.js
+.github/workflows/        CI bei jedem Push: Pflichtlauf der Suite (ohne
+                          Fixtures), Zusatzlauf mit Fixtures (nicht
+                          blockierend) und der Browser-Smoke-Test auf
+                          windows-latest und ubuntu-latest, je in Chromium und
+                          Firefox (Screenshots als Artefakte
+                          smoke-<os>-<browser>). Bei Push auf main mit grüner
+                          Suite und grünem Smoke-Test zudem GitHub-Release
+                          v<version>: das ZIP entsteht dort direkt aus dem
+                          Commit (git archive, reproduzierbar, ohne npm in dem
+                          Job, der Schreibrechte hat), dazu die volle SHA-256
+                          als .sha256-Datei – DER Download-Ort für das
+                          Store-Paket (github.com/…/releases), nie „Download
+                          ZIP" des Repos (heisst immer gleich, enthält alles).
+                          Test-Abhängigkeiten sind dort festgenagelt (jsdom,
+                          Playwright, Selenium): neue Versionen bewusst
+                          hochsetzen, im Workflow und im Setup unten.
+Git-Tag userscript-2.1.0  das ursprüngliche Tampermonkey-Skript, eingefroren
+                          (früher archiv/) – nicht als Vorlage nehmen,
+                          Änderungen nur in extension/content.js
 
 == SETUP AUF FRISCHEM KLON ==
   git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git
   cd bger-reader-addon
   bash tools/fetch-fixtures.sh
-  cd test && npm install jsdom && node test-runner.js
+  cd test && npm install jsdom@30.1.0 && node test-runner.js
 Erwartung: „0 fehlgeschlagen". Die Gesamtzahl wächst mit jedem neuen Test
 und ist bewusst nirgends festgeschrieben — Massstab ist immer nur, dass
 nichts fehlschlägt. Ohne Fixtures wird Block [3] übersprungen, also immer
 erst Fixtures laden. Die Suite bleibt klein (Ziel: unter 150 Prüfungen) —
 neue Prüfungen zusammenfassen, nicht je Detail eine eigene.
-jsdom ist die einzige Test-Abhängigkeit.
+Test-Abhängigkeiten (landen nie im Paket): jsdom für die Suite; für den
+Browser-Smoke-Test zusätzlich Playwright und Selenium – lokal nur bei Bedarf,
+die CI führt ihn bei jedem Push aus:
+  cd test && npm install --no-save jsdom@30.1.0 playwright@1.56.1 selenium-webdriver@4.49.0
+  (cd test && npx playwright install chromium)       einmalig
+  node test/browser-smoke.js chromium                bzw. firefox; Firefox und
+                                                     geckodriver holt Selenium selbst
+Achtung: npm install ohne package.json entfernt nicht genannte Pakete – immer
+alle zusammen installieren.
 
 == REGELN ==
 1. Vor jedem Push: volle Suite ohne Fehlschlag. Bei DOM-/Panel-Änderungen
@@ -116,6 +143,10 @@ jsdom ist die einzige Test-Abhängigkeit.
    hässliche Quadrate.
 7. Antworte knapp, ohne Höflichkeitsfloskeln. Keine „Soll ich…?“-Vorschläge
    ohne echten Mehrwert.
+8. Vor einem Store-Upload: die Screenshots des Smoke-Tests aus dem CI-Lauf
+   ansehen (Artefakte smoke-windows-latest-chromium/-firefox), nicht nur den
+   grünen Haken. Das Release-ZIP von github.com/…/releases hochladen, seine
+   Prüfsumme steht daneben.
 
 == BEKANNTE FALLSTRICKE ==
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,
@@ -126,6 +157,13 @@ jsdom ist die einzige Test-Abhängigkeit.
   Block [7] prüft, dass beide identisch bleiben.
 - Fixtures sind gross und bewusst nicht committed (Lizenz/Grösse) — niemals
   committen, nur über tools/fetch-fixtures.sh laden.
+- Firefox verwirft einen storage-Schreibvorgang, der erst bei pagehide
+  abgesetzt wird (Chrome führt ihn aus). Speichern darf nie allein am
+  Verlassen der Seite hängen: change-Ereignisse und das Loslassen eines
+  Reglers schreiben sofort, gebündelt wird nur während des Ziehens.
+- search.bger.ch steht hinter einem Bot-Schutz (Imperva): Headless-Browser
+  bekommen eine Captcha-Seite. Automatisierte Browser-Tests deshalb nie gegen
+  die Live-Seite, sondern gegen die lokal ausgelieferten Fixtures.
 
 Aktuelle Aufgabe: <hier eintragen>
 ```

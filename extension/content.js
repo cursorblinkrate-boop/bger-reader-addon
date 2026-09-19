@@ -1473,9 +1473,10 @@ ${vorschauCss()}
         beiden Einstellungen.
         Nebeneffekt, der vorher fehlte: von Hand aufgeklappte Klammern
         bleiben offen, wenn die Schrift verstellt wird.
-     3. speichereEinstellungen() schreibt in chrome.storage.local. Gebuendelt,
-        siehe speichereGebuendelt() – das ist der einzige gedrosselte Teil und
-        fuer das Auge unsichtbar.
+     3. speichereEinstellungen() schreibt in chrome.storage.local. Bei Reglern
+        gebuendelt, siehe speichereGebuendelt() – das ist der einzige
+        gedrosselte Teil und fuer das Auge unsichtbar. Auswahl und Haekchen
+        schreiben sofort, ebenso das Loslassen eines Reglers (change).
   */
 
   /* Schreibzugriffe buendeln (Throttle mit fuehrender Kante):
@@ -1510,13 +1511,18 @@ ${vorschauCss()}
     speichereEinstellungen();
   }
 
-  /* Seite wird verlassen/versteckt: ausstehenden Schreibvorgang nachholen,
-     damit der letzte Reglerwert nicht im offenen Zeitfenster verlorengeht. */
-  window.addEventListener('pagehide', function () {
+  /* Ausstehenden gebuendelten Schreibvorgang sofort nachholen. Aufgerufen beim
+     Loslassen eines Reglers (change) und, als letzte Reserve, beim Verlassen
+     oder Verstecken der Seite. Nur Reserve: Firefox verwirft einen erst bei
+     pagehide abgesetzten storage-Schreibvorgang, wenn die Seite gerade
+     navigiert (Chrome fuehrt ihn aus) – der Browser-Smoke-Test hat das
+     gefunden. Deshalb darf kein Wert allein an pagehide haengen. */
+  function nachschreiben() {
     if (speicherTimer !== null) speichereSofort();
-  });
+  }
+  window.addEventListener('pagehide', nachschreiben);
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'hidden' && speicherTimer !== null) speichereSofort();
+    if (document.visibilityState === 'hidden') nachschreiben();
   });
 
   /* Nur die Zahl neben dem bewegten Regler nachfuehren statt aller
@@ -1547,11 +1553,13 @@ ${vorschauCss()}
     if (el) el.textContent = f(einstellungen);
   }
 
-  /* Pfad A – Typografie und Farben: Darstellung sofort, Folds unberuehrt. */
-  function stilGeaendert(id) {
+  /* Pfad A – Typografie und Farben: Darstellung sofort, Folds unberuehrt.
+     Regler (viele input-Ereignisse waehrend des Ziehens) speichern
+     gebuendelt, Auswahl und Haekchen (ein change-Ereignis) sofort. */
+  function stilGeaendert(id, gebuendelt) {
     wendeStileAn();
     wertAnzeigen(id);
-    speichereGebuendelt();
+    if (gebuendelt) speichereGebuendelt(); else speichereSofort();
   }
 
   /* Pfad B – aktiv/klammern: hier aendert sich, WELCHE Klammern eingeklappt
@@ -1559,7 +1567,7 @@ ${vorschauCss()}
   function aufbauGeaendert() {
     wendeStileAn();
     verarbeiteKlammern();
-    speichereGebuendelt();
+    speichereSofort();
   }
 
   /* Pfad C – Zuruecksetzen: alles neu, inklusive aller Bedienelemente, und
@@ -1578,19 +1586,22 @@ ${vorschauCss()}
   bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; aufbauGeaendert(); });
   bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; aufbauGeaendert(); });
 
-  bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; stilGeaendert('bkl-groesse'); });
+  bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; stilGeaendert('bkl-groesse', true); });
   bei('bkl-art', 'change', function (e) { einstellungen.schriftart = e.target.value; stilGeaendert('bkl-art'); });
   bei('bkl-staerke', 'change', function (e) { einstellungen.schriftstaerke = e.target.value; stilGeaendert('bkl-staerke'); });
-  bei('bkl-zeilenabstand', 'input', function (e) { einstellungen.zeilenabstand = +e.target.value; stilGeaendert('bkl-zeilenabstand'); });
-  bei('bkl-buchstaben', 'input', function (e) { einstellungen.buchstabenabstand = +e.target.value; stilGeaendert('bkl-buchstaben'); });
-  bei('bkl-worte', 'input', function (e) { einstellungen.wortabstand = +e.target.value; stilGeaendert('bkl-worte'); });
-  bei('bkl-laenge', 'input', function (e) { einstellungen.zeilenlaenge = +e.target.value; stilGeaendert('bkl-laenge'); });
-  bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; stilGeaendert('bkl-spalte'); });
+  bei('bkl-zeilenabstand', 'input', function (e) { einstellungen.zeilenabstand = +e.target.value; stilGeaendert('bkl-zeilenabstand', true); });
+  bei('bkl-buchstaben', 'input', function (e) { einstellungen.buchstabenabstand = +e.target.value; stilGeaendert('bkl-buchstaben', true); });
+  bei('bkl-worte', 'input', function (e) { einstellungen.wortabstand = +e.target.value; stilGeaendert('bkl-worte', true); });
+  bei('bkl-laenge', 'input', function (e) { einstellungen.zeilenlaenge = +e.target.value; stilGeaendert('bkl-laenge', true); });
+  bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; stilGeaendert('bkl-spalte', true); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; stilGeaendert('bkl-silben'); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; stilGeaendert('bkl-farbe'); });
   bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; stilGeaendert('bkl-ausrichtung'); });
   bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; stilGeaendert('bkl-spalten'); });
-  bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; stilGeaendert('bkl-absatz'); });
+  bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; stilGeaendert('bkl-absatz', true); });
+  // Regler losgelassen: den letzten Wert nicht in der Buendelung haengen lassen.
+  ['bkl-groesse', 'bkl-zeilenabstand', 'bkl-buchstaben', 'bkl-worte', 'bkl-laenge', 'bkl-spalte', 'bkl-absatz']
+    .forEach(function (id) { bei(id, 'change', nachschreiben); });
   bei('bkl-reset', 'click', function () {
     einstellungen = Object.assign({}, STANDARDS);
     allesAnwenden();
