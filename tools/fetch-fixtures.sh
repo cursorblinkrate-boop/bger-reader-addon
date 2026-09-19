@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Fixtures für die Test-Suite laden: drei echte Entscheidseiten nach
-# test/fixtures/. Danach läuft test/test-runner.js vollständig
-# (ohne Fixtures werden die Blöcke [4], [6] und [7] übersprungen).
+# Fixtures für die Tests laden: drei echte Entscheidseiten und eine
+# API-Antwort nach test/fixtures/, dazu das Site-CSS der bger.ch-Seiten für
+# den Browser-Smoke-Test. Danach läuft test/test-runner.js vollständig
+# (ohne Fixtures wird Block [3] übersprungen) und test/browser-smoke.js kann
+# die Seiten lokal ausliefern.
 #
 # Aufruf (aus dem Repo-Root):   tools/fetch-fixtures.sh
 # Erneut laden (überschreiben): tools/fetch-fixtures.sh --force
@@ -67,12 +69,43 @@ for eintrag in "${FIXTURES[@]}"; do
   echo "  ok: $name ($(du -k "$ziel" | cut -f1) KB)"
 done
 
+# Site-CSS der bger.ch-Seiten: test/browser-smoke.js liefert die Seiten lokal
+# aus und braucht dazu ihr eigenes CSS (sonst erschienen sie ungestylt und die
+# Kaskade Site-CSS gegen Extension-CSS bliebe ungeprüft). master.css importiert
+# die vier anderen. Ablage wie bei test/render-check.js:
+# test/fixtures/css/<familie>/<datei>.
+CSS_FAMILIEN=(
+  "clir|https://search.bger.ch/ext/eurospider/live/de/php/clir/http/css/"
+  "relevancy|http://relevancy.bger.ch/php/clir/http/css/"
+)
+CSS_DATEIEN="master.css layout.css typography.css design.css highlight.css print.css"
+for eintrag in "${CSS_FAMILIEN[@]}"; do
+  familie="${eintrag%%|*}"
+  basis="${eintrag#*|}"
+  mkdir -p "$ZIEL_DIR/css/$familie"
+  for datei in $CSS_DATEIEN; do
+    ziel="$ZIEL_DIR/css/$familie/$datei"
+    if [ "$FORCE" = "0" ] && [ -f "$ziel" ]; then continue; fi
+    tmp="$ziel.tmp"
+    # Error-Pages kommen als HTML mit 200 zurück – kein CSS.
+    if curl -sL --max-time 60 -A "$UA" -o "$tmp" "$basis$datei" && ! grep -q -i "<html" "$tmp"; then
+      mv "$tmp" "$ziel"
+      echo "  ok: css/$familie/$datei"
+    else
+      echo "  FEHLER: CSS nicht ladbar: $basis$datei" >&2
+      rm -f "$tmp"
+      fehler=1
+    fi
+  done
+done
+
 if [ "$fehler" = "1" ]; then
   echo "" >&2
-  echo "Mindestens ein Fixture fehlt. Die Suite läuft trotzdem," >&2
-  echo "überspringt aber die Fixture-Blöcke [4], [6], [7]." >&2
+  echo "Mindestens eine Datei fehlt. Die Suite läuft trotzdem," >&2
+  echo "überspringt aber Block [3]; der Smoke-Test braucht die Seiten." >&2
   exit 1
 fi
 
 echo ""
-echo "Alle Fixtures bereit. Testlauf:  cd test && npm install jsdom && node test-runner.js"
+echo "Alle Fixtures bereit. Testlauf:  cd test && npm install jsdom@30.1.0 && node test-runner.js"
+echo "Browser-Smoke-Test:              node test/browser-smoke.js chromium|firefox"

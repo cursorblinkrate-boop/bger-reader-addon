@@ -1,4 +1,4 @@
-# Führt die Test-Suite bei jedem Push und jedem Pull Request aus.
+# Führt die Tests bei jedem Push und jedem Pull Request aus.
 # Ergebnis erscheint als grüner Haken bzw. rotes Kreuz neben dem Commit
 # auf github.com – die Regel "vor dem Push muss die Suite grün sein" hängt
 # damit nicht mehr allein an Disziplin.
@@ -15,6 +15,15 @@ on:
 permissions:
   contents: read
 
+# Test-Abhängigkeiten festgenagelt: ein neues Release von jsdom, Playwright
+# oder Selenium darf die Tests nicht ohne eigene Änderung rot färben, und in
+# der CI läuft genau die Version, die lokal geprüft wurde (STARTPROMPT.md
+# nennt dieselben). Neue Versionen bewusst hier hochsetzen.
+env:
+  JSDOM: jsdom@30.1.0
+  PLAYWRIGHT: playwright@1.56.1
+  SELENIUM: selenium-webdriver@4.49.0
+
 jobs:
   # Pflichtlauf: ohne Fixtures, damit das Ergebnis nicht von der
   # Erreichbarkeit von bger.ch abhängt. Deckt alle Blöcke ausser [3] (echte Entscheidseiten) ab.
@@ -30,9 +39,9 @@ jobs:
         with:
           node-version: '22'
 
-      - name: jsdom installieren (einzige Testabhängigkeit)
+      - name: jsdom installieren (einzige Abhängigkeit der Suite)
         working-directory: test
-        run: npm install --no-save --no-audit --no-fund jsdom
+        run: npm install --no-save --no-audit --no-fund "$JSDOM"
 
       - name: Syntaxprüfung des ausgelieferten Skripts
         run: node --check extension/content.js
@@ -62,7 +71,7 @@ jobs:
 
       - name: jsdom installieren
         working-directory: test
-        run: npm install --no-save --no-audit --no-fund jsdom
+        run: npm install --no-save --no-audit --no-fund "$JSDOM"
 
       - name: Fixtures laden
         run: bash tools/fetch-fixtures.sh
@@ -83,18 +92,21 @@ jobs:
           path: klammern-report.txt
           retention-days: 30
 
-  # Paket veröffentlichen: nach jedem Push auf main, aber nur wenn der
-  # Pflichtlauf grün ist und die Version im Manifest noch kein Release hat.
-  # Ergebnis: github.com/<repo>/releases mit bger-reader-<version>.zip als
-  # Anhang – ein fester Download-Ort, an dem jede Datei ihre Version im
-  # Namen trägt. Das Release-Tag (v0.6.2) markiert zugleich den Commit.
-  release:
-    name: Paket als GitHub-Release veröffentlichen
-    needs: suite
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  # Browser-Smoke-Test: die fertige Extension in echten Browsern, auf Windows
+  # und Linux. test/browser-smoke.js beschreibt, was geprüft wird und warum die
+  # Seiten lokal ausgeliefert werden (Bot-Schutz von bger.ch). Chromium über
+  # Playwright steht für Chrome, Edge und Brave; Firefox läuft über Selenium
+  # mit dem auf den Runnern vorinstallierten Firefox und geckodriver.
+  # Screenshots als Artefakt "smoke-<os>-<browser>": vor einem Store-Upload
+  # anschauen, besonders die Windows-Bilder.
+  smoke:
+    name: Browser-Smoke-Test (${{ matrix.browser }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        browser: [chromium, firefox]
     steps:
       - uses: actions/checkout@v5
 
@@ -102,12 +114,74 @@ jobs:
         with:
           node-version: '22'
 
-      - name: jsdom installieren (release.sh führt die Suite nochmals aus)
-        working-directory: test
-        run: npm install --no-save --no-audit --no-fund jsdom
+      # Fixtures zwischenspeichern: nach dem ersten Lauf hängt der Job nicht
+      # mehr an der Erreichbarkeit von bger.ch, und die Site wird geschont.
+      # Neuer Schlüssel, sobald sich die Fixture-Liste ändert.
+      - uses: actions/cache@v4
+        with:
+          path: test/fixtures
+          key: fixtures-${{ runner.os }}-${{ hashFiles('tools/fetch-fixtures.sh') }}
 
-      - name: Paket bauen
-        run: bash tools/release.sh
+      - name: Fixtures laden (Seiten und Site-CSS, übersprungen wenn vorhanden)
+        run: bash tools/fetch-fixtures.sh
+
+      - name: Playwright und Chromium installieren
+        if: matrix.browser == 'chromium'
+        working-directory: test
+        run: |
+          npm install --no-save --no-audit --no-fund "$PLAYWRIGHT"
+          npx playwright install chromium
+
+      - name: Selenium installieren
+        if: matrix.browser == 'firefox'
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund "$SELENIUM"
+
+      - name: Smoke-Test
+        run: node test/browser-smoke.js ${{ matrix.browser }}
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: smoke-${{ matrix.os }}-${{ matrix.browser }}
+          path: test/smoke/
+          retention-days: 30
+
+  # Paket veröffentlichen: nach jedem Push auf main, aber nur wenn Suite und
+  # Smoke-Test grün sind und die Version im Manifest noch kein Release hat.
+  # Ergebnis: github.com/<repo>/releases mit bger-reader-<version>.zip und
+  # der Prüfsumme als Anhang – ein fester Download-Ort, an dem jede Datei
+  # ihre Version im Namen trägt. Das Release-Tag (v0.9.1) markiert zugleich
+  # den Commit.
+  release:
+    name: Paket als GitHub-Release veröffentlichen
+    needs: [suite, smoke]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      # Das ZIP entsteht direkt aus dem Commit (git archive): reproduzierbar –
+      # gleicher Commit, gleiche Bytes, gleiche Prüfsumme, auch lokal
+      # nachbaubar – und ohne npm-Installation in dem einzigen Job, der
+      # Schreibrechte hat. Ein manipuliertes Paket aus npm käme hier also
+      # nicht ins Release. Die Tests liefen davor in "suite" und "smoke"
+      # auf genau diesem Commit. Node ist auf dem Runner vorinstalliert.
+      - name: Paket aus dem Commit bauen, Prüfsumme bilden, Grösse prüfen
+        run: |
+          VERSION="$(node tools/version.js)"
+          DATEI="dist/bger-reader-$VERSION.zip"
+          mkdir -p dist
+          # --mtime: für einen Teilbaum (HEAD:extension) nähme git archive sonst
+          # die aktuelle Uhrzeit, und gleiche Commits ergäben verschiedene Bytes.
+          git archive --format=zip --mtime="$(git log -1 --format=%cI HEAD)" -o "$DATEI" HEAD:extension
+          ( cd dist && sha256sum "bger-reader-$VERSION.zip" > "bger-reader-$VERSION.zip.sha256" )
+          cat "$DATEI.sha256"
+          KB=$(( ($(stat -c%s "$DATEI") + 1023) / 1024 ))
+          echo "Groesse: $KB KB (erlaubt: 1023 KB)"
+          test "$KB" -le 1023
 
       - name: Release anlegen, falls die Version neu ist
         env:
@@ -120,10 +194,13 @@ jobs:
             echo "Release $TAG existiert bereits – nichts zu tun."
             exit 0
           fi
-          # Release-Notizen = der Abschnitt dieser Version aus CHANGELOG.md
+          # Release-Notizen = der Abschnitt dieser Version aus CHANGELOG.md, dazu die Prüfsumme
           NOTIZEN="$(awk -v kopf="## $VERSION " 'index($0, kopf) == 1 { f = 1; next } /^## / { if (f) exit } f' CHANGELOG.md)"
-          gh release create "$TAG" "$DATEI" \
+          SUMME="$(cut -d' ' -f1 "$DATEI.sha256")"
+          gh release create "$TAG" "$DATEI" "$DATEI.sha256" \
             --repo "$GITHUB_REPOSITORY" \
             --title "BGer Reader $VERSION" \
-            --notes "${NOTIZEN:-Siehe CHANGELOG.md.}"
+            --notes "${NOTIZEN:-Siehe CHANGELOG.md.}
+
+          SHA-256 von bger-reader-$VERSION.zip: \`$SUMME\`"
           echo "Release $TAG angelegt: $DATEI"

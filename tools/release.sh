@@ -39,7 +39,7 @@ node --check extension/content.js
 echo "        in Ordnung"
 
 # 3. Paket bauen – ausschliesslich aus extension/.
-#    tools/, test/, archiv/ und die Dokumentation kommen NICHT mit.
+#    tools/, test/ und die Dokumentation kommen NICHT mit.
 echo "  [3/4] ZIP bauen"
 mkdir -p "$ZIEL_DIR"
 rm -f "$ZIEL"
@@ -55,15 +55,15 @@ fi
 KB=$(( (BYTES + 1023) / 1024 ))
 
 if command -v shasum >/dev/null 2>&1; then
-  SUMME=$(shasum -a 256 "$ZIEL" | cut -c1-16)   # macOS
+  SUMME=$(shasum -a 256 "$ZIEL" | cut -d' ' -f1)   # macOS
 else
-  SUMME=$(sha256sum "$ZIEL" | cut -c1-16)       # Linux
+  SUMME=$(sha256sum "$ZIEL" | cut -d' ' -f1)       # Linux
 fi
 
 echo ""
 echo "  Datei:     dist/bger-reader-$VERSION.zip"
 echo "  Grösse:    $KB KB von $LIMIT_KB KB erlaubt"
-echo "  Prüfsumme: $SUMME  (SHA-256, gekürzt)"
+echo "  Prüfsumme: $SUMME  (SHA-256)"
 
 if [ "$KB" -gt "$LIMIT_KB" ]; then
   echo ""
@@ -75,3 +75,6 @@ fi
 echo ""
 echo "Fertig. Die Prüfsumme identifiziert diese Datei eindeutig:"
 echo "zwei Kopien mit gleicher Prüfsumme sind identisch, sonst nicht."
+echo "Das Release auf GitHub entsteht nicht aus diesem ZIP, sondern in der CI"
+echo "direkt aus dem Commit (git archive, reproduzierbar) und trägt seine"
+echo "eigene Prüfsumme als .sha256-Datei bei sich."

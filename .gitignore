@@ -8,8 +8,10 @@ test/package-lock.json
 # werden per tools/fetch-fixtures.sh geladen
 test/fixtures/
 
-# Screenshot-Ausgabe von test/render-check.js (nur zum manuellen Sichten)
+# Screenshot-Ausgabe von test/render-check.js und test/browser-smoke.js
+# (nur zum manuellen Sichten, in der CI als Artefakt)
 test/render/
+test/smoke/
 
 # Lokale Font-Werkzeug-Umgebung (tools/subset-fonts.py)
 .venv-fonts/
