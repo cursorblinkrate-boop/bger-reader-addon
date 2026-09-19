@@ -1583,6 +1583,12 @@ ${vorschauCss()}
     shadow.getElementById(id).addEventListener(event, fn);
   }
 
+  /* Bedienung erst nach dem Laden der Einstellungen anschliessen (siehe START).
+     Der Ladevorgang ist asynchron; ein Klick davor schriebe Standardwerte plus
+     eine Änderung über die gespeicherten Werte, und das nachträgliche Laden
+     würfe den Klick wieder um. Auf Windows-Firefox dauert der erste
+     Speicherzugriff über eine Sekunde (Browser-Smoke-Test). */
+  function bedienungEinrichten() {
   bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; aufbauGeaendert(); });
   bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; aufbauGeaendert(); });
 
@@ -1606,6 +1612,7 @@ ${vorschauCss()}
     einstellungen = Object.assign({}, STANDARDS);
     allesAnwenden();
   });
+  }
 
   /* ================================================================== */
   /* LIVE-SYNC MIT DEM POP-UP-FENSTER                                     */
@@ -1654,6 +1661,8 @@ ${vorschauCss()}
     wendeStileAn();
     verarbeiteKlammern();
     aktualisiereAnzeige();
+    bedienungEinrichten();
+    host.setAttribute('data-bereit', ''); // Marker für Tests: Einstellungen geladen, Bedienung aktiv
     inhaltBeobachten(); // nur bvger.weblaw.ch: nachgeladenen Entscheid verarbeiten
     // Beim Start nur lesen: Ein Ladefehler darf gespeicherte Werte nicht
     // durch Standardwerte überschreiben. Gespeichert wird bei Bedienung.

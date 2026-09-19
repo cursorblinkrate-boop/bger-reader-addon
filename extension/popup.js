@@ -166,6 +166,9 @@
     $(id).addEventListener(event, fn);
   }
 
+  /* Bedienung erst nach dem Laden der Einstellungen anschliessen (wie in
+     content.js): ein Klick davor schriebe Standardwerte über die gespeicherten. */
+  function bedienungEinrichten() {
   bei('bkl-aktiv', 'change', function (e) { einstellungen.aktiv = e.target.checked; geaendert('bkl-aktiv'); });
   bei('bkl-groesse', 'input', function (e) { einstellungen.schriftgroesse = +e.target.value; geaendert('bkl-groesse'); });
   bei('bkl-art', 'change', function (e) { einstellungen.schriftart = e.target.value; geaendert('bkl-art'); });
@@ -186,6 +189,7 @@
     aktualisiereAnzeige();
     speichereEinstellungen();
   });
+  }
 
   /* ---------- Tooltips mit Verzögerung ----------
      Gleiche Logik wie tooltipsEinrichten() in content.js: Texte in
@@ -286,6 +290,8 @@
   ladeSchluessel(STORAGE_KEY, function (res) {
     einstellungen = bereinige(Object.assign({}, STANDARDS, (res && res[STORAGE_KEY]) || {}));
     aktualisiereAnzeige();
+    bedienungEinrichten();
+    document.body.setAttribute('data-bereit', ''); // Marker für Tests
     $('bkl-schliessen').focus();
   });
 })();

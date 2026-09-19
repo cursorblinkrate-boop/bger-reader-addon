@@ -22,6 +22,11 @@ hinten bei Korrekturen.
   Chrome führt ihn aus. Auswahl und Häkchen sowie das Loslassen eines Reglers
   speichern jetzt sofort, gebündelt wird nur noch während des Ziehens.
   Gefunden vom neuen Browser-Smoke-Test.
+- Korrektur: Panel und Pop-up nehmen Bedienung erst an, wenn die gespeicherten
+  Einstellungen geladen sind. Ein Klick davor (auf Windows-Firefox dauert der
+  erste Speicherzugriff über eine Sekunde) wurde vom Laden umgeworfen und
+  konnte Standardwerte über die gespeicherten Einstellungen schreiben.
+  Ebenfalls vom Browser-Smoke-Test gefunden.
 - Manifest: Mindestversionen erklärt – Chrome/Edge 121 (erst ab da darf
   neben `service_worker` der Firefox-Eintrag `background.scripts` stehen;
   ältere Browser verweigerten die Installation mit kryptischem Fehler, jetzt

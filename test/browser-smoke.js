@@ -267,7 +267,8 @@ async function firefoxStarten() {
 
 /* Seiten-Funktionen als Quelltext (siehe seite.js). */
 const Q = {
-  host: `function () { const h = document.getElementById('bkl-panel-host'); return !!(h && h.shadowRoot); }`,
+  // bereit = Einstellungen geladen und Bedienung angeschlossen (data-bereit, content.js START)
+  host: `function () { const h = document.getElementById('bkl-panel-host'); return !!(h && h.shadowRoot && h.hasAttribute('data-bereit')); }`,
   status: `function () {
     const s = document.getElementById('bkl-panel-host').shadowRoot;
     const html = document.documentElement, absatz = document.querySelector('div.paraatf');
@@ -321,7 +322,9 @@ const Q = {
   // Die App liefert den Entscheid in Etappen; erst der vollständige Text zählt.
   bvgerText: `function () { const b = document.querySelector('.bkl-text'); return !!b && b.querySelectorAll('p').length > 100; }`,
   bvgerStatus: `function () { const b = document.querySelector('.bkl-text'); return {
-    text: !!b, p: b ? b.querySelectorAll('p').length : 0, folds: document.querySelectorAll('.bkl-fold').length }; }`
+    text: !!b, p: b ? b.querySelectorAll('p').length : 0, folds: document.querySelectorAll('.bkl-fold').length,
+    host: !!document.getElementById('bkl-panel-host'), segment: !!document.getElementById('customContentSegment'),
+    url: location.href.slice(0, 60) }; }`
 };
 
 async function warteBis(seite, quelle, arg, ms) {
@@ -363,7 +366,7 @@ async function einschalten(seite) {
   try {
     console.log('\n[1] search.bger.ch – BGE 152 IV 1 (lokal ausgeliefert) – ' + b.name);
     await s.oeffne(SEITEN.bge);
-    pruefe('Content-Skript läuft (Panel-Host mit Shadow DOM)', await warteBis(s, Q.host, null, 15000));
+    pruefe('Content-Skript läuft (Panel-Host mit Shadow DOM, Einstellungen geladen)', await warteBis(s, Q.host, null, 15000));
     let st = await s.js(Q.status);
     console.log('  Browser: ' + st.ua);
     pruefe('Entscheidabsätze da, Lesemodus anfangs aus, keine Folds',
@@ -402,7 +405,7 @@ async function einschalten(seite) {
     if (!popup) {
       console.log('  ⚠️  Pop-up-Seite nicht automatisierbar, übersprungen.');
     } else {
-      const geladen = await warteBis(popup, `function () { return document.getElementById('bkl-farbe').value === 'nacht'; }`, null, 10000);
+      const geladen = await warteBis(popup, `function () { return document.body.hasAttribute('data-bereit') && document.getElementById('bkl-farbe').value === 'nacht'; }`, null, 10000);
       const ps = await popup.js(Q.popupStatus);
       pruefe('Pop-up zeigt den gespeicherten Stand (Nacht, aktiv, alle Bedienelemente)',
         geladen && ps.aktiv && ps.groesse === '18' && ps.elemente >= 18, JSON.stringify(ps));
@@ -433,21 +436,23 @@ async function einschalten(seite) {
     }
 
     console.log('\n[7] bvger.weblaw.ch (live, React-App – informativ)');
-    let bv = null;
+    let bv = null, grund = '';
     try {
       await s.oeffne(SEITEN.bvger);
       if (await warteBis(s, Q.bvgerText, null, 60000)) {
         await einschalten(s);
         await warteBis(s, `function () { return document.querySelectorAll('.bkl-fold').length > 0; }`, null, 10000);
-        bv = await s.js(Q.bvgerStatus);
-        await s.screenshot(path.join(BILDER, 'bvger.png'));
+      } else {
+        grund = 'Entscheid nicht vollständig geladen';
       }
-    } catch (e) { bv = null; }
+      bv = await s.js(Q.bvgerStatus);
+      await s.screenshot(path.join(BILDER, 'bvger.png'));
+    } catch (e) { grund = 'Fehler: ' + String(e && e.message || e).slice(0, 120); }
     // Nur ein Hinweis, kein Fehlschlag: eine Live-Seite kann sich ändern oder
     // nicht erreichbar sein, das darf kein Release blockieren. Der Fall selbst
     // ist mit der API-Antwort als Fixture in test-runner.js Block [3] und [8] geprüft.
     if (bv && bv.text && bv.p > 50 && bv.folds > 0) console.log('  ✅ bvger: Textblock erkannt, Klammern eingeklappt (' + bv.p + ' Absätze, ' + bv.folds + ' Folds)');
-    else warnungen.push('bvger.weblaw.ch: Live-Prüfung ohne Ergebnis (' + (bv ? JSON.stringify(bv) : 'nicht erreichbar oder Entscheid nicht geladen') + ') – Screenshot bvger.png ansehen');
+    else warnungen.push('bvger.weblaw.ch: Live-Prüfung ohne Ergebnis – ' + grund + (bv ? ' ' + JSON.stringify(bv) : '') + ' – Screenshot bvger.png ansehen');
   } finally {
     try { await b.schliessen(); } catch (e) { /* Browser ist schon weg */ }
     server.schliessen();

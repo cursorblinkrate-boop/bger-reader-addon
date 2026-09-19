@@ -69,15 +69,21 @@ function bvgerDom(inhalt, einstellungen) {
   return dom;
 }
 
-/* jsdom mit gemockter chrome-API (synchroner In-Memory-Speicher, bleibt offline). */
-function domMitChrome(html, speicher, extras) {
+/* jsdom mit gemockter chrome-API (synchroner In-Memory-Speicher, bleibt offline).
+ * verzoegert: get() antwortet erst, wenn der Test t.laden() aufruft (asynchroner
+ * Ladevorgang wie im echten Browser). */
+function domMitChrome(html, speicher, extras, verzoegert) {
   const dom = new JSDOM(html, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
   const listener = [];
   const gesetzt = [];
+  const ausstehend = [];
   dom.window.chrome = {
     storage: {
       local: {
-        get: function (key, cb) { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); },
+        get: function (key, cb) {
+          const antwort = function () { const out = {}; if (speicher[key]) out[key] = speicher[key]; cb(out); };
+          if (verzoegert) ausstehend.push(antwort); else antwort();
+        },
         set: function (paket, cb) {
           Object.keys(paket).forEach(function (k) { speicher[k] = JSON.parse(JSON.stringify(paket[k])); gesetzt.push(k); });
           if (cb) cb();
@@ -89,6 +95,7 @@ function domMitChrome(html, speicher, extras) {
   };
   dom.window.eval(SCRIPT);
   return { dom: dom, doc: dom.window.document, listener: listener, gesetzt: gesetzt,
+    laden: function () { ausstehend.splice(0).forEach(function (f) { f(); }); },
     shadow: dom.window.document.getElementById('bkl-panel-host').shadowRoot };
 }
 
@@ -630,6 +637,28 @@ console.log('\n[5] Speicher und Live-Sync');
   pruefe('Regler loslassen und Auswahl ändern schreiben sofort (2 Schreibvorgänge: 16px, sepia)',
     t.gesetzt.length === 2 && speicher[SCHLUESSEL].schriftgroesse === 16 && speicher[SCHLUESSEL].farbschema === 'sepia',
     t.gesetzt.length + ' Schreibvorgänge');
+
+  // Bedienung vor dem Laden: ein Klick, bevor die Einstellungen aus dem Speicher
+  // da sind, darf weder Standardwerte über die gespeicherten schreiben noch vom
+  // nachträglichen Laden umgeworfen werden (Windows-Firefox: erster
+  // Speicherzugriff über eine Sekunde, Browser-Smoke-Test).
+  {
+    const speicherV = {};
+    speicherV[SCHLUESSEL] = { schriftgroesse: 26, aktiv: true, farbschema: 'sepia' };
+    const v = domMitChrome(SYNTHESE, speicherV, null, true);
+    const host = v.doc.getElementById('bkl-panel-host');
+    const aktiv = v.shadow.getElementById('bkl-aktiv');
+    aktiv.checked = false; ereignis(v.dom, aktiv, 'change');
+    const vorher = { geschrieben: v.gesetzt.length, bereit: host.hasAttribute('data-bereit') };
+    v.laden();
+    const nachher = { size: v.doc.documentElement.style.getPropertyValue('--bkl-size'), aktiv: v.doc.documentElement.classList.contains('bkl-aktiv'),
+      bereit: host.hasAttribute('data-bereit'), gespeichert: speicherV[SCHLUESSEL].schriftgroesse };
+    aktiv.checked = false; ereignis(v.dom, aktiv, 'change');
+    pruefe('vor dem Laden: Klick schreibt nichts, kein data-bereit; nach dem Laden: 26px, aktiv, data-bereit, Klick wirkt',
+      vorher.geschrieben === 0 && !vorher.bereit && nachher.size === '26px' && nachher.aktiv && nachher.bereit && nachher.gespeichert === 26 &&
+      v.gesetzt.length === 1 && !v.doc.documentElement.classList.contains('bkl-aktiv'),
+      JSON.stringify({ vorher: vorher, nachher: nachher, danach: v.gesetzt.length }));
+  }
 
   // Aufwandstrennung: Typografie baut Folds nicht neu auf, aktiv/klammern schon
   const foldVorher = t.doc.querySelector('.bkl-fold');
