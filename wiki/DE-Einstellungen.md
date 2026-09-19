@@ -1,4 +1,6 @@
-Diese Seite erklärt jede Einstellung von bger reader einzeln. Die Einstellungen stehen im Einstellungsfeld auf der Seite und im separaten Fenster in derselben Reihenfolge; die ersten sechs sind sofort sichtbar, die übrigen erscheinen nach einem Klick auf **erweitert**. Wie die beiden Bedienorte geöffnet werden, steht unter [Bedienung](Bedienung.md).
+**Deutsch** · [English](EN-Settings.md) · [Français](FR-Reglages.md) · [Italiano](IT-Impostazioni.md)
+
+Diese Seite erklärt jede Einstellung von bger reader einzeln. Die Einstellungen stehen im Einstellungsfeld auf der Seite und im separaten Fenster in derselben Reihenfolge; die ersten sechs sind sofort sichtbar, die übrigen erscheinen nach einem Klick auf **erweitert**. Wie die beiden Bedienorte geöffnet werden, steht unter [Bedienung](DE-Bedienung.md).
 
 ## Übersicht
 
@@ -6,7 +8,7 @@ Diese Seite erklärt jede Einstellung von bger reader einzeln. Die Einstellungen
 |---|---|---|---|
 | einschalten | Haupt | aus / ein | aus |
 | Schriftgrösse | Haupt | 6 bis 50 | 18 |
-| Schriftart | Haupt | 9 Schriften, siehe [Schriftarten](Schriftarten.md) | System Serif |
+| Schriftart | Haupt | 9 Schriften, siehe [Schriftarten](DE-Schriftarten.md) | System Serif |
 | Hintergrund | Haupt | Weiss, Sepia, Dunkel, Hoher Kontrast, Nacht (rötlich) | Weiss |
 | Textbreite | Haupt | 400 bis 1400 Pixel, in Schritten von 25 | 625 |
 | einfach (Klammern) | Haupt | aus / ein | ein |
@@ -32,7 +34,7 @@ Die Grösse der Schrift im Entscheidtext in Pixeln, von 6 bis 50. Der Standard 1
 
 ## Schriftart
 
-Die Schrift, in der der Entscheidtext gesetzt wird. Zur Wahl stehen zwei Schriften für Menschen mit Sehbeeinträchtigung (Atkinson Hyperlegible, Luciole), eine für Menschen mit Legasthenie (OpenDyslexic), eine freundliche Handschrift-Anmutung (Comic Neue), eine klassische Buchschrift (EB Garamond), zwei neutrale Standardschriften (Liberation Sans, Liberation Serif) sowie die Systemschriften des eigenen Geräts (System Sans, System Serif). Die Liste zeigt jede Schrift in ihrer eigenen Gestalt, sodass sich der Unterschied vor der Wahl beurteilen lässt. Alle Schriften ausser den beiden Systemschriften liegen der Erweiterung bei und werden nicht aus dem Internet geladen. Details und Lizenzen unter [Schriftarten](Schriftarten.md).
+Die Schrift, in der der Entscheidtext gesetzt wird. Zur Wahl stehen zwei Schriften für Menschen mit Sehbeeinträchtigung (Atkinson Hyperlegible, Luciole), eine für Menschen mit Legasthenie (OpenDyslexic), eine freundliche Handschrift-Anmutung (Comic Neue), eine klassische Buchschrift (EB Garamond), zwei neutrale Standardschriften (Liberation Sans, Liberation Serif) sowie die Systemschriften des eigenen Geräts (System Sans, System Serif). Die Liste zeigt jede Schrift in ihrer eigenen Gestalt, sodass sich der Unterschied vor der Wahl beurteilen lässt. Alle Schriften ausser den beiden Systemschriften liegen der Erweiterung bei und werden nicht aus dem Internet geladen. Details und Lizenzen unter [Schriftarten](DE-Schriftarten.md).
 
 ## Hintergrund
 
@@ -44,7 +46,7 @@ Die Breite des Rahmens, in dem der Entscheidtext steht, in Pixeln. Auf `search.b
 
 ## einfach (Klammern einklappen)
 
-Mit diesem Häkchen werden Fundstellen in Klammern eingeklappt, also Zitate aus der Rechtsprechung (BGE, Urteile mit Aktenzeichen) und Literaturangaben. Gesetzesverweise wie `(Art. 8 Abs. 1 BV)`, Beträge, Daten, Verweise auf eigene Erwägungen und inhaltliche Bemerkungen bleiben offen, weil sie zum Gedankengang gehören. Die Bezeichnung «einfach» steht für den festen Regelsatz, der keine weitere Einstellung braucht. Jede eingeklappte Klammer lässt sich mit dem Pfeil `▸` einzeln öffnen. Die Regeln im Detail: [Klammern einklappen](Klammern.md).
+Mit diesem Häkchen werden Fundstellen in Klammern eingeklappt, also Zitate aus der Rechtsprechung (BGE, Urteile mit Aktenzeichen) und Literaturangaben. Gesetzesverweise wie `(Art. 8 Abs. 1 BV)`, Beträge, Daten, Verweise auf eigene Erwägungen und inhaltliche Bemerkungen bleiben offen, weil sie zum Gedankengang gehören. Die Bezeichnung «einfach» steht für den festen Regelsatz, der keine weitere Einstellung braucht. Jede eingeklappte Klammer lässt sich mit dem Pfeil `▸` einzeln öffnen. Die Regeln im Detail: [Klammern einklappen](DE-Klammern.md).
 
 ## Schriftstärke
 

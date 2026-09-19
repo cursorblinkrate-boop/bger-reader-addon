@@ -1,3 +1,5 @@
+**Deutsch** · [English](EN-Brackets.md) · [Français](FR-Parentheses.md) · [Italiano](IT-Parentesi.md)
+
 Entscheide der Schweizer Gerichte sind voller Klammern. Ein grosser Teil davon sind Fundstellen: Zitate aus der Rechtsprechung wie `(BGE 135 II 45 E. 3.2 S. 47)` und Literaturangaben wie `(NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, N. 12 zu Art. 47 StGB)`. Sie sind wichtig zum Nachschlagen, aber beim Lesen lesen sie sich wie eine Rechnung: Zahlenketten, deren Inhalt man nicht im Kopf hat und die den Gedankengang unterbrechen. bger reader klappt solche Fundstellen ein, wenn die Einstellung **einfach** angehakt ist. An ihrer Stelle bleibt ein kleiner Knopf `▸`; ein Klick öffnet die Klammer an Ort und Stelle, ein weiterer schliesst sie wieder. Nichts wird gelöscht, und beim Drucken erscheint immer der vollständige Text.
 
 ## Die Grundregel
@@ -82,4 +84,4 @@ Die eingeklappte Klammer wird samt allen Links und Formatierungen in eine kleine
 
 Keine Regel trifft jeden Fall. Eine Klammer, die fälschlich eingeklappt wurde, lässt sich mit dem Pfeil sofort öffnen; wer die Klammern insgesamt nicht möchte, entfernt das Häkchen bei **einfach**. Damit die Regeln besser werden, hilft eine Meldung als [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) mit dem Klammertext im Wortlaut und, wenn möglich, der Adresse des Entscheids. Jeder gemeldete Fall kann als Testfall aufgenommen werden, sodass er auch in Zukunft richtig behandelt wird.
 
-Für die Entwicklung gibt es ein Werkzeug, das für echte Entscheidseiten jede Klammer mit der getroffenen Entscheidung und der Begründung auflistet; es wird bei jedem Testlauf ausgeführt und ist unter [Entwicklung](Entwicklung.md) beschrieben. Bei der ersten Prüfung an zwei echten Entscheiden wurden 56 von 58 Klammern richtig behandelt, und die beiden übrigen Fälle sind seither in den Regeln berücksichtigt.
+Für die Entwicklung gibt es ein Werkzeug, das für echte Entscheidseiten jede Klammer mit der getroffenen Entscheidung und der Begründung auflistet; es wird bei jedem Testlauf ausgeführt und ist unter [Entwicklung](DE-Entwicklung.md) beschrieben. Bei der ersten Prüfung an zwei echten Entscheiden wurden 56 von 58 Klammern richtig behandelt, und die beiden übrigen Fälle sind seither in den Regeln berücksichtigt.

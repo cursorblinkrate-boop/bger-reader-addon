@@ -1,10 +1,12 @@
+**Deutsch** · [English](EN-Usage.md) · [Français](FR-Utilisation.md) · [Italiano](IT-Utilizzo.md)
+
 bger reader lässt sich an zwei Stellen bedienen: direkt auf der Entscheidseite über ein kleines Einstellungsfeld, das sich mit dem pinken Knopf öffnet, oder in einem eigenen Fenster, das sich über das Symbol der Erweiterung in der Symbolleiste öffnet. Beide zeigen dieselben Einstellungen, greifen auf denselben Speicher zu und bleiben miteinander abgeglichen: Was im Fenster verstellt wird, wirkt sofort auf der Seite, und umgekehrt.
 
 ## Der pinke Knopf und das Einstellungsfeld
 
 Auf jeder unterstützten Entscheidseite erscheint oben rechts ein runder pinker Knopf mit einem weissen Buch-Symbol. Er liegt über der Seite und scrollt nicht mit, ist also immer erreichbar. Ein Klick darauf öffnet an derselben Stelle das Einstellungsfeld, ein kleines weisses Panel mit der Überschrift «bger reader». Der pinke Knopf verschwindet, solange das Feld offen ist, und kommt zurück, sobald es geschlossen wird. Geschlossen wird das Feld mit dem pinken X-Knopf oben rechts im Feld oder mit der Taste **Escape**.
 
-Das Feld ist bewusst schlicht gehalten. Im oberen Teil stehen die Einstellungen, die am häufigsten gebraucht werden: **einschalten**, **Schriftgrösse**, **Schriftart**, **Hintergrund**, **Textbreite** und **einfach**. Ein Klick auf **erweitert** klappt darunter die übrigen Einstellungen auf: Schriftstärke, Zeilenabstand, Absatzabstand, Buchstabenabstand, Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten und der Knopf **Zurücksetzen**. Was jede dieser Einstellungen im Einzelnen tut, steht auf der Seite [Einstellungen](Einstellungen.md).
+Das Feld ist bewusst schlicht gehalten. Im oberen Teil stehen die Einstellungen, die am häufigsten gebraucht werden: **einschalten**, **Schriftgrösse**, **Schriftart**, **Hintergrund**, **Textbreite** und **einfach**. Ein Klick auf **erweitert** klappt darunter die übrigen Einstellungen auf: Schriftstärke, Zeilenabstand, Absatzabstand, Buchstabenabstand, Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten und der Knopf **Zurücksetzen**. Was jede dieser Einstellungen im Einzelnen tut, steht auf der Seite [Einstellungen](DE-Einstellungen.md).
 
 Solange **einschalten** nicht angehakt ist, verändert die Erweiterung nichts an der Seite; sie wartet nur. Mit dem Häkchen wird der Lesemodus aktiv, und alle übrigen Einstellungen wirken sofort. Das Häkchen wieder zu entfernen stellt die ursprüngliche Darstellung der Seite vollständig wieder her, auch die eingeklappten Klammern werden dann wieder ausgepackt.
 
@@ -22,7 +24,7 @@ In Chrome, Brave und Edge liegt das Symbol der Erweiterung zunächst hinter dem 
 
 ## Eingeklappte Klammern lesen
 
-Ist **einfach** angehakt, was der Standard ist, werden Fundstellen in Klammern eingeklappt. Sichtbar bleibt an ihrer Stelle ein kleiner Knopf mit dem Zeichen `▸`. Ein Klick darauf zeigt den Klammerinhalt an Ort und Stelle, der Knopf wechselt zu `▾`; ein weiterer Klick klappt die Klammer wieder ein. Jede Klammer lässt sich einzeln öffnen und schliessen, und einmal geöffnete Klammern bleiben offen, auch wenn danach Schrift oder Farben verstellt werden. Nur das Aus- und wieder Einschalten des Lesemodus oder der Klammern setzt alle Klammern wieder auf den eingeklappten Zustand. Welche Klammern überhaupt eingeklappt werden, erklärt die Seite [Klammern einklappen](Klammern.md).
+Ist **einfach** angehakt, was der Standard ist, werden Fundstellen in Klammern eingeklappt. Sichtbar bleibt an ihrer Stelle ein kleiner Knopf mit dem Zeichen `▸`. Ein Klick darauf zeigt den Klammerinhalt an Ort und Stelle, der Knopf wechselt zu `▾`; ein weiterer Klick klappt die Klammer wieder ein. Jede Klammer lässt sich einzeln öffnen und schliessen, und einmal geöffnete Klammern bleiben offen, auch wenn danach Schrift oder Farben verstellt werden. Nur das Aus- und wieder Einschalten des Lesemodus oder der Klammern setzt alle Klammern wieder auf den eingeklappten Zustand. Welche Klammern überhaupt eingeklappt werden, erklärt die Seite [Klammern einklappen](DE-Klammern.md).
 
 Wer die Klammern gar nicht eingeklappt haben möchte, entfernt das Häkchen bei **einfach**; alle übrigen Einstellungen bleiben davon unberührt.
 

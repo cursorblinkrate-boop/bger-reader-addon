@@ -1,8 +1,10 @@
+**Deutsch** · [English](EN-Installation.md) · [Français](FR-Installation.md) · [Italiano](IT-Installazione.md)
+
 Diese Seite beschreibt, wie bger reader heruntergeladen und in den einzelnen Browsern eingerichtet wird. Der Weg über das Release-Paket ist etwas länger als ein Klick im Browser-Store, aber gut machbar; er ist so lange der Standardweg, bis die Erweiterung in den Stores freigegeben ist.
 
 ## Voraussetzungen
 
-Die Erweiterung läuft in **Chrome, Brave und Edge ab Version 121** sowie in **Firefox ab Version 140**. Ältere Browser verweigern die Installation. Die Version des eigenen Browsers steht im Menü unter «Über Chrome» beziehungsweise «Über Firefox»; aktuelle Browser sind längst über diesen Mindestversionen. Ein Smartphone-Browser wird nicht unterstützt, siehe [Häufige Fragen](FAQ.md).
+Die Erweiterung läuft in **Chrome, Brave und Edge ab Version 121** sowie in **Firefox ab Version 140**. Ältere Browser verweigern die Installation. Die Version des eigenen Browsers steht im Menü unter «Über Chrome» beziehungsweise «Über Firefox»; aktuelle Browser sind längst über diesen Mindestversionen. Ein Smartphone-Browser wird nicht unterstützt, siehe [Häufige Fragen](DE-FAQ.md).
 
 ## Paket herunterladen
 

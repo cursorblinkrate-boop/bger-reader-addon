@@ -114,16 +114,19 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Test-Abhängigkeiten sind dort festgenagelt (jsdom,
                           Playwright, Selenium): neue Versionen bewusst
                           hochsetzen, im Workflow und im Setup unten.
-wiki/                     Dokumentation als GitHub-Wiki-Seiten (Home,
+wiki/                     Dokumentation als GitHub-Wiki-Seiten in vier
+                          Sprachen: je Seite DE-/EN-/FR-/IT-Datei (Startseite,
                           Installation, Bedienung, Einstellungen, Klammern,
                           Schriftarten, Websites, Datenschutz, FAQ,
-                          Entwicklung, _Sidebar, _Footer). Nur hier ändern,
-                          nie im Wiki selbst; .github/workflows/wiki.yml
+                          Entwicklung; Namenstabelle in wiki/README.md),
+                          Home.md = Sprachwahl, Zeile 1 jeder Seite =
+                          Sprachleiste, _Sidebar/_Footer viersprachig.
+                          Deutsche Fassung ist die Quelle, Übersetzungen
+                          nachziehen; UI-Beschriftungen bleiben dort deutsch
+                          mit Übersetzung in Klammern. Nur hier ändern, nie
+                          im Wiki selbst; .github/workflows/wiki.yml
                           spiegelt den Ordner bei jedem Push auf main ins
-                          Wiki (Links Seite.md -> Seite). Voraussetzung
-                          einmalig: Wiki in den Repo-Settings einschalten
-                          und eine erste Seite anlegen. README.md verlinkt
-                          auf die Seiten.
+                          Wiki (Links Seite.md -> Seite).
 Git-Tag userscript-2.1.0  das ursprüngliche Tampermonkey-Skript, eingefroren
                           (früher archiv/) – nicht als Vorlage nehmen,
                           Änderungen nur in extension/content.js

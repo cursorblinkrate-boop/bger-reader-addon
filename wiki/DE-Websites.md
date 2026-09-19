@@ -1,3 +1,5 @@
+**Deutsch** · [English](EN-Websites.md) · [Français](FR-Sites.md) · [Italiano](IT-Siti.md)
+
 bger reader arbeitet auf den Entscheidseiten des Schweizerischen Bundesgerichts und des Bundesverwaltungsgerichts. Der Browser startet die Erweiterung nur auf den hier aufgeführten Adressen; auf allen anderen Websites ist sie nicht vorhanden. Die Einstellungen gelten gemeinsam für alle unterstützten Seiten.
 
 | Adresse | Gericht | Was dort liegt |
@@ -24,4 +26,4 @@ Einige Besonderheiten der Seite werden berücksichtigt. Die Website gibt ihre Sp
 
 ## Was nicht unterstützt wird
 
-Die Erweiterung wirkt nur auf die Entscheidseiten im Browser. Nicht unterstützt werden die PDF-Fassungen der Entscheide, die Nachrichten- und Informationsseiten unter `www.bger.ch`, die Entscheidsammlungen kantonaler Gerichte, andere Datenbanken wie entscheidsuche.ch oder Swisslex sowie die übrigen Produkte von Weblaw. Ein Smartphone-Browser wird nicht unterstützt, siehe [Häufige Fragen](FAQ.md). Wünsche für weitere Seiten können als [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) eingebracht werden; jede neue Seite braucht ein eigenes Seitenprofil im Code und Testseiten, auf denen es geprüft werden kann.
+Die Erweiterung wirkt nur auf die Entscheidseiten im Browser. Nicht unterstützt werden die PDF-Fassungen der Entscheide, die Nachrichten- und Informationsseiten unter `www.bger.ch`, die Entscheidsammlungen kantonaler Gerichte, andere Datenbanken wie entscheidsuche.ch oder Swisslex sowie die übrigen Produkte von Weblaw. Ein Smartphone-Browser wird nicht unterstützt, siehe [Häufige Fragen](DE-FAQ.md). Wünsche für weitere Seiten können als [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) eingebracht werden; jede neue Seite braucht ein eigenes Seitenprofil im Code und Testseiten, auf denen es geprüft werden kann.

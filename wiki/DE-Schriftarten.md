@@ -1,3 +1,5 @@
+**Deutsch** · [English](EN-Fonts.md) · [Français](FR-Polices.md) · [Italiano](IT-Caratteri.md)
+
 bger reader bringt sieben Schriften mit, die der Erweiterung beiliegen und nie aus dem Internet geladen werden, dazu zwei Einträge für die Schriften des eigenen Systems. Alle mitgelieferten Schriften sind freie Schriften unter offenen Lizenzen; sie dürfen mit der Erweiterung weitergegeben werden, und die Lizenztexte liegen im Paket bei. Die Wahl erfolgt im Einstellungsfeld unter **Schriftart**; die Liste zeigt jeden Eintrag in seiner eigenen Schrift.
 
 ## Die Schriften im Überblick
@@ -28,4 +30,4 @@ Die Schriften liegen im Paket als WOFF2-Dateien, jeweils in den Schnitten «norm
 
 Zwei Familien tragen im Paket andere Namen als im Menü: OpenDyslexic ist intern «Dyslexie-Leseschrift», Liberation Sans und Serif sind «BGEReader Sans» und «BGEReader Serif». Der Grund ist eine Bedingung der Open Font License: Wer eine Schrift verändert, und das Verkleinern auf den lateinischen Zeichenvorrat ist eine solche Veränderung, darf den geschützten Originalnamen nicht weiterverwenden. Am Aussehen ändert das nichts.
 
-Die vollständigen Lizenzangaben mit Quellen und Versionsnummern stehen in der Datei [extension/fonts/LICENSES.md](https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/extension/fonts/LICENSES.md), der Lizenztext der Open Font License in `extension/fonts/OFL.txt`. Die Schriften werden mit einem Skript aus den Originaldateien erzeugt (`tools/subset-fonts.py`), damit der Vorgang nachvollziehbar und wiederholbar bleibt; mehr dazu unter [Entwicklung](Entwicklung.md).
+Die vollständigen Lizenzangaben mit Quellen und Versionsnummern stehen in der Datei [extension/fonts/LICENSES.md](https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/extension/fonts/LICENSES.md), der Lizenztext der Open Font License in `extension/fonts/OFL.txt`. Die Schriften werden mit einem Skript aus den Originaldateien erzeugt (`tools/subset-fonts.py`), damit der Vorgang nachvollziehbar und wiederholbar bleibt; mehr dazu unter [Entwicklung](DE-Entwicklung.md).

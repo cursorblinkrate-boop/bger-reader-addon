@@ -1,3 +1,5 @@
+**Deutsch** · [English](EN-Development.md) · [Français](FR-Developpement.md) · [Italiano](IT-Sviluppo.md)
+
 Diese Seite richtet sich an alle, die den Code von bger reader verstehen, prüfen oder daran mitarbeiten möchten. Sie beschreibt den Aufbau des Repositories, die Arbeitsweise der Erweiterung, die Tests, die Versionierung und den Weg vom Commit zum veröffentlichten Paket. Verbindliche Kurzfassung der Arbeitsregeln sind die Dateien `CLAUDE.md` und `STARTPROMPT.md` im Repository.
 
 ## Grundsätze
@@ -51,7 +53,7 @@ Das Einstellungsfeld lebt in einem Shadow DOM, einem abgeschotteten Bereich der 
 
 Bei der Bedienung werden drei Wege nach Aufwand unterschieden. Änderungen an Schrift und Farben setzen nur CSS-Variablen und wirken bei jeder Reglerbewegung sofort. Das Ein- und Ausschalten des Lesemodus oder der Klammern baut zusätzlich die Klammerhüllen neu auf, was deutlich teurer ist, aber nur dann nötig. Das Speichern wird während des Ziehens eines Reglers gebündelt (höchstens alle 0,4 Sekunden), Auswahl, Häkchen und das Loslassen eines Reglers speichern sofort. Der Speicher meldet jede Änderung auch an die Seite zurück, die sie selbst geschrieben hat; dieses Echo wird am geschriebenen Paket erkannt und ignoriert, sonst würde das Echo eines älteren Schreibvorgangs eine jüngere Einstellung zurückdrehen.
 
-Die Klammer-Engine ist als eigenes Modul `BGerReader` am Anfang von `content.js` gebaut und für Tests über `window.BGerReader` erreichbar. Sie baut pro Absatz eine Karte aller Textknoten auf, findet Klammern mit einem Stapel (sicher gegen Verschachtelung), entscheidet mit den auf [Klammern einklappen](Klammern.md) beschriebenen Regeln und hüllt die Treffer über einen DOM-Bereich (Range) ein, sodass Links und Formatierungen erhalten bleiben. Die Regeln selbst stehen als Konstanten `POLITIK` am Anfang des Regelkerns; `BGerReader.begruendung()` erklärt für jeden Klammertext, warum er eingeklappt wird oder offen bleibt.
+Die Klammer-Engine ist als eigenes Modul `BGerReader` am Anfang von `content.js` gebaut und für Tests über `window.BGerReader` erreichbar. Sie baut pro Absatz eine Karte aller Textknoten auf, findet Klammern mit einem Stapel (sicher gegen Verschachtelung), entscheidet mit den auf [Klammern einklappen](DE-Klammern.md) beschriebenen Regeln und hüllt die Treffer über einen DOM-Bereich (Range) ein, sodass Links und Formatierungen erhalten bleiben. Die Regeln selbst stehen als Konstanten `POLITIK` am Anfang des Regelkerns; `BGerReader.begruendung()` erklärt für jeden Klammertext, warum er eingeklappt wird oder offen bleibt.
 
 Für `bvger.weblaw.ch` gibt es ein eigenes Seitenprofil. Weil die Website eine React-App ist, die den Entscheid nachlädt und bei Navigation ohne Neuladen austauscht, beobachtet `content.js` dort den Seitenbaum mit einem MutationObserver, gedrosselt auf einen Timer von 150 Millisekunden, und baut Stile und Klammern nur dann neu auf, wenn sich der Textblock tatsächlich geändert hat. Der Textblock wird als das Kind des Entscheid-Segments mit den meisten Absätzen erkannt und erhält zur Laufzeit die Klasse `bkl-text`; die Sprache wird am Rubrum erkannt und für die Silbentrennung gesetzt.
 
@@ -79,7 +81,7 @@ node tools/screenshots.js chromium
 
 Edge verwendet das auf dem Rechner installierte Microsoft Edge und braucht keinen Download; Firefox und den passenden Treiber holt Selenium bei Bedarf selbst. Der letzte Befehl erzeugt die Bilder für Store und Dokumentation, wahlweise auch mit `edge` oder `firefox`.
 
-Zum Ausprobieren im eigenen Browser wird der Ordner `extension/` direkt als entpackte Erweiterung geladen, wie unter [Installation](Installation.md) beschrieben; nach jeder Änderung genügt ein Klick auf «Aktualisieren» auf der Erweiterungsseite und ein Neuladen der Entscheidseite.
+Zum Ausprobieren im eigenen Browser wird der Ordner `extension/` direkt als entpackte Erweiterung geladen, wie unter [Installation](DE-Installation.md) beschrieben; nach jeder Änderung genügt ein Klick auf «Aktualisieren» auf der Erweiterungsseite und ein Neuladen der Entscheidseite.
 
 ## Tests
 
@@ -129,7 +131,11 @@ Das Projekt wird von einer Person gepflegt und grösstenteils mit einem KI-Assis
 
 ## Wiki und Dokumentation pflegen
 
-Die Seiten dieses Wikis liegen als Markdown-Dateien im Ordner `wiki/` des Repositories und werden von dort bei jedem Push auf `main`, der den Ordner berührt, durch den Workflow `.github/workflows/wiki.yml` ins GitHub-Wiki kopiert. Änderungen an der Dokumentation werden deshalb wie Code-Änderungen gemacht: Datei in `wiki/` bearbeiten, committen, pushen. Änderungen direkt im Wiki über dessen Bearbeiten-Knopf werden beim nächsten Lauf überschrieben. Links zwischen den Seiten werden in den Dateien mit Endung geschrieben, etwa `[Installation](Installation.md)`, damit sie auch im Repository funktionieren; der Workflow entfernt die Endung beim Kopieren, weil das Wiki Seiten ohne Endung anspricht. `_Sidebar.md` ist die Navigation, `_Footer.md` die Fusszeile, und `wiki/README.md` beschreibt den Ordner, ohne selbst eine Wiki-Seite zu sein. Das Wiki muss einmalig in den Einstellungen des Repositories eingeschaltet und mit einer ersten Seite angelegt werden; bis dahin endet der Workflow mit einem Hinweis statt mit einem Fehler.
+Die Seiten dieses Wikis liegen als Markdown-Dateien im Ordner `wiki/` des Repositories und werden von dort bei jedem Push auf `main`, der den Ordner berührt, durch den Workflow `.github/workflows/wiki.yml` ins GitHub-Wiki kopiert. Änderungen an der Dokumentation werden deshalb wie Code-Änderungen gemacht: Datei in `wiki/` bearbeiten, committen, pushen. Änderungen direkt im Wiki über dessen Bearbeiten-Knopf werden beim nächsten Lauf überschrieben.
+
+Das Wiki gibt es in vier Sprachen. Jede Seite existiert viermal, und der Dateiname beginnt mit dem Sprachkürzel: `DE-Installation.md`, `EN-Installation.md`, `FR-Installation.md`, `IT-Installazione.md`. `Home.md` ist die Sprachwahl, auf der jedes Wiki landet, und die erste Zeile jeder Seite ist die Sprachleiste mit den Links auf dieselbe Seite in den drei anderen Sprachen. Die deutsche Fassung ist die Quelle: Inhaltliche Änderungen werden zuerst dort gemacht und dann in die Übersetzungen übertragen, damit die vier Fassungen nicht auseinanderlaufen. Die Bedienoberfläche der Erweiterung selbst ist nur auf Deutsch; die Übersetzungen nennen deshalb jede Beschriftung im deutschen Wortlaut und erklären sie in der jeweiligen Sprache.
+
+Links zwischen den Seiten werden in den Dateien mit Endung geschrieben, etwa `[Installation](DE-Installation.md)`, damit sie auch im Repository funktionieren; der Workflow entfernt die Endung beim Kopieren, weil das Wiki Seiten ohne Endung anspricht. Dateinamen bleiben ohne Umlaute, Akzente und Leerzeichen, weil sie zur Adresse der Seite werden. `_Sidebar.md` ist die Navigation, `_Footer.md` die Fusszeile, und `wiki/README.md` beschreibt den Ordner samt der Namenstabelle aller Seiten, ohne selbst eine Wiki-Seite zu sein. Das Wiki muss einmalig in den Einstellungen des Repositories eingeschaltet und mit einer ersten Seite angelegt werden; bis dahin endet der Workflow mit einem Hinweis statt mit einem Fehler.
 
 ## Vorgeschichte
 

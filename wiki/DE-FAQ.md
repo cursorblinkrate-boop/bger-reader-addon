@@ -1,8 +1,10 @@
+**Deutsch** · [English](EN-FAQ.md) · [Français](FR-FAQ.md) · [Italiano](IT-FAQ.md)
+
 Antworten auf häufige Fragen und Hilfe, wenn etwas nicht wie erwartet funktioniert. Wenn die passende Antwort fehlt, hilft ein [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) auf GitHub; was eine Meldung enthalten sollte, steht ganz unten.
 
 ## Der pinke Knopf erscheint nicht
 
-Der Knopf erscheint nur auf den unterstützten Adressen, siehe [Unterstützte Websites](Websites.md). Die Adresse in der Adresszeile muss mit `search.bger.ch`, `relevancy.bger.ch` oder `bvger.weblaw.ch` beginnen. Erscheint der Knopf dort nicht, ist die Erweiterung möglicherweise ausgeschaltet: Auf der Erweiterungsseite des Browsers (`chrome://extensions`, `brave://extensions`, `edge://extensions`, in Firefox `about:addons` beziehungsweise `about:debugging` für ein temporäres Add-on) muss bger reader eingeschaltet sein. Nach dem Ein- oder Ausschalten der Erweiterung und nach einer Aktualisierung muss die Entscheidseite einmal neu geladen werden. In Chrome, Brave und Edge verschwindet die Erweiterung ausserdem, wenn der entpackte Ordner verschoben oder gelöscht wurde; dann hilft eine erneute [Installation](Installation.md).
+Der Knopf erscheint nur auf den unterstützten Adressen, siehe [Unterstützte Websites](DE-Websites.md). Die Adresse in der Adresszeile muss mit `search.bger.ch`, `relevancy.bger.ch` oder `bvger.weblaw.ch` beginnen. Erscheint der Knopf dort nicht, ist die Erweiterung möglicherweise ausgeschaltet: Auf der Erweiterungsseite des Browsers (`chrome://extensions`, `brave://extensions`, `edge://extensions`, in Firefox `about:addons` beziehungsweise `about:debugging` für ein temporäres Add-on) muss bger reader eingeschaltet sein. Nach dem Ein- oder Ausschalten der Erweiterung und nach einer Aktualisierung muss die Entscheidseite einmal neu geladen werden. In Chrome, Brave und Edge verschwindet die Erweiterung ausserdem, wenn der entpackte Ordner verschoben oder gelöscht wurde; dann hilft eine erneute [Installation](DE-Installation.md).
 
 ## Ich habe «einschalten» angehakt, aber nichts passiert
 
@@ -18,7 +20,7 @@ In Chrome, Brave und Edge erkennt der Browser eine entpackte Erweiterung an ihre
 
 ## In Firefox ist die Erweiterung nach dem Neustart verschwunden
 
-Firefox lädt unsignierte Erweiterungen nur als temporäres Add-on, das mit dem Schliessen des Browsers verschwindet, und die Einstellungen gehen dabei in der Regel verloren. Das ist eine Eigenschaft von Firefox, kein Fehler der Erweiterung. Bis zur Freigabe im Store muss die Erweiterung nach jedem Start über `about:debugging` neu geladen werden; die Schritte stehen unter [Installation](Installation.md).
+Firefox lädt unsignierte Erweiterungen nur als temporäres Add-on, das mit dem Schliessen des Browsers verschwindet, und die Einstellungen gehen dabei in der Regel verloren. Das ist eine Eigenschaft von Firefox, kein Fehler der Erweiterung. Bis zur Freigabe im Store muss die Erweiterung nach jedem Start über `about:debugging` neu geladen werden; die Schritte stehen unter [Installation](DE-Installation.md).
 
 ## Chrome warnt beim Start vor Erweiterungen im Entwicklermodus
 
@@ -26,7 +28,7 @@ Diese Meldung zeigt Chrome bei jeder Erweiterung, die nicht aus dem Chrome Web S
 
 ## Eine Klammer wurde eingeklappt, die kein Zitat ist, oder ein Zitat blieb offen
 
-Die Regeln sind auf [Klammern einklappen](Klammern.md) beschrieben, und dort steht auch, wie ein Fehlfall gemeldet wird. Sofort hilft der Klappknopf `▸`, mit dem sich jede Klammer einzeln öffnen lässt, oder das Entfernen des Häkchens bei **einfach**, womit alle Klammern offen bleiben. Ein gemeldeter Fall wird als Testfall aufgenommen.
+Die Regeln sind auf [Klammern einklappen](DE-Klammern.md) beschrieben, und dort steht auch, wie ein Fehlfall gemeldet wird. Sofort hilft der Klappknopf `▸`, mit dem sich jede Klammer einzeln öffnen lässt, oder das Entfernen des Häkchens bei **einfach**, womit alle Klammern offen bleiben. Ein gemeldeter Fall wird als Testfall aufgenommen.
 
 ## Die gewählte Schriftart sieht nicht anders aus
 
@@ -42,7 +44,7 @@ Die Erweiterung selbst braucht nie eine Internetverbindung; sie lädt nichts nac
 
 ## Verändert die Erweiterung den Entscheid oder die Website des Gerichts?
 
-Nein. Die Erweiterung verändert nur die Anzeige im eigenen Browser, und nur so lange, wie der Lesemodus eingeschaltet ist. Der Text wird weder gekürzt noch ergänzt, und die Website des Gerichts erfährt nichts von der Erweiterung. Details unter [Datenschutz und Sicherheit](Datenschutz.md).
+Nein. Die Erweiterung verändert nur die Anzeige im eigenen Browser, und nur so lange, wie der Lesemodus eingeschaltet ist. Der Text wird weder gekürzt noch ergänzt, und die Website des Gerichts erfährt nichts von der Erweiterung. Details unter [Datenschutz und Sicherheit](DE-Datenschutz.md).
 
 ## Kann ich den Entscheid mit eingeklappten Klammern drucken?
 
@@ -70,4 +72,4 @@ Auf der Erweiterungsseite des Browsers steht die Versionsnummer neben dem Namen 
 
 ## Wie melde ich einen Fehler oder einen Wunsch?
 
-Über die [Issues](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) des Projekts auf GitHub; dafür ist ein kostenloses GitHub-Konto nötig. Eine gute Meldung enthält die Adresse des betroffenen Entscheids, den Browser samt Version, die Version der Erweiterung, die betroffenen Einstellungen und eine Beschreibung, was erwartet wurde und was stattdessen geschah. Ein Bildschirmfoto hilft oft. Sicherheitsprobleme bitte nicht öffentlich, sondern wie unter [Datenschutz und Sicherheit](Datenschutz.md) beschrieben melden.
+Über die [Issues](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) des Projekts auf GitHub; dafür ist ein kostenloses GitHub-Konto nötig. Eine gute Meldung enthält die Adresse des betroffenen Entscheids, den Browser samt Version, die Version der Erweiterung, die betroffenen Einstellungen und eine Beschreibung, was erwartet wurde und was stattdessen geschah. Ein Bildschirmfoto hilft oft. Sicherheitsprobleme bitte nicht öffentlich, sondern wie unter [Datenschutz und Sicherheit](DE-Datenschutz.md) beschrieben melden.

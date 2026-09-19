@@ -1,3 +1,5 @@
+**Deutsch** · [English](EN-Privacy.md) · [Français](FR-Confidentialite.md) · [Italiano](IT-Privacy.md)
+
 bger reader ist so gebaut, dass Datenschutz keine Frage des Vertrauens ist, sondern der Technik: Die Erweiterung hat keine Möglichkeit, Daten zu senden, weil sie keine Verbindung aufbaut. Diese Seite beschreibt, was sie tut, was sie speichert und wie ein Sicherheitsproblem gemeldet werden kann.
 
 ## Was die Erweiterung tut
@@ -20,7 +22,7 @@ Das separate Einstellungsfenster merkt sich zusätzlich kurzzeitig seine eigene 
 
 ## Quellcode und Auslieferung
 
-Der vollständige Quellcode ist auf GitHub öffentlich und in gewöhnlichem JavaScript geschrieben, ohne Werkzeuge, die den Code vor der Auslieferung umbauen. Das heruntergeladene Paket entspricht Zeile für Zeile dem, was im Repository steht. Das Release-Paket entsteht automatisch aus dem geprüften Stand des Codes, nachdem die Tests in echten Browsern durchgelaufen sind, und daneben wird eine Prüfsumme veröffentlicht, mit der sich die Unversehrtheit der Datei kontrollieren lässt; wie das geht, steht unter [Installation](Installation.md). Die Erweiterung ist ein unabhängiges Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden; die Gerichtsseiten wissen nichts von ihr.
+Der vollständige Quellcode ist auf GitHub öffentlich und in gewöhnlichem JavaScript geschrieben, ohne Werkzeuge, die den Code vor der Auslieferung umbauen. Das heruntergeladene Paket entspricht Zeile für Zeile dem, was im Repository steht. Das Release-Paket entsteht automatisch aus dem geprüften Stand des Codes, nachdem die Tests in echten Browsern durchgelaufen sind, und daneben wird eine Prüfsumme veröffentlicht, mit der sich die Unversehrtheit der Datei kontrollieren lässt; wie das geht, steht unter [Installation](DE-Installation.md). Die Erweiterung ist ein unabhängiges Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden; die Gerichtsseiten wissen nichts von ihr.
 
 ## Sicherheitsprobleme melden
 
