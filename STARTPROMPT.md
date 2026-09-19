@@ -46,16 +46,28 @@ test/test-runner.js       Suite ohne Framework, 7 nummerierte Blöcke, bewusst
                           Fehlschläge nennen die betroffenen Fälle
 test/render-check.js      manueller Harness, crasht ohne Fixtures (bewusst,
                           per try/catch abgefangen — nicht „fixen“)
+test/browser-umgebung.js  gemeinsame Basis für Smoke-Test und Screenshots:
+                          lokaler Server, der die Fixtures unter den ECHTEN
+                          Hostnamen ausliefert (search.bger.ch hat einen
+                          Bot-Schutz, der Headless-Browser mit Captcha
+                          abweist), und ein Adapter für Chromium und Edge
+                          (Playwright) sowie Firefox (Selenium)
 test/browser-smoke.js     Browser-Smoke-Test: die fertige Extension in echtem
-                          Chromium (Playwright) und Firefox (Selenium) – was
-                          jsdom nicht kann: Injektion über das Manifest,
-                          Site-CSS-Kaskade, gebündelte Fonts, Speichern über
-                          Neuladen, Pop-up mit Live-Sync, Druckansicht.
-                          Liefert die Fixtures lokal unter den ECHTEN Hostnamen
-                          aus (search.bger.ch hat einen Bot-Schutz, der
-                          Headless-Browser mit Captcha abweist); nur
-                          bvger.weblaw.ch läuft live und ist nur ein Hinweis.
-                          Screenshots nach test/smoke/<browser>/ – anschauen
+                          Chromium, Edge und Firefox – was jsdom nicht kann:
+                          Injektion über das Manifest, Site-CSS-Kaskade,
+                          gebündelte Fonts, Speichern über Neuladen, Pop-up
+                          mit Live-Sync, Druckansicht. Nur bvger.weblaw.ch
+                          läuft live und ist nur ein Hinweis. Ergebnisbilder
+                          nach test/smoke/<browser>/
+tools/screenshots.js      Bilder für Store und Doku: rund 30 Szenen pro
+                          Browser (jede Schrift, jeder Hintergrund, jede
+                          Einstellung, Pop-up, Übersichten 1280 x 2000),
+                          Store-Format 1280 x 800, zum Entscheidtext
+                          gescrollt, Grundschrift OpenDyslexic; dazu
+                          GALERIE.md mit Bildunterschriften. Ausgabe
+                          test/screenshots/<browser>/, in der CI als
+                          Artefakt screenshots-<os>-<browser>. Neue Szene =
+                          Eintrag in SZENEN
 test/fixtures/            drei echte Entscheid-HTMLs plus eine API-Antwort
                           plus das Site-CSS von bger.ch (css/<familie>/),
                           nicht im Repo:
@@ -79,9 +91,9 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
 .github/workflows/        CI bei jedem Push: Pflichtlauf der Suite (ohne
                           Fixtures), Zusatzlauf mit Fixtures (nicht
                           blockierend) und der Browser-Smoke-Test auf
-                          windows-latest und ubuntu-latest, je in Chromium und
-                          Firefox (Screenshots als Artefakte
-                          smoke-<os>-<browser>). Bei Push auf main mit grüner
+                          windows-latest und ubuntu-latest, je in Chromium,
+                          Edge und Firefox (Artefakte smoke-<os>-<browser>
+                          und screenshots-<os>-<browser>). Bei Push auf main mit grüner
                           Suite und grünem Smoke-Test zudem GitHub-Release
                           v<version>: das ZIP entsteht dort direkt aus dem
                           Commit (git archive, reproduzierbar, ohne npm in dem
@@ -111,8 +123,10 @@ Browser-Smoke-Test zusätzlich Playwright und Selenium – lokal nur bei Bedarf,
 die CI führt ihn bei jedem Push aus:
   cd test && npm install --no-save jsdom@30.1.0 playwright@1.56.1 selenium-webdriver@4.49.0
   (cd test && npx playwright install chromium)       einmalig
-  node test/browser-smoke.js chromium                bzw. firefox; Firefox und
-                                                     geckodriver holt Selenium selbst
+  node test/browser-smoke.js chromium                bzw. edge (installiertes Edge)
+                                                     oder firefox (Firefox und
+                                                     geckodriver holt Selenium selbst)
+  node tools/screenshots.js chromium                 Bilder für Store und Doku
 Achtung: npm install ohne package.json entfernt nicht genannte Pakete – immer
 alle zusammen installieren.
 
@@ -143,10 +157,10 @@ alle zusammen installieren.
    hässliche Quadrate.
 7. Antworte knapp, ohne Höflichkeitsfloskeln. Keine „Soll ich…?“-Vorschläge
    ohne echten Mehrwert.
-8. Vor einem Store-Upload: die Screenshots des Smoke-Tests aus dem CI-Lauf
-   ansehen (Artefakte smoke-windows-latest-chromium/-firefox), nicht nur den
-   grünen Haken. Das Release-ZIP von github.com/…/releases hochladen, seine
-   Prüfsumme steht daneben.
+8. Vor einem Store-Upload: die Bilder aus dem CI-Lauf ansehen (Artefakte
+   screenshots-windows-latest-<browser> für den Store, smoke-… als
+   Funktionsbilder), nicht nur den grünen Haken. Das Release-ZIP von
+   github.com/…/releases hochladen, seine Prüfsumme steht daneben.
 
 == BEKANNTE FALLSTRICKE ==
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,

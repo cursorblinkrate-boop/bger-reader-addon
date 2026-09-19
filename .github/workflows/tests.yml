@@ -93,12 +93,14 @@ jobs:
           retention-days: 30
 
   # Browser-Smoke-Test: die fertige Extension in echten Browsern, auf Windows
-  # und Linux. test/browser-smoke.js beschreibt, was geprüft wird und warum die
-  # Seiten lokal ausgeliefert werden (Bot-Schutz von bger.ch). Chromium über
-  # Playwright steht für Chrome, Edge und Brave; Firefox läuft über Selenium
-  # mit dem auf den Runnern vorinstallierten Firefox und geckodriver.
-  # Screenshots als Artefakt "smoke-<os>-<browser>": vor einem Store-Upload
-  # anschauen, besonders die Windows-Bilder.
+  # und Linux. test/browser-umgebung.js beschreibt den Aufbau (Seiten lokal
+  # ausgeliefert wegen des Bot-Schutzes von bger.ch), test/browser-smoke.js,
+  # was geprüft wird. Chromium über Playwright (steht auch für Chrome und
+  # Brave), Edge = das auf den Runnern installierte Microsoft Edge, Firefox
+  # über Selenium mit dem vorinstallierten Firefox und geckodriver.
+  # Danach tools/screenshots.js: die Bilder für Store und Doku, als Artefakt
+  # "screenshots-<os>-<browser>" (Windows-Bilder für den Store nehmen).
+  # Die Smoke-Screenshots liegen unter "smoke-<os>-<browser>".
   smoke:
     name: Browser-Smoke-Test (${{ matrix.browser }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -106,7 +108,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-        browser: [chromium, firefox]
+        browser: [chromium, edge, firefox]
     # Auch auf Windows in bash (Git for Windows): PowerShell kennt "$JSDOM"
     # als Umgebungsvariable nicht, die Installationsschritte liefen dort leer.
     defaults:
@@ -130,12 +132,15 @@ jobs:
       - name: Fixtures laden (Seiten und Site-CSS, übersprungen wenn vorhanden)
         run: bash tools/fetch-fixtures.sh
 
-      - name: Playwright und Chromium installieren
+      - name: Playwright installieren (Chromium und Edge)
+        if: matrix.browser != 'firefox'
+        working-directory: test
+        run: npm install --no-save --no-audit --no-fund "$PLAYWRIGHT"
+
+      - name: Chromium herunterladen (Edge ist auf den Runnern installiert)
         if: matrix.browser == 'chromium'
         working-directory: test
-        run: |
-          npm install --no-save --no-audit --no-fund "$PLAYWRIGHT"
-          npx playwright install chromium
+        run: npx playwright install chromium
 
       - name: Selenium installieren
         if: matrix.browser == 'firefox'
@@ -151,6 +156,19 @@ jobs:
           name: smoke-${{ matrix.os }}-${{ matrix.browser }}
           path: test/smoke/
           retention-days: 30
+
+      # Bilder für Store und Doku. Kein Release-Gate: ein fehlendes Bild darf
+      # kein Release blockieren (continue-on-error), es fehlt dann im Artefakt.
+      - name: Screenshots für Store und Doku
+        continue-on-error: true
+        run: node tools/screenshots.js ${{ matrix.browser }}
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: screenshots-${{ matrix.os }}-${{ matrix.browser }}
+          path: test/screenshots/
+          retention-days: 90
 
   # Paket veröffentlichen: nach jedem Push auf main, aber nur wenn Suite und
   # Smoke-Test grün sind und die Version im Manifest noch kein Release hat.
