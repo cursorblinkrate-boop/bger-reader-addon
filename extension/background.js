@@ -25,7 +25,7 @@
   const POPUP_HOEHE = 860;
 
   /* Mittige Position relativ zum übergebenen Browser-Fenster. Rein funktional,
-     damit test-runner.js sie direkt prüfen kann. */
+     ohne Seiteneffekte. */
   function zentriert(win, breite, hoehe) {
     const w = win || {};
     const links = Math.round((w.left || 0) + ((w.width || 0) - breite) / 2);

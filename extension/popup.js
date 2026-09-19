@@ -9,8 +9,8 @@
 (function () {
   'use strict';
 
-  /* Schlüssel und Standards: identisch zu content.js (Konsistenz ist
-     testabgesichert, test-runner.js Block [16]). */
+  /* Schlüssel und Standards: identisch zu content.js – Änderungen dort
+     immer hier nachziehen. */
   const STORAGE_KEY = 'bger-reader-einstellungen-v2';
 
   const STANDARDS = {

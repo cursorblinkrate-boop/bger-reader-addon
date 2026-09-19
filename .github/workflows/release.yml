@@ -1,0 +1,92 @@
+# Baut bei jedem Push das Paket und veröffentlicht es bei einem Push auf main
+# als GitHub-Release. Das Ergebnis erscheint als grüner Haken bzw. rotes Kreuz
+# neben dem Commit auf github.com und als Badge im README.
+name: Paket
+
+on:
+  push:
+  workflow_dispatch: # erlaubt manuelles Starten über die GitHub-Oberfläche
+
+# Grundrecht für alle Jobs: nur lesen. Der Release-Job unten hebt das für
+# sich auf contents: write an. Ohne diesen Block warnt CodeQL (CWE-275),
+# weil das Token sonst mehr darf, als die Jobs brauchen.
+permissions:
+  contents: read
+
+jobs:
+  # Prüfen und bauen: Syntax des ausgelieferten Skripts, Manifest, Paketbau
+  # mit Grössenwächter (tools/release.sh). Keine Abhängigkeiten, kein npm.
+  paket:
+    name: Paket bauen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Syntaxprüfung des ausgelieferten Skripts
+        run: node --check extension/content.js
+
+      - name: Manifest ist gültiges JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
+
+      - name: Paket baut und bleibt unter der Grössengrenze
+        run: bash tools/release.sh
+
+  # Paket veröffentlichen: nach jedem Push auf main, wenn der Paketbau
+  # durchlief und die Version im Manifest noch kein Release hat.
+  # Ergebnis: github.com/<repo>/releases mit bger-reader-<version>.zip und
+  # der Prüfsumme als Anhang – ein fester Download-Ort, an dem jede Datei
+  # ihre Version im Namen trägt. Das Release-Tag (v0.9.2) markiert zugleich
+  # den Commit.
+  release:
+    name: Paket als GitHub-Release veröffentlichen
+    needs: paket
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      # Das ZIP entsteht direkt aus dem Commit (git archive): reproduzierbar –
+      # gleicher Commit, gleiche Bytes, gleiche Prüfsumme, auch lokal
+      # nachbaubar – und ohne npm-Installation in dem einzigen Job, der
+      # Schreibrechte hat. Node ist auf dem Runner vorinstalliert.
+      - name: Paket aus dem Commit bauen, Prüfsumme bilden, Grösse prüfen
+        run: |
+          VERSION="$(node tools/version.js)"
+          DATEI="dist/bger-reader-$VERSION.zip"
+          mkdir -p dist
+          # --mtime: für einen Teilbaum (HEAD:extension) nähme git archive sonst
+          # die aktuelle Uhrzeit, und gleiche Commits ergäben verschiedene Bytes.
+          git archive --format=zip --mtime="$(git log -1 --format=%cI HEAD)" -o "$DATEI" HEAD:extension
+          ( cd dist && sha256sum "bger-reader-$VERSION.zip" > "bger-reader-$VERSION.zip.sha256" )
+          cat "$DATEI.sha256"
+          KB=$(( ($(stat -c%s "$DATEI") + 1023) / 1024 ))
+          echo "Groesse: $KB KB (erlaubt: 1023 KB)"
+          test "$KB" -le 1023
+
+      - name: Release anlegen, falls die Version neu ist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node tools/version.js)"
+          TAG="v$VERSION"
+          DATEI="dist/bger-reader-$VERSION.zip"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG existiert bereits – nichts zu tun."
+            exit 0
+          fi
+          # Release-Notizen = der Abschnitt dieser Version aus CHANGELOG.md, dazu die Prüfsumme
+          NOTIZEN="$(awk -v kopf="## $VERSION " 'index($0, kopf) == 1 { f = 1; next } /^## / { if (f) exit } f' CHANGELOG.md)"
+          SUMME="$(cut -d' ' -f1 "$DATEI.sha256")"
+          gh release create "$TAG" "$DATEI" "$DATEI.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "BGer Reader $VERSION" \
+            --notes "${NOTIZEN:-Siehe CHANGELOG.md.}
+
+          SHA-256 von bger-reader-$VERSION.zip: \`$SUMME\`"
+          echo "Release $TAG angelegt: $DATEI"

@@ -20,7 +20,7 @@
       while ((n = walker.nextNode())) {
         if (!n.nodeValue) continue;
         const el = n.parentElement;
-        // Seitenwechsel-Balken („BGE 152 IV 1 S. 7") liegen mitten im Absatz,
+        // Seitenwechsel-Balken („BGE 116 Ia 359 S. 362") liegen mitten im Absatz,
         // sind aber kein Entscheidtext: weder zur Länge noch zu den Ziffern
         // einer Klammer zählen. Ebenso die Beschriftungs-Chips der
         // Markierungen auf bvger.weblaw.ch („Zitierte BVGE" samt Icons,
@@ -119,7 +119,7 @@
     }
 
     /* ---- Rechtsprechung: jede Fundstelle genügt ---- */
-    // Amtliche Sammlung: BGE 135 II 45, ATF 143 IV 27, DTF 120 Ia 1, BVGE 2019 I 1.
+    // Amtliche Sammlung: BGE 135 II 45, ATF 145 I 207, DTF 120 Ia 1, BVGE 2019 I 1.
     // Bundesverwaltungsgericht nach Jahr/Nummer, wie das BVGer selbst zitiert
     // (bvger.weblaw.ch): BVGE 2014/1, BVGE 2020 VII/4, ATAF 2007/6, DTAF 2010/53.
     const BGE_RE = /\b(?:BGE|ATF|DTF)\s+\d{1,3}\s+[IVX]{1,4}[ab]?\s+\d{1,4}\b|\bBVGE\s+(?:19|20)\d{2}\s+[IVX]{1,4}\s+\d{1,4}\b|\b(?:BVGE|ATAF|DTAF)\s+(?:19|20)\d{2}(?:\s+[IVX]{1,4})?\/\d{1,4}\b|\bTPF\s+(?:19|20)\d{2}\s+\d{1,4}\b/;
@@ -129,9 +129,9 @@
     // Praxis des Bundesgerichts, EGMR/EuGH
     const WEITERE_RSPR_RE = /\bPra\s+\d{2,4}\s+Nr\.?\s*\d+|\b(?:EGMR|CourEDH|ECHR|EuGH|CJUE|CJEU)\b[^;]*\d|\bC-\d{1,4}\/\d{2}\b/;
 
-    // Das EIGENE Aktenzeichen im Rubrum ("dossier 6B_399/2024", "Verfahren
+    // Das EIGENE Aktenzeichen im Rubrum ("dossier 1C_338/2018", "Verfahren
     // 6B_1/2020") verweist auf nichts Nachzuschlagendes – es bleibt offen.
-    // Ein zitiertes Urteil ("Urteil 6B_220/2011", "arrêt 6B_390/2018") ist
+    // Ein zitiertes Urteil ("Urteil 6B_220/2011", "arrêt 1C_385/2012") ist
     // dagegen eine Fundstelle.
     const EIGENES_DOSSIER_RE = /^(?:dossier|Verfahren|Verfahrensnummer|procédure|procedimento|cause|causa|incarto|Geschäfts-?Nr\.?|Geschäftsnummer)\s+\d[A-Z]{1,2}[_.]\d{1,4}\/\d{2,4}$/i;
 

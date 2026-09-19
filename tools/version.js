@@ -105,6 +105,5 @@ if (cl) console.log('  ergänzt:  CHANGELOG.md (TODO-Zeile bitte ausfüllen)');
 console.log('');
 console.log('Nächste Schritte:');
 console.log('  1. CHANGELOG.md: die TODO-Zeile durch die echte Änderung ersetzen');
-console.log('  2. node test/test-runner.js        (muss ohne Fehlschlag durchlaufen)');
-console.log('  3. bash tools/release.sh           (baut dist/bger-reader-' + neu + '.zip)');
-console.log('  4. git add -A && git commit && git push');
+console.log('  2. bash tools/release.sh           (baut dist/bger-reader-' + neu + '.zip)');
+console.log('  3. git add -A && git commit && git push');

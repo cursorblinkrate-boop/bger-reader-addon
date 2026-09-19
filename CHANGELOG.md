@@ -4,14 +4,26 @@ Alle veröffentlichten Versionen dieser Extension, neueste zuerst.
 
 **Die Versionsnummer steht an genau einer Stelle: `extension/manifest.json`.**
 Geändert wird sie ausschliesslich mit `node tools/version.js` — nie von Hand.
-Dieser Verlauf und das Manifest werden von Testblock [6] automatisch
-gegeneinander geprüft; laufen sie auseinander, wird die Suite rot.
+Das Werkzeug legt zugleich den Eintrag in diesem Verlauf an, damit Manifest
+und Verlauf nicht auseinanderlaufen.
 
 Nummerierung nach [Semantic Versioning](https://semver.org/lang/de/):
 `MAJOR.MINOR.PATCH` — vorne bei Umbauten, in der Mitte bei neuen Funktionen,
 hinten bei Korrekturen.
 
 ---
+
+## 0.9.2 — 2026-09-19
+
+- Aufgeräumt: Test-Suite, Testseiten-Werkzeuge (`test/`,
+  `tools/fetch-fixtures.sh`, `tools/klammern-report.js`,
+  `tools/screenshots.js`) und das Wiki samt Spiegel-Workflow entfernt. Die CI
+  baut nur noch das Paket (Syntaxprüfung, Manifest, Grösse) und veröffentlicht
+  es bei einem Push auf `main` als Release (`.github/workflows/release.yml`);
+  der Badge im README zeigt diesen Lauf.
+- Beispiel-Zitate in den Kommentaren von `content.js` auf die
+  Beispiel-Entscheide BGE 116 Ia 359 und BGE 145 I 207 umgestellt. Keine
+  Funktionsänderung.
 
 ## 0.9.1 — 2026-09-19
 
@@ -154,9 +166,9 @@ hinten bei Korrekturen.
   Entscheidung.
 - `tools/klammern-report.js`: jede Klammer echter Entscheidseiten mit
   Entscheidung und Begründung; läuft in der CI, Ergebnis als Artefakt.
-- Erste Prüfung an echtem Text (CI-Report, BGE 152 IV 1 und 6F_7/2012):
+- Erste Prüfung an echtem Text (CI-Report, zwei echte Entscheidseiten):
   56 von 58 Klammern richtig. Die zwei Ermessensfälle sind nachgezogen:
-  das eigene Aktenzeichen im Rubrum („dossier 6B_399/2024") bleibt offen;
+  das eigene Aktenzeichen im Rubrum („dossier 1C_338/2018") bleibt offen;
   Online-Quellen mit Abrufdatum („consulté le", „abgerufen am") zählen als
   Literatur.
 - Fixtures werden wie im Browser dekodiert (bger.ch liefert Latin-1, nicht

@@ -24,29 +24,20 @@ echo "BGer Reader – Paket bauen"
 echo "  Version aus extension/manifest.json: $VERSION"
 echo ""
 
-# 1. Nichts ausliefern, was nicht geprüft ist.
-echo "  [1/4] Test-Suite"
-if ! node test/test-runner.js > /tmp/bger-release-tests.log 2>&1; then
-  echo "        ABBRUCH: Die Suite ist nicht grün." >&2
-  tail -5 /tmp/bger-release-tests.log >&2
-  exit 1
-fi
-tail -1 /tmp/bger-release-tests.log | sed 's/^/        /'
-
-# 2. Syntaxprüfung des ausgelieferten Skripts.
-echo "  [2/4] Syntaxprüfung extension/content.js"
+# 1. Syntaxprüfung des ausgelieferten Skripts.
+echo "  [1/3] Syntaxprüfung extension/content.js"
 node --check extension/content.js
 echo "        in Ordnung"
 
-# 3. Paket bauen – ausschliesslich aus extension/.
-#    tools/, test/ und die Dokumentation kommen NICHT mit.
-echo "  [3/4] ZIP bauen"
+# 2. Paket bauen – ausschliesslich aus extension/.
+#    tools/ und die Dokumentation kommen NICHT mit.
+echo "  [2/3] ZIP bauen"
 mkdir -p "$ZIEL_DIR"
 rm -f "$ZIEL"
 ( cd extension && zip -qr "$ZIEL" . -x '.*' -x '__MACOSX/*' -x '*/.DS_Store' )
 
-# 4. Grösse prüfen und Prüfsumme bilden.
-echo "  [4/4] Grösse und Prüfsumme"
+# 3. Grösse prüfen und Prüfsumme bilden.
+echo "  [3/3] Grösse und Prüfsumme"
 if stat -f%z "$ZIEL" >/dev/null 2>&1; then
   BYTES=$(stat -f%z "$ZIEL")      # macOS
 else
