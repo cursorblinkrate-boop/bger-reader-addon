@@ -1,0 +1,70 @@
+# Spiegelt den Ordner wiki/ ins GitHub-Wiki dieses Repos
+# (github.com/cursorblinkrate-boop/bger-reader-addon/wiki).
+#
+# Die Wiki-Seiten leben als Markdown-Dateien im Haupt-Repo: versioniert, mit
+# dem Code zusammen geändert, im Ordner wiki/ auch ohne Wiki lesbar. Dieser
+# Job kopiert sie bei jedem Push auf main, der wiki/ berührt, ins
+# Wiki-Repository; unter "Actions → Wiki → Run workflow" lässt er sich auch
+# von Hand starten. Änderungen direkt im Wiki (Bearbeiten-Knopf dort) werden
+# beim nächsten Lauf überschrieben – Seiten immer in wiki/ ändern.
+#
+# Einmalig von Hand nötig, im Browser: Settings → General → Features → "Wikis"
+# einschalten, dann im Wiki-Tab die erste Seite anlegen (Inhalt egal, sie wird
+# ersetzt). Erst danach existiert das Wiki-Repository. Solange es fehlt, endet
+# der Job mit einem Hinweis, nicht mit einem Fehler.
+name: Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wiki/**'
+      - '.github/workflows/wiki.yml'
+  workflow_dispatch:
+
+# Schreibrecht nur für den Push ins Wiki-Repository (gleiches Token wie das
+# Release in tests.yml).
+permissions:
+  contents: write
+
+jobs:
+  wiki:
+    name: wiki/ ins GitHub-Wiki spiegeln
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Wiki-Repository klonen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          WIKI="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+          if git clone --quiet "$WIKI" "$RUNNER_TEMP/wiki" 2>/dev/null; then
+            echo "vorhanden=1" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Das Wiki ist noch nicht eingerichtet (Settings → General → Features → Wikis einschalten und im Wiki eine erste Seite anlegen). Nichts veröffentlicht."
+          fi
+
+      - name: Seiten kopieren, Links anpassen, pushen
+        if: env.vorhanden == '1'
+        run: |
+          # Alte Seiten im Wiki entfernen, dann den Ordner hineinkopieren: das
+          # Wiki entspricht danach genau wiki/. README.md beschreibt nur den
+          # Ordner und ist keine Wiki-Seite.
+          find "$RUNNER_TEMP/wiki" -path "$RUNNER_TEMP/wiki/.git" -prune -o -type f -print0 | xargs -0 -r rm -f
+          cp -R wiki/. "$RUNNER_TEMP/wiki/"
+          rm -f "$RUNNER_TEMP/wiki/README.md"
+          # Links zwischen den Seiten zeigen im Repo auf Dateien (Seite.md), im
+          # Wiki auf Seitennamen (Seite): Endung entfernen, Anker behalten.
+          find "$RUNNER_TEMP/wiki" -name '*.md' -exec sed -i -E 's/\]\(([A-Za-z0-9_-]+)\.md(#[^)]*)?\)/](\1\2)/g' {} +
+          cd "$RUNNER_TEMP/wiki"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki ist bereits aktuell."
+            exit 0
+          fi
+          git commit --quiet -m "Wiki aus wiki/ (${GITHUB_SHA::7})"
+          git push --quiet
+          echo "Wiki aktualisiert: https://github.com/${GITHUB_REPOSITORY}/wiki"

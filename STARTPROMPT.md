@@ -104,6 +104,16 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Test-Abhängigkeiten sind dort festgenagelt (jsdom,
                           Playwright, Selenium): neue Versionen bewusst
                           hochsetzen, im Workflow und im Setup unten.
+wiki/                     Dokumentation als GitHub-Wiki-Seiten (Home,
+                          Installation, Bedienung, Einstellungen, Klammern,
+                          Schriftarten, Websites, Datenschutz, FAQ,
+                          Entwicklung, _Sidebar, _Footer). Nur hier ändern,
+                          nie im Wiki selbst; .github/workflows/wiki.yml
+                          spiegelt den Ordner bei jedem Push auf main ins
+                          Wiki (Links Seite.md -> Seite). Voraussetzung
+                          einmalig: Wiki in den Repo-Settings einschalten
+                          und eine erste Seite anlegen. README.md verlinkt
+                          auf die Seiten.
 Git-Tag userscript-2.1.0  das ursprüngliche Tampermonkey-Skript, eingefroren
                           (früher archiv/) – nicht als Vorlage nehmen,
                           Änderungen nur in extension/content.js
