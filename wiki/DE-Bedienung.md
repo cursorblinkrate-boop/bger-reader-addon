@@ -30,7 +30,7 @@ Wer die Klammern gar nicht eingeklappt haben möchte, entfernt das Häkchen bei 
 
 ## Speichern und Gültigkeit der Einstellungen
 
-Es gibt keinen Speichern-Knopf. Jede Änderung wird sofort im lokalen Speicher der Erweiterung abgelegt und ist beim nächsten Öffnen einer Entscheidseite wieder da, auch nach einem Neustart des Browsers. Die Einstellungen gelten gemeinsam für alle unterstützten Websites; wer auf `search.bger.ch` Sepia und 20 Punkt wählt, sieht auf `bvger.weblaw.ch` dieselbe Darstellung. Der Knopf **Zurücksetzen** unter «erweitert» stellt alle Werte auf den Standard zurück und schaltet den Lesemodus aus.
+Es gibt keinen Speichern-Knopf. Jede Änderung wird sofort im lokalen Speicher der Erweiterung abgelegt und ist beim nächsten Öffnen einer Entscheidseite wieder da, auch nach einem Neustart des Browsers. Die Einstellungen gelten gemeinsam für alle unterstützten Websites; wer auf `search.bger.ch` Sepia und Schriftgrösse 20 wählt, sieht auf `bvger.weblaw.ch` dieselbe Darstellung. Der Knopf **Zurücksetzen** unter «erweitert» stellt alle Werte auf den Standard zurück und schaltet den Lesemodus aus.
 
 ## Bedienung mit der Tastatur
 
