@@ -15,15 +15,20 @@ hinten bei Korrekturen.
 
 ## 0.9.2 — 2026-09-19
 
-- Aufgeräumt: Test-Suite, Testseiten-Werkzeuge (`test/`,
-  `tools/fetch-fixtures.sh`, `tools/klammern-report.js`,
-  `tools/screenshots.js`) und das Wiki samt Spiegel-Workflow entfernt. Die CI
-  baut nur noch das Paket (Syntaxprüfung, Manifest, Grösse) und veröffentlicht
-  es bei einem Push auf `main` als Release (`.github/workflows/release.yml`);
-  der Badge im README zeigt diesen Lauf.
-- Beispiel-Zitate in den Kommentaren von `content.js` auf die
-  Beispiel-Entscheide BGE 116 Ia 359 und BGE 145 I 207 umgestellt. Keine
-  Funktionsänderung.
+- Test-Suite, Testseiten und Screenshot-Werkzeuge auf inhaltlich harmlose
+  Beispiel-Entscheide umgestellt: BGE 116 Ia 359 (Frauenstimmrecht) für
+  Suite, Smoke-Test und Bilder, 6F_7/2012 (aza), BGE 145 I 207
+  (Heiratsstrafe-Abstimmung, französisch) und BVGer B-7296/2025 (CITES).
+  Der bisherige clir-Testentscheid ist aus Suite, Werkzeugen, Kommentaren
+  und Doku entfernt; Zitat-Beispiele im Test-Korpus und in Kommentaren
+  entsprechend ersetzt. Keine Funktionsänderung.
+- Wiki samt Spiegel-Workflow entfernt. Der CI-Workflow heisst jetzt
+  `.github/workflows/release.yml` („Prüfung und Paket": Suite, Smoke-Test,
+  Paketbau, Release); der Badge im README zeigt diesen Lauf.
+- Bilder aus Smoke-Test und `tools/screenshots.js` zeigen die Erwägungen
+  auf 1280 x 2000 statt nur den Urteilskopf, damit Schrift, Abstände und
+  Hintergrund über den ganzen Text beurteilt werden können; nur die
+  Store-Szenen bleiben 1280 x 800.
 
 ## 0.9.1 — 2026-09-19
 
