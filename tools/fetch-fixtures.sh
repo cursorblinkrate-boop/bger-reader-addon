@@ -78,7 +78,7 @@ done
 # Site-CSS der bger.ch-Seiten: test/browser-smoke.js liefert die Seiten lokal
 # aus und braucht dazu ihr eigenes CSS (sonst erschienen sie ungestylt und die
 # Kaskade Site-CSS gegen Extension-CSS bliebe ungeprüft). master.css importiert
-# die vier anderen. Ablage wie bei test/render-check.js:
+# die vier anderen. Ablage:
 # test/fixtures/css/<familie>/<datei>.
 CSS_FAMILIEN=(
   "clir|https://search.bger.ch/ext/eurospider/live/de/php/clir/http/css/"

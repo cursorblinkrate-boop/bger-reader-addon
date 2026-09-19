@@ -594,7 +594,7 @@
     html.bkl-aktiv div.eit .inexact_match a,
     html.bkl-aktiv div.eit .incomplete_match a { color: #1a1a1a !important; }
 
-    /* Seiten-Boxen der Entscheidseite (Fixture bger_test.html):
+    /* Seiten-Boxen der Entscheidseite (Fixture bger_frauenstimmrecht.html):
        div.eit .box = Inhaltsbox (#highlight_content) und rechte Spalte
        (#highlight_index = Inhalt, #highlight_references = Referenzen,
        #highlight_navigation = Navigation, jeweils mit .content/h3/p).
