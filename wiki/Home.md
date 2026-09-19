@@ -14,7 +14,7 @@ bger reader is a free browser extension for Chrome, Brave, Edge and Firefox that
 
 ## Français
 
-bger reader est une extension gratuite pour Chrome, Brave, Edge et Firefox qui facilite la lecture des arrêts du Tribunal fédéral et du Tribunal administratif fédéral : police, espacements et jeux de couleurs réglables, références entre parenthèses repliées. Elle fonctionne entièrement hors ligne et ne collecte aucune donnée. L'interface de l'extension est en allemand ; la documentation explique chaque libellé.
+bger reader est une extension gratuite pour Chrome, Brave, Edge et Firefox qui facilite la lecture des arrêts du Tribunal fédéral et du Tribunal administratif fédéral : police, espacements et jeux de couleurs réglables, références entre parenthèses repliées. Elle fonctionne entièrement hors ligne et ne collecte aucune donnée. L'interface de l'extension est en allemand; la documentation explique chaque libellé.
 
 [Page d'accueil en français](FR-Accueil.md) · [Installation](FR-Installation.md) · [Questions fréquentes](FR-FAQ.md)
 
