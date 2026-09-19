@@ -26,7 +26,7 @@ Chrome zeigt nach einem Neustart unter Umständen einen Hinweis, dass Erweiterun
 
 ## Firefox
 
-Firefox installiert Erweiterungen dauerhaft nur, wenn sie von Mozilla signiert sind, was mit der Freigabe im Store geschieht. Bis dahin lässt sich bger reader in Firefox als **temporäres Add-on** laden. Das funktioniert vollständig, gilt aber nur bis zum nächsten Schliessen des Browsers; danach muss die Erweiterung erneut geladen werden. Die gespeicherten Einstellungen bleiben dabei nicht erhalten.
+Firefox installiert Erweiterungen dauerhaft nur, wenn sie von Mozilla signiert sind, was mit der Freigabe im Store geschieht. Bis dahin lässt sich bger reader in Firefox als **temporäres Add-on** laden. Das funktioniert vollständig, gilt aber nur bis zum nächsten Schliessen des Browsers; danach muss die Erweiterung erneut geladen werden, und die gespeicherten Einstellungen gehen dabei in der Regel verloren.
 
 1. In die Adresszeile `about:debugging#/runtime/this-firefox` eingeben und Enter drücken.
 2. Auf **Temporäres Add-on laden…** klicken.

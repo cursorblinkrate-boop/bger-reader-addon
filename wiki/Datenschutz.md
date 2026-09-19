@@ -10,7 +10,7 @@ Sie liest keine Eingaben in Suchfelder, keine Cookies und keine anderen Tabs, un
 
 Beim Installieren fragt der Browser nach genau einer Berechtigung: **Speicher** («storage»). Sie erlaubt der Erweiterung, ihre eigenen Einstellungen im lokalen Erweiterungsspeicher des Browsers abzulegen, damit sie beim nächsten Öffnen einer Entscheidseite wieder da sind. Der Zugriff auf die vier Gerichtsadressen ist keine gesondert erteilte Berechtigung, sondern ergibt sich daraus, dass die Erweiterung nur dort läuft; der Browser zeigt das in der Übersicht der Erweiterung als «Daten auf search.bger.ch lesen und ändern» an. Andere Berechtigungen, etwa für Browserverlauf, Tabs, Downloads oder Webseiten allgemein, verlangt die Erweiterung nicht.
 
-Für Firefox enthält das Paket zusätzlich die formelle Erklärung, dass keine Daten erhoben werden («data collection permissions: none»); Firefox ab Version 140 zeigt diese Angabe beim Installieren an.
+Für Firefox enthält das Paket zusätzlich die formelle Erklärung, dass keine Daten erhoben werden («data collection permissions: none»); Firefox ab Version 140 wertet diese Angabe aus.
 
 ## Was gespeichert wird
 

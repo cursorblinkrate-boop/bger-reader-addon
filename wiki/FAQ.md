@@ -2,7 +2,7 @@ Antworten auf häufige Fragen und Hilfe, wenn etwas nicht wie erwartet funktioni
 
 ## Der pinke Knopf erscheint nicht
 
-Der Knopf erscheint nur auf Entscheidseiten der unterstützten Adressen, siehe [Unterstützte Websites](Websites.md). Die Adresse in der Adresszeile muss mit `search.bger.ch`, `relevancy.bger.ch` oder `bvger.weblaw.ch` beginnen. Erscheint der Knopf dort nicht, ist die Erweiterung möglicherweise ausgeschaltet: Auf der Erweiterungsseite des Browsers (`chrome://extensions`, `brave://extensions`, `edge://extensions`, in Firefox `about:addons` beziehungsweise `about:debugging` für ein temporäres Add-on) muss bger reader eingeschaltet sein. Nach dem Ein- oder Ausschalten der Erweiterung und nach einer Aktualisierung muss die Entscheidseite einmal neu geladen werden. In Chrome, Brave und Edge verschwindet die Erweiterung ausserdem, wenn der entpackte Ordner verschoben oder gelöscht wurde; dann hilft eine erneute [Installation](Installation.md).
+Der Knopf erscheint nur auf den unterstützten Adressen, siehe [Unterstützte Websites](Websites.md). Die Adresse in der Adresszeile muss mit `search.bger.ch`, `relevancy.bger.ch` oder `bvger.weblaw.ch` beginnen. Erscheint der Knopf dort nicht, ist die Erweiterung möglicherweise ausgeschaltet: Auf der Erweiterungsseite des Browsers (`chrome://extensions`, `brave://extensions`, `edge://extensions`, in Firefox `about:addons` beziehungsweise `about:debugging` für ein temporäres Add-on) muss bger reader eingeschaltet sein. Nach dem Ein- oder Ausschalten der Erweiterung und nach einer Aktualisierung muss die Entscheidseite einmal neu geladen werden. In Chrome, Brave und Edge verschwindet die Erweiterung ausserdem, wenn der entpackte Ordner verschoben oder gelöscht wurde; dann hilft eine erneute [Installation](Installation.md).
 
 ## Ich habe «einschalten» angehakt, aber nichts passiert
 
@@ -18,7 +18,7 @@ In Chrome, Brave und Edge erkennt der Browser eine entpackte Erweiterung an ihre
 
 ## In Firefox ist die Erweiterung nach dem Neustart verschwunden
 
-Firefox lädt unsignierte Erweiterungen nur als temporäres Add-on, das mit dem Schliessen des Browsers verschwindet, und die Einstellungen werden dabei nicht behalten. Das ist eine Eigenschaft von Firefox, kein Fehler der Erweiterung. Bis zur Freigabe im Store muss die Erweiterung nach jedem Start über `about:debugging` neu geladen werden; die Schritte stehen unter [Installation](Installation.md).
+Firefox lädt unsignierte Erweiterungen nur als temporäres Add-on, das mit dem Schliessen des Browsers verschwindet, und die Einstellungen gehen dabei in der Regel verloren. Das ist eine Eigenschaft von Firefox, kein Fehler der Erweiterung. Bis zur Freigabe im Store muss die Erweiterung nach jedem Start über `about:debugging` neu geladen werden; die Schritte stehen unter [Installation](Installation.md).
 
 ## Chrome warnt beim Start vor Erweiterungen im Entwicklermodus
 

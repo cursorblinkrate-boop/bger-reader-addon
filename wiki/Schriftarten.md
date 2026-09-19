@@ -16,7 +16,7 @@ bger reader bringt sieben Schriften mit, die der Erweiterung beiliegen und nie a
 
 ## Welche Schrift für wen
 
-Bei einer Sehbeeinträchtigung lohnt es sich, Atkinson Hyperlegible und Luciole nacheinander auszuprobieren, jeweils mit etwas grösserer Schrift und einem Zeilenabstand von 1.6 oder mehr. Beide wurden gezielt dafür entworfen, dass ähnliche Zeichen auch bei Unschärfe oder geringem Kontrast auseinanderzuhalten sind. Atkinson Hyperlegible ist etwas breiter und ruhiger, Luciole etwas kompakter.
+Bei einer Sehbeeinträchtigung lohnt es sich, Atkinson Hyperlegible und Luciole nacheinander auszuprobieren, jeweils mit etwas grösserer Schrift und einem Zeilenabstand von 1.6 oder mehr. Beide wurden gezielt dafür entworfen, dass ähnliche Zeichen auch bei Unschärfe oder geringem Kontrast auseinanderzuhalten sind. Welche der beiden angenehmer ist, zeigt am besten der direkte Vergleich am eigenen Bildschirm.
 
 Bei Legasthenie ist OpenDyslexic die bekannteste Wahl; ob sie wirklich hilft, ist von Person zu Person verschieden, deshalb steht mit Comic Neue eine zweite Schrift mit deutlich unterscheidbaren Buchstabenformen zur Verfügung. Oft bringen ein grösserer Buchstaben- und Wortabstand und ein weiterer Zeilenabstand mehr als der Wechsel der Schrift allein; diese Einstellungen stehen unter **erweitert**.
 
