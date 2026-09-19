@@ -30,9 +30,12 @@ hinten bei Korrekturen.
   Manifest lädt sie vor `content.js`, `popup.html` vor `popup.js`); das
   Markup bleibt deutsch, die anderen Sprachen werden nach Element-ID
   hineingeschrieben, ohne Neuaufbau.
-- Gestaltung von Panel und Pop-up überarbeitet („Rosé Atelier"): Wortmarke
-  in EB Garamond, Bedienoberfläche in Atkinson Hyperlegible Next (beide
-  Schriften liegen bereits im Paket, nichts Neues wird geladen), Farbtokens
+- Gestaltung von Panel und Pop-up überarbeitet („Swiss Boutique, Pink
+  Edition", von der Autorin aus fünf Entwürfen gewählt): strenge Kanten ohne
+  Rundungen, Wortmarke in fetten Versalien, fette Beschriftungen, pinker
+  Akzentbalken links, Blockknopf „erweitert" in Rosé-Violett; Schrift
+  durchgehend Atkinson Hyperlegible Next (liegt bereits im Paket, nichts
+  Neues wird geladen), Farbtokens
   in Rosa, Pink und Violett auf rosé getöntem Weiss, pinke Ränder an Panel,
   Auswahllisten, Schaltern und Knöpfen, Regler mit pinkem Herz als Knopf und
   Füllung von Rosé nach Violett, Schalter mit Herz im Knopf, Panel 300 px

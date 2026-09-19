@@ -922,7 +922,7 @@ console.log('\n[7] Pop-up-Fenster');
       !/<script(?![^>]*\bsrc=)[^>]*>/.test(popupHtml) && /<script src="popup\.js">/.test(popupHtml) &&
       /font-size:\s*16px/.test(popupCss) && /input\[type="checkbox"\]\s*\{[^}]*width:\s*46px/.test(popupCss) &&
       /input\[type="checkbox"\]\s*\{[^}]*width:\s*40px/.test(SCRIPT));
-    // Design-Tokens („Rosé Atelier", hell und dunkel): Pop-up-CSS (:root / body[data-schema])
+    // Design-Tokens („Swiss Boutique, Pink Edition", hell und dunkel): Pop-up-CSS (:root / body[data-schema])
     // muss dieselben Werte tragen wie das Panel (:host / :host([data-schema])) in content.js.
     function tokens(css, selektor) {
       const i = css.indexOf(selektor);
@@ -930,11 +930,13 @@ console.log('\n[7] Pop-up-Fenster');
       return (block.match(/--ui-[a-z0-9-]+:\s*[^;]+;/g) || []).map(function (z) { return z.replace(/\s+/g, ' '); });
     }
     const hellPanel = tokens(SCRIPT, ':host {'), dunkelPanel = tokens(SCRIPT, ':host([data-schema="dunkel"])');
-    pruefe('Design-Tokens hell (17) und dunkel (15) im Pop-up-CSS identisch zum Panel; Schrift Atkinson Hyperlegible Next, Wortmarke EB Garamond, Herz-Regler als Token',
-      hellPanel.length === 17 && hellPanel.join('|') === tokens(popupCss, ':root {').join('|') &&
-      dunkelPanel.length === 15 && dunkelPanel.join('|') === tokens(popupCss, 'body[data-schema="dunkel"]').join('|') &&
-      /--ui-schrift: "Atkinson Hyperlegible Next"/.test(hellPanel.join('|')) && /--ui-marke: "EB Garamond"/.test(hellPanel.join('|')) &&
-      /--ui-herz: url\("data:image\/svg\+xml/.test(hellPanel.join('|')) && /--ui-violett: #/.test(hellPanel.join('|')),
+    pruefe('Design-Tokens hell (18) und dunkel (16) im Pop-up-CSS identisch zum Panel; Schrift und Wortmarke Atkinson Hyperlegible Next, Herz-Regler und Akzent-Textfarbe als Token',
+      hellPanel.length === 18 && hellPanel.join('|') === tokens(popupCss, ':root {').join('|') &&
+      dunkelPanel.length === 16 && dunkelPanel.join('|') === tokens(popupCss, 'body[data-schema="dunkel"]').join('|') &&
+      /--ui-schrift: "Atkinson Hyperlegible Next"/.test(hellPanel.join('|')) && /--ui-marke: "Atkinson Hyperlegible Next"/.test(hellPanel.join('|')) &&
+      /--ui-herz: url\("data:image\/svg\+xml/.test(hellPanel.join('|')) && /--ui-violett: #/.test(hellPanel.join('|')) &&
+      /--ui-auf-akzent: #ffffff/.test(hellPanel.join('|')) && /--ui-auf-akzent: #221419/.test(dunkelPanel.join('|')) &&
+      /label\s*\{[^}]*font-weight:\s*700/.test(SCRIPT) && /label\s*\{[^}]*font-weight:\s*700/.test(popupCss),
       hellPanel.length + '/' + dunkelPanel.length);
     const fontUrls = [];
     popupCss.replace(/url\("(fonts\/[^"]+)"\)/g, function (m2, u) { fontUrls.push(u); return m2; });

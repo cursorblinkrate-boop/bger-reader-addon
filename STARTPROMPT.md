@@ -31,7 +31,7 @@ extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
                           Pink-Button ICON_BUCH_SMILE (weisser Strich),
                           eigene Tooltips nach 3 s (data-tooltip, kein title),
                           Sprachwahl im Panel-Kopf (sprachAnwenden), Panel-CSS
-                          mit Design-Tokens „Rosé Atelier" (hell/dunkel, folgt
+                          mit Design-Tokens „Swiss Boutique, Pink Edition" (hell/dunkel, folgt
                           dem Farbschema), chrome.storage.local-Persistenz
 extension/sprachen.js     Texte der Bedienoberfläche in vier Sprachen (de/en/
                           fr/it) für Panel UND Pop-up: je Element-ID label,

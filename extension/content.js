@@ -1107,9 +1107,10 @@
   const panelCss = `
     :host {
       all: initial;
-      /* Design-Tokens „Rosé Atelier", helles Schema: Rosa, Pink und Violett
-         nach Vorgabe der Autorin. Derselbe Satz steht in popup.css (:root);
-         Block [7] der Suite prüft, dass beide gleich sind.
+      /* Design-Tokens „Swiss Boutique, Pink Edition", helles Schema: strenge
+         Kanten, Versalien-Wortmarke, fette Beschriftungen, Rosa, Pink und
+         Violett, Herz als Regler-Knopf. Derselbe Satz steht in popup.css
+         (:root); Block [7] der Suite prüft, dass beide gleich sind.
          Custom Properties sind von all:initial nicht betroffen. */
       --ui-bg: #fff4f9;
       --ui-bg-2: #fbe1ee;
@@ -1121,29 +1122,32 @@
       --ui-rose-2: #e64980;
       --ui-rose-3: #a61e63;
       --ui-rose-weich: #f6cadf;
-      --ui-violett: #8b5cf6;
+      --ui-violett: #7c3aed;
+      --ui-auf-akzent: #ffffff;
       --ui-icon: #7a2a63;
       --ui-knopf: #ffffff;
       --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23fff4f9' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
-      --ui-schatten: 0 2px 4px rgba(166, 30, 99, .1), 0 16px 40px rgba(166, 30, 99, .24);
+      --ui-schatten: 0 2px 4px rgba(166, 30, 99, .12), 0 16px 40px rgba(166, 30, 99, .26);
       --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
-      --ui-marke: "EB Garamond", Georgia, "Times New Roman", Times, serif;
+      --ui-marke: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
     }
-    /* Dunkles Schema: das Panel folgt der eigenen Einstellung „Hintergrund"
-       (Dunkel, Hoher Kontrast, Nacht), siehe wendeStileAn() – nie dem
-       System (keine Abfrage von prefers-color-scheme, kein Fingerprinting). */
+    /* Dunkles Schema (Leitbild der Autorin): das Panel folgt der eigenen
+       Einstellung „Hintergrund" (Dunkel, Hoher Kontrast, Nacht), siehe
+       wendeStileAn() – nie dem System (kein prefers-color-scheme, kein
+       Fingerprinting). */
     :host([data-schema="dunkel"]) {
       --ui-bg: #221419;
       --ui-bg-2: #2d1b23;
       --ui-fg: #f7e9f0;
       --ui-fg-2: #d9b8cb;
       --ui-linie: #4d2a3d;
-      --ui-rahmen: #8a4468;
+      --ui-rahmen: #b8578d;
       --ui-rose: #e64980;
       --ui-rose-2: #ff6fa5;
       --ui-rose-3: #ffb3cf;
       --ui-rose-weich: #46243a;
       --ui-violett: #c4a4ff;
+      --ui-auf-akzent: #221419;
       --ui-icon: #e6cdd9;
       --ui-knopf: #fff4f8;
       --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6fa5' stroke='%23221419' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
@@ -1172,7 +1176,8 @@
     }
     #bkl-button:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
-    /* Offener Zustand: schmale Karte mit pinkem Rand, scrollbar bei kleinem Bildschirm */
+    /* Offener Zustand: schmale Karte mit harten Kanten, pinkem Rahmen und
+       Akzentbalken links; scrollbar bei kleinem Bildschirm */
     #bkl-panel {
       position: fixed;
       top: 12px;
@@ -1185,40 +1190,41 @@
       font-family: var(--ui-schrift);
       font-size: 13.5px;
       line-height: 1.35;
-      background-color: var(--ui-bg);
-      background-image: linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(139, 92, 246, .09));
+      background: var(--ui-bg);
       color: var(--ui-fg);
       color-scheme: light;
       border: 2px solid var(--ui-rahmen);
-      border-radius: 18px;
+      border-left: 6px solid var(--ui-rose);
+      border-radius: 0;
       box-shadow: var(--ui-schatten);
       padding: 10px 12px 12px;
       -webkit-font-smoothing: antialiased;
     }
-    :host([data-schema="dunkel"]) #bkl-panel { color-scheme: dark; background-image: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(196, 164, 255, .08)); }
+    :host([data-schema="dunkel"]) #bkl-panel { color-scheme: dark; }
     #bkl-panel[hidden],
     #bkl-button[hidden] { display: none; }
 
-    /* Kopfzeile: Wortmarke in EB Garamond, rechts Sprachwahl mit Flagge und Schliessen */
+    /* Kopfzeile: Wortmarke in fetten Versalien, rechts Sprachwahl mit Flagge und Schliessen */
     #bkl-kopf {
       display: flex;
       align-items: center;
       gap: 6px;
       margin-bottom: 6px;
       padding-bottom: 8px;
-      border-bottom: 2px solid var(--ui-linie);
+      border-bottom: 2px solid var(--ui-rahmen);
     }
     h2 {
       flex: 1;
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
       margin: 0;
       font-family: var(--ui-marke);
-      font-size: 20px;
-      font-weight: 400;
-      letter-spacing: .01em;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
       color: var(--ui-rose-3);
       white-space: nowrap;
     }
@@ -1237,9 +1243,8 @@
       display: none;
       width: 18px;
       height: 13px;
-      border-radius: 2.5px;
       overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(60, 10, 35, .25);
+      box-shadow: 0 0 0 1px rgba(60, 10, 35, .3);
     }
     .bkl-flagge svg { display: block; width: 18px; height: 13px; }
     .bkl-sprachwahl[data-sprache="de"] .bkl-flagge[data-flagge="de"],
@@ -1258,16 +1263,16 @@
       white-space: nowrap;
       border: 0;
     }
-    #bkl-sprache { width: auto; max-width: none; font-size: 12px; padding: 3px 4px; }
+    #bkl-sprache { width: auto; max-width: none; font-size: 12px; font-weight: 700; padding: 3px 4px; }
 
-    /* Schliessen-Knopf in Pink (wie der Pink-Button auf der Seite) */
+    /* Schliessen-Knopf: pinkes Quadrat (wie der Pink-Button auf der Seite) */
     #bkl-schliessen {
       flex: 0 0 auto;
       width: 30px;
       height: 30px;
       padding: 0;
       border: 2px solid #a61e63;
-      border-radius: 50%;
+      border-radius: 0;
       background: #d63384;
       background-image: linear-gradient(145deg, #e64980, #c2276f);
       color: #ffffff;
@@ -1279,7 +1284,7 @@
     }
     #bkl-schliessen:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
-    /* Zeilen: Icon, Beschriftung, Bedienelement rechts; pinke Haarlinien dazwischen */
+    /* Zeilen: Icon, fette Beschriftung, Bedienelement rechts; pinke Haarlinien dazwischen */
     .bkl-zeile {
       display: flex;
       align-items: center;
@@ -1304,7 +1309,8 @@
     .bkl-icon [stroke="#1e8bcd"] { stroke: var(--ui-rose); }
     .bkl-icon [fill="#0063b1"] { fill: var(--ui-rose-3); }
     .bkl-icon [fill="#83beec"] { fill: var(--ui-rose-weich); }
-    label { flex: 1; min-width: 0; color: var(--ui-fg); }
+    /* Beschriftungen fett (Vorgabe der Autorin), Werte normal */
+    label { flex: 1; min-width: 0; color: var(--ui-fg); font-weight: 700; }
     .bkl-wert {
       flex: 0 0 auto;
       color: var(--ui-fg-2);
@@ -1329,9 +1335,9 @@
     .bkl-regler .bkl-wert { grid-area: wert; }
     .bkl-regler input[type="range"] { grid-area: regler; width: 100%; }
 
-    /* Regler: Spur mit Füllung von Rosé nach Violett bis zum Wert (--bkl-p,
-       gesetzt von wertAnzeigen), pinkes Herz als Knopf (--ui-herz). Firefox
-       füllt die Spur selbst (::-moz-range-progress). */
+    /* Regler: flache Spur mit Füllung von Rosé nach Violett bis zum Wert
+       (--bkl-p, gesetzt von wertAnzeigen), pinkes Herz als Knopf (--ui-herz).
+       Firefox füllt die Spur selbst (::-moz-range-progress). */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
@@ -1346,7 +1352,7 @@
     }
     input[type="range"]::-webkit-slider-runnable-track {
       height: 6px;
-      border-radius: 999px;
+      border-radius: 0;
       background: linear-gradient(to right, var(--ui-rose) 0, var(--ui-violett) var(--bkl-p), var(--ui-rose-weich) var(--bkl-p) 100%);
       box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18);
     }
@@ -1361,8 +1367,8 @@
       background: var(--ui-herz) center / 24px 24px no-repeat;
       box-shadow: none;
     }
-    input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--ui-rose-weich); box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18); }
-    input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--ui-rose), var(--ui-violett)); }
+    input[type="range"]::-moz-range-track { height: 6px; border-radius: 0; background: var(--ui-rose-weich); box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18); }
+    input[type="range"]::-moz-range-progress { height: 6px; border-radius: 0; background: linear-gradient(to right, var(--ui-rose), var(--ui-violett)); }
     input[type="range"]::-moz-range-thumb {
       width: 22px;
       height: 22px;
@@ -1373,8 +1379,9 @@
       box-shadow: none;
     }
 
-    /* Häkchen als Schalter: Pille mit pinkem Rand, eingeschaltet Rosé-Violett
-       mit Herz im Knopf. Bleibt für Tastatur und Vorlesewerkzeuge eine Checkbox. */
+    /* Häkchen als eckiger Schalter: Kasten mit pinkem Rand, eingeschaltet
+       Rosé-Violett mit Herz im Knopf. Bleibt für Tastatur und Vorlesewerkzeuge
+       eine Checkbox. */
     input[type="checkbox"] {
       -webkit-appearance: none;
       appearance: none;
@@ -1385,7 +1392,7 @@
       width: 40px;
       height: 24px;
       margin: 0;
-      border-radius: 999px;
+      border-radius: 0;
       border: 2px solid var(--ui-rahmen);
       background: var(--ui-rose-weich);
       cursor: pointer;
@@ -1397,50 +1404,52 @@
       left: 2px;
       width: 16px;
       height: 16px;
-      border-radius: 50%;
+      border-radius: 0;
       background: var(--ui-knopf);
       box-shadow: 0 1px 2px rgba(60, 10, 35, .35);
     }
     input[type="checkbox"]:checked { background: linear-gradient(90deg, var(--ui-rose), var(--ui-violett)); border-color: var(--ui-rose-3); }
     input[type="checkbox"]:checked::before { left: 18px; background: var(--ui-herz) center / 11px 11px no-repeat, var(--ui-knopf); }
 
-    /* Auswahllisten: pinker Rand, native Pfeil-Schaltfläche (folgt color-scheme) */
+    /* Auswahllisten: eckig, pinker Rand, native Pfeil-Schaltfläche (folgt color-scheme) */
     select {
       flex: 0 0 auto;
       width: 134px;
       max-width: 54%;
       font: inherit;
       font-size: 12.5px;
+      font-weight: 700;
       color: var(--ui-fg);
       background-color: var(--ui-bg-2);
       border: 2px solid var(--ui-rahmen);
-      border-radius: 10px;
+      border-radius: 0;
       padding: 3px 5px;
       cursor: pointer;
     }
     select:hover { border-color: var(--ui-rose-3); }
 ${vorschauCss()}
-    /* Toggle für den Detail-Bereich (echter Button, aria-expanded) */
+    /* Toggle für den Detail-Bereich (echter Button, aria-expanded): Block in
+       Rosé-Violett mit Versalien */
     #bkl-details-toggle {
       width: 100%;
       display: flex;
       align-items: center;
       gap: 8px;
       margin-top: 10px;
-      padding: 7px 12px;
-      border: 2px solid var(--ui-rahmen);
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--ui-bg-2), color-mix(in srgb, var(--ui-violett) 22%, var(--ui-bg)));
-      color: var(--ui-rose-3);
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 0;
+      background: linear-gradient(90deg, var(--ui-rose), var(--ui-violett));
+      color: var(--ui-auf-akzent);
       font: inherit;
       font-size: 12px;
       font-weight: 700;
-      letter-spacing: .08em;
+      letter-spacing: .16em;
       text-transform: uppercase;
       cursor: pointer;
       text-align: left;
     }
-    #bkl-details-toggle:hover { border-color: var(--ui-rose-3); }
+    #bkl-details-toggle:hover { background: linear-gradient(90deg, var(--ui-rose-2), var(--ui-violett)); }
     #bkl-details-toggle .bkl-pfeil { display: inline-flex; }
     /* statische Drehung, absichtlich ohne Transition/Animation */
     #bkl-details-toggle[aria-expanded="true"] .bkl-pfeil svg { transform: rotate(90deg); }
@@ -1450,13 +1459,15 @@ ${vorschauCss()}
     .bkl-knopfreihe { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     button.bkl-aktion {
       border: 2px solid var(--ui-rahmen);
-      border-radius: 999px;
+      border-radius: 0;
       background: var(--ui-bg-2);
       color: var(--ui-rose-3);
       padding: 5px 14px;
       font: inherit;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
       cursor: pointer;
     }
     button.bkl-aktion:hover { border-color: var(--ui-rose-3); }
@@ -1480,7 +1491,8 @@ ${vorschauCss()}
       z-index: 2147483647;
       max-width: 300px;
       padding: 7px 10px;
-      border-radius: 8px;
+      border-radius: 0;
+      border-left: 4px solid #d63384;
       background: #3b1233;
       color: #ffffff;
       font-family: var(--ui-schrift);
