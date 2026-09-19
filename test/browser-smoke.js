@@ -83,7 +83,7 @@ const T = {
   const b = await U.browserStarten(BROWSER);
   const s = b.hauptseite;
   try {
-    console.log('\n[1] search.bger.ch – BGE 152 IV 1 (lokal ausgeliefert) – ' + b.name);
+    console.log('\n[1] search.bger.ch – ' + U.ENTSCHEID_NAME + ' (lokal ausgeliefert) – ' + b.name);
     await s.oeffne(U.SEITEN.bge);
     pruefe('Content-Skript läuft (Panel-Host mit Shadow DOM, Einstellungen geladen)', await U.warteBis(s, Q.bereit, null, 15000));
     let st = await s.js(Q.status);

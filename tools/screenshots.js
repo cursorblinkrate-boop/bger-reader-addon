@@ -9,11 +9,15 @@
  *
  * Ergebnis: test/screenshots/<browser>/NN-name.png, dazu GALERIE.md mit
  * Bildunterschrift je Bild – die Vorlage für README und Store-Texte.
- * Bilder in Store-Grösse 1280 x 800 (Chrome Web Store verlangt genau das),
- * jeweils zum Entscheidtext gescrollt, das Panel bleibt sichtbar. Die
- * Übersichten sind 1280 x 2000 (ein bis zwei Bildschirmseiten Entscheid).
- * Grundschrift der Funktionsbilder: OpenDyslexic. In der CI liegt alles als
- * Artefakt "screenshots-<os>-<browser>" beim Lauf.
+ * Beispiel-Entscheid: BGE 116 Ia 359, das Frauenstimmrecht-Urteil von 1990
+ * (U.SEITEN.bge). Bilder in Store-Grösse 1280 x 800 (Chrome Web Store
+ * verlangt genau das), jeweils zum Entscheidtext gescrollt. Das Panel ist
+ * fast überall geschlossen – nur der pinke Knopf rechts oben ist zu sehen –,
+ * offen nur in den zwei Panel-Bildern; das Einstellungsfenster hat sein
+ * eigenes Bild. Die Übersichten sind 1280 x 2000 (ein bis zwei
+ * Bildschirmseiten Entscheid). Grundschrift der Funktionsbilder:
+ * OpenDyslexic. In der CI liegt alles als Artefakt
+ * "screenshots-<os>-<browser>" beim Lauf.
  */
 'use strict';
 const fs = require('fs');
@@ -49,14 +53,18 @@ const BEDIENUNG = {
 };
 
 /* Die Szenen. e = Einstellungen zusätzlich zu Lesemodus an + OpenDyslexic
-   (schriftart-Szenen setzen ihre eigene Schrift). hoch = Übersicht 1280 x 2000. */
+   (schriftart-Szenen setzen ihre eigene Schrift). hoch = Übersicht 1280 x 2000.
+   panelAuf = Panel im Bild offen (sonst geschlossen, nur der pinke Knopf). */
 const SZENEN = [
   { datei: '01-vor-dem-einschalten', titel: 'Vor dem Einschalten',
     text: 'Die Entscheidseite wie gewohnt. Neu ist nur der pinke Knopf rechts oben; er öffnet die Einstellungen.',
-    e: { aktiv: false }, panelZu: true },
+    e: { aktiv: false } },
   { datei: '02-panel', titel: 'Das Panel',
-    text: 'Einschalten, Schriftgrösse, Schriftart, Hintergrund, Textbreite und „einfach" (Klammern einklappen). Unter „erweitert" die übrigen Einstellungen.',
-    e: {}, erweitert: true },
+    text: 'Ein Klick auf den pinken Knopf öffnet das Panel: Einschalten, Schriftgrösse, Schriftart, Hintergrund, Textbreite und „einfach" (Klammern einklappen).',
+    e: {}, panelAuf: true },
+  { datei: '03-panel-erweitert', titel: 'Das Panel, erweitert',
+    text: 'Unter „erweitert": Schriftstärke, Zeilen-, Absatz-, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten, Zurücksetzen.',
+    e: {}, panelAuf: true, erweitert: true },
 
   { datei: '10-schrift-atkinson', titel: 'Schriftart Atkinson Hyperlegible', text: 'Vom Braille Institute für gute Lesbarkeit entworfen: Buchstaben, die sich deutlich unterscheiden.', e: { schriftart: 'atkinson' } },
   { datei: '11-schrift-luciole', titel: 'Schriftart Luciole', text: 'Für sehbehinderte Menschen entwickelte Schrift (CTRDV, Frankreich).', e: { schriftart: 'luciole' } },
@@ -90,7 +98,11 @@ const SZENEN = [
   { datei: '61-uebersicht-atkinson-nacht', titel: 'Übersicht: Atkinson Hyperlegible auf Nacht', text: 'Ein bis zwei Bildschirmseiten Entscheid am Stück.', e: { schriftart: 'atkinson', farbschema: 'nacht' }, hoch: true },
   { datei: '62-uebersicht-zwei-spalten', titel: 'Übersicht: zwei Spalten', text: 'Zeitungssatz über eine ganze Bildschirmseite.', e: { spalten: 2, spaltenbreite: 1000 }, hoch: true },
   { datei: '70-druckansicht', titel: 'Druckansicht', text: 'Beim Drucken sind alle Klammern offen und die Pfeile weg.', e: {}, druck: true },
-  { datei: '80-bundesverwaltungsgericht', titel: 'Bundesverwaltungsgericht', text: 'Auch auf bvger.weblaw.ch: Typografie und eingeklappte Fundstellen.', e: { farbschema: 'sepia' }, bvger: true }
+  { datei: '80-bundesverwaltungsgericht', titel: 'Bundesverwaltungsgericht', text: 'Auch auf bvger.weblaw.ch: Typografie und eingeklappte Fundstellen.', e: { farbschema: 'sepia' }, seite: 'bvger' },
+  // BGE 145 I 207 (Aufhebung der Abstimmung über die Heiratsstrafe-Initiative, 2019): französischsprachiger Entscheid auf der französischen Seite
+  { datei: '90-franzoesisch-regeste', titel: 'Französische Seite', text: 'BGE 145 I 207, die Aufhebung der Volksabstimmung über die Heiratsstrafe-Initiative (2019): ein französischsprachiger Entscheid auf der französischen Oberfläche von bger.ch.', e: {}, seite: 'bgeFr' },
+  { datei: '91-franzoesisch-atkinson-nacht', titel: 'Französische Seite, Atkinson auf Nacht', text: 'Derselbe Entscheid in Atkinson Hyperlegible auf dem Schema Nacht.', e: { schriftart: 'atkinson', farbschema: 'nacht' }, seite: 'bgeFr' },
+  { datei: '92-franzoesisch-uebersicht-luciole-sepia', titel: 'Französische Seite, Übersicht in Luciole auf Sepia', text: 'Ein bis zwei Bildschirmseiten mit Regeste und Sachverhalt.', e: { schriftart: 'luciole', farbschema: 'sepia' }, seite: 'bgeFr', hoch: true }
 ];
 
 const Z = {
@@ -125,7 +137,7 @@ async function einstellen(seite, e) {
   fs.rmSync(AUSGABE, { recursive: true, force: true });
   fs.mkdirSync(AUSGABE, { recursive: true });
   const galerie = ['# Screenshots – ' + BROWSER, '',
-    'Erzeugt von tools/screenshots.js auf den echten Entscheidseiten (BGE 152 IV 1). Bilder 1280 x 800, Übersichten 1280 x 2000.', ''];
+    'Erzeugt von tools/screenshots.js auf der echten Entscheidseite von ' + U.ENTSCHEID_NAME + '. Bilder 1280 x 800, Übersichten 1280 x 2000.', ''];
   let anzahl = 0;
 
   const server = await U.serverStarten();
@@ -135,10 +147,23 @@ async function einstellen(seite, e) {
     await s.oeffne(U.SEITEN.bge);
     if (!await U.warteBis(s, Q.bereit, null, 20000)) throw new Error('Extension auf der BGE-Seite nicht bereit');
     console.log('Browser: ' + (await s.js(Q.status)).ua);
+    let aktuelleSeite = 'bge';
 
     for (const sz of SZENEN) {
       const ziel = path.join(AUSGABE, sz.datei + '.png');
       try {
+        // Seite wechseln, wenn die Szene eine andere braucht (bge, bgeFr, bvger)
+        const seite = sz.seite || 'bge';
+        if (!sz.popup && seite !== aktuelleSeite) {
+          await s.oeffne(U.SEITEN[seite]);
+          if (seite === 'bvger' && !await U.warteBis(s, Z.bvgerText, null, 60000)) {
+            warnungen.push(sz.datei + ': bvger.weblaw.ch nicht vollständig geladen, übersprungen');
+            await s.oeffne(U.SEITEN.bge); await U.warteBis(s, Q.bereit, null, 20000); aktuelleSeite = 'bge';
+            continue;
+          }
+          if (!await U.warteBis(s, Q.bereit, null, 20000)) throw new Error('Extension auf ' + seite + ' nicht bereit');
+          aktuelleSeite = seite;
+        }
         if (sz.popup) {
           // Stand für das Fenster: OpenDyslexic, Sepia, Lesemodus an
           await s.js(Q.panelKlick, 'bkl-reset');
@@ -151,33 +176,23 @@ async function einstellen(seite, e) {
           await popup.screenshot(ziel);
           await popup.schliessen();
         } else {
-          if (sz.bvger) {
-            await s.oeffne(U.SEITEN.bvger);
-            if (!await U.warteBis(s, Z.bvgerText, null, 60000)) {
-              warnungen.push(sz.datei + ': bvger.weblaw.ch nicht vollständig geladen, übersprungen');
-              await s.oeffne(U.SEITEN.bge);
-              await U.warteBis(s, Q.bereit, null, 20000);
-              continue;
-            }
-            await U.warteBis(s, Q.bereit, null, 20000);
-          }
           if (sz.druck && !b.kannDruck) { warnungen.push(sz.datei + ': Druckansicht in diesem Browser nicht steuerbar'); continue; }
-          await s.js(Z.panelAuf, true);
+          // Bedienelemente reagieren auch bei geschlossenem Panel auf die
+          // synthetischen Ereignisse; geöffnet wird es nur fürs Bild.
           await s.js(Q.panelKlick, 'bkl-reset');
           const e = Object.assign({ aktiv: true, schriftart: 'opendyslexic' }, sz.e || {});
-          const erweitert = await einstellen(s, e);
-          await s.js(Z.detailsAuf, !!(sz.erweitert || erweitert));
-          if (sz.panelZu) await s.js(Z.panelAuf, false);
+          await einstellen(s, e);
+          await s.js(Z.detailsAuf, !!sz.erweitert);
+          await s.js(Z.panelAuf, !!sz.panelAuf);
           if (sz.foldAuf) await s.js(Z.foldAuf);
           if (sz.druck) await s.druck(true);
-          await U.schlaf(sz.bvger ? 1500 : 400); // Schriften, Spaltenumbruch
+          await U.schlaf(seite === 'bvger' ? 1500 : 400); // Schriften, Spaltenumbruch
           await s.js(Q.fokusWeg);
           if (sz.hoch) await s.groesse(U.BREITE, HOCH);
           await s.js(Q.zumText);
           await s.screenshot(ziel);
           if (sz.hoch) await s.groesse(U.BREITE, U.HOEHE);
           if (sz.druck) await s.druck(false);
-          if (sz.bvger) { await s.oeffne(U.SEITEN.bge); await U.warteBis(s, Q.bereit, null, 20000); }
         }
         anzahl++;
         console.log('  ✅ ' + sz.datei);

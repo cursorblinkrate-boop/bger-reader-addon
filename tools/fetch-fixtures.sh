@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Fixtures für die Tests laden: drei echte Entscheidseiten und eine
-# API-Antwort nach test/fixtures/, dazu das Site-CSS der bger.ch-Seiten für
-# den Browser-Smoke-Test. Danach läuft test/test-runner.js vollständig
+# Fixtures für die Tests laden: echte Entscheidseiten und eine API-Antwort
+# nach test/fixtures/, dazu das Site-CSS der bger.ch-Seiten für den
+# Browser-Smoke-Test und die Screenshots. Danach läuft test/test-runner.js vollständig
 # (ohne Fixtures wird Block [3] übersprungen) und test/browser-smoke.js kann
 # die Seiten lokal ausliefern.
 #
@@ -31,6 +31,14 @@ FIXTURES=(
   "bger_test.html|https://search.bger.ch/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&zoom=&type=show_document|class=\"paraatf\""
   "bger_aza.html|https://search.bger.ch/ext/eurospider/live/de/php/aza/http/index.php?type=show_document&highlight_docid=aza%3A%2F%2F24-09-2012-6F_7-2012|class=\"para\""
   "bger_relevancy.html|http://relevancy.bger.ch/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&type=show_document|class=\"paraatf\""
+  # BGE 116 Ia 359 (Frauenstimmrecht Appenzell Innerrhoden, 1990): der
+  # Beispiel-Entscheid für Smoke-Test-Bilder und Screenshots (Store, Doku).
+  "bger_frauenstimmrecht.html|https://search.bger.ch/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F116-IA-359%3Ade&lang=de&type=show_document|class=\"paraatf\""
+  "bger_frauenstimmrecht_relevancy.html|http://relevancy.bger.ch/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F116-IA-359%3Ade&lang=de&type=show_document|class=\"paraatf\""
+  # BGE 145 I 207 (Aufhebung der Abstimmung über die Heiratsstrafe-Initiative,
+  # 2019): französischsprachiger Entscheid auf der französischen Oberfläche
+  # (Pfad live/fr, docid :fr) – Screenshots einer französischen Seite.
+  "bger_heiratsstrafe_fr.html|https://search.bger.ch/ext/eurospider/live/fr/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F145-I-207%3Afr&lang=fr&type=show_document|class=\"paraatf\""
   "bvger_test.json|https://bvger.weblaw.ch/api/.netlify/functions/singleDocQueryService/8cf30437-5df2-4a0f-885e-d44a19472144?guiLanguage=de|\"content\":\"<html"
 )
 

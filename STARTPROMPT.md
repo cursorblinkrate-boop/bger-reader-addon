@@ -61,21 +61,31 @@ test/browser-smoke.js     Browser-Smoke-Test: die fertige Extension in echtem
                           nach test/smoke/<browser>/
 tools/screenshots.js      Bilder für Store und Doku: rund 30 Szenen pro
                           Browser (jede Schrift, jeder Hintergrund, jede
-                          Einstellung, Pop-up, Übersichten 1280 x 2000),
-                          Store-Format 1280 x 800, zum Entscheidtext
-                          gescrollt, Grundschrift OpenDyslexic; dazu
+                          Einstellung, Pop-up, Übersichten 1280 x 2000) auf
+                          BGE 116 Ia 359 (Frauenstimmrecht), Store-Format
+                          1280 x 800, zum Entscheidtext gescrollt, Panel
+                          fast immer geschlossen (nur der pinke Knopf),
+                          Grundschrift OpenDyslexic; dazu
                           GALERIE.md mit Bildunterschriften. Ausgabe
                           test/screenshots/<browser>/, in der CI als
                           Artefakt screenshots-<os>-<browser>. Neue Szene =
                           Eintrag in SZENEN
-test/fixtures/            drei echte Entscheid-HTMLs plus eine API-Antwort
-                          plus das Site-CSS von bger.ch (css/<familie>/),
-                          nicht im Repo:
+test/fixtures/            echte Entscheid-HTMLs plus eine API-Antwort plus
+                          das Site-CSS von bger.ch (css/<familie>/), nicht
+                          im Repo:
                           bger_test.html (BGE 152 IV 1, clir),
                           bger_aza.html (6F_7/2012, aza),
                           bger_relevancy.html (BGE 152 IV 1, relevancy),
                           bvger_test.json (B-7296/2025, bvger.weblaw.ch –
-                          JSON der Site-API, HTML im Feld "content")
+                          JSON der Site-API, HTML im Feld "content"),
+                          bger_frauenstimmrecht.html und
+                          bger_frauenstimmrecht_relevancy.html (BGE 116 Ia
+                          359, Frauenstimmrecht 1990 – der Beispiel-Entscheid
+                          für Smoke-Test-Bilder und Screenshots; BGE 152 IV 1
+                          bleibt der Suite vorbehalten, nicht für Bilder),
+                          bger_heiratsstrafe_fr.html (BGE 145 I 207,
+                          französischsprachig, französische Oberfläche –
+                          für Screenshots)
 tools/fetch-fixtures.sh   lädt fehlende Fixtures und das Site-CSS per curl,
                           idempotent, mit Plausibilitätscheck
 tools/klammern-report.js  jede Klammer der echten Fixtures mit Entscheidung

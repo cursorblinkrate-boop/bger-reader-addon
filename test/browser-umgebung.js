@@ -42,11 +42,19 @@ const BROWSER_NAMEN = ['chromium', 'firefox', 'edge'];
 const PORT_HTTPS = Number(process.env.BGER_PORT_HTTPS) || 8443; // anpassbar, falls belegt
 const PORT_HTTP = Number(process.env.BGER_PORT_HTTP) || 8080;
 const LOKALE_HOSTS = ['search.bger.ch', 'relevancy.bger.ch'];
+/* Beispiel-Entscheid für Smoke-Test und Screenshots: BGE 116 Ia 359, das
+   Frauenstimmrecht-Urteil zu Appenzell Innerrhoden von 1990 – ein historischer
+   Entscheid, der zeigt, wofür das Werkzeug da ist. (Die jsdom-Suite prüft
+   daneben BGE 152 IV 1; beide liegen als Fixture vor, der Server wählt nach
+   highlight_docid.) */
 const SEITEN = {
-  bge: 'https://search.bger.ch:' + PORT_HTTPS + '/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&type=show_document',
-  relevancy: 'http://relevancy.bger.ch:' + PORT_HTTP + '/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F152-IV-1%3Ade&lang=de&type=show_document',
+  bge: 'https://search.bger.ch:' + PORT_HTTPS + '/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F116-IA-359%3Ade&lang=de&type=show_document',
+  relevancy: 'http://relevancy.bger.ch:' + PORT_HTTP + '/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F116-IA-359%3Ade&lang=de&type=show_document',
+  // BGE 145 I 207 mit französischer Regeste (Pfad live/fr): eine französischsprachige Seite
+  bgeFr: 'https://search.bger.ch:' + PORT_HTTPS + '/ext/eurospider/live/fr/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F145-I-207%3Afr&lang=fr&type=show_document',
   bvger: 'https://bvger.weblaw.ch/cache?guiLanguage=de&id=8cf30437-5df2-4a0f-885e-d44a19472144'
 };
+const ENTSCHEID_NAME = 'BGE 116 Ia 359 (Frauenstimmrecht Appenzell Innerrhoden, 27. November 1990)';
 // Fest gewählte interne Firefox-UUID, damit moz-extension://<uuid>/popup.html bekannt ist.
 const FIREFOX_UUID = '7f4d8a3e-2b1c-4e5f-9a6b-0c1d2e3f4a5b';
 const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || '';
@@ -59,8 +67,10 @@ function schlaf(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 /* ================================================================== */
 
 const HOSTS = {
-  'search.bger.ch':    { html: 'bger_test.html',      css: 'clir',      absolut: 'https://search.bger.ch/' },
-  'relevancy.bger.ch': { html: 'bger_relevancy.html', css: 'relevancy', absolut: 'http://relevancy.bger.ch/' }
+  'search.bger.ch':    { css: 'clir',      absolut: 'https://search.bger.ch/',
+                         html: { '116-IA-359:de': 'bger_frauenstimmrecht.html', '145-I-207:fr': 'bger_heiratsstrafe_fr.html', '152-IV-1:de': 'bger_test.html' } },
+  'relevancy.bger.ch': { css: 'relevancy', absolut: 'http://relevancy.bger.ch/',
+                         html: { '116-IA-359:de': 'bger_frauenstimmrecht_relevancy.html', '152-IV-1:de': 'bger_relevancy.html' } }
 };
 
 function zertifikat() {
@@ -87,12 +97,17 @@ function antworte(req, res) {
   const pfad = (req.url || '/').split('?')[0];
   if (!s) { res.writeHead(404); res.end(); return; }
   if (/\/index\.php$/.test(pfad)) {
+    // Entscheid und Regeste-Sprache nach highlight_docid (atf://116-IA-359:de) wählen
+    const docid = decodeURIComponent((/highlight_docid=([^&]*)/.exec(req.url || '') || [])[1] || '');
+    const nummer = (/atf:\/\/([0-9A-Za-z-]+:[a-z]{2})/.exec(docid) || [])[1];
+    const datei = s.html[nummer];
+    if (!datei) { res.writeHead(404); res.end('unbekannter Entscheid: ' + docid); return; }
     // Die Seiten sind ISO-8859-1 (wie der Live-Server sie ausliefert): als latin1
     // lesen und schreiben, damit kein Byte verändert wird. Absolute Verweise auf
     // den eigenen Host relativ machen (behalten so den lokalen Port). Fremde
     // Ressourcen (jQuery-CDN) auf den lokalen Server umlenken, wo sie 404
     // ergeben – die Seite braucht sie hier nicht, und der Test bleibt offline.
-    const html = fs.readFileSync(path.join(FIXTURES, s.html), 'latin1')
+    const html = fs.readFileSync(path.join(FIXTURES, datei), 'latin1')
       .split(s.absolut).join('/')
       .replace(/\ssrc="https?:\/\/[^"]*"/gi, ' src="/extern-nicht-geladen"');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=iso-8859-1' });
@@ -112,7 +127,7 @@ function antworte(req, res) {
 }
 
 function fixturesPruefen(warnungen) {
-  ['bger_test.html', 'bger_relevancy.html'].forEach(function (f) {
+  ['bger_frauenstimmrecht.html', 'bger_frauenstimmrecht_relevancy.html', 'bger_heiratsstrafe_fr.html'].forEach(function (f) {
     if (!fs.existsSync(path.join(FIXTURES, f))) {
       console.error('Fixture fehlt: test/fixtures/' + f + ' – zuerst: bash tools/fetch-fixtures.sh');
       process.exit(2);
@@ -349,7 +364,7 @@ async function einschalten(seite) {
 }
 
 module.exports = {
-  WURZEL: WURZEL, EXT: EXT, FIXTURES: FIXTURES, SEITEN: SEITEN, BROWSER_NAMEN: BROWSER_NAMEN,
+  WURZEL: WURZEL, EXT: EXT, FIXTURES: FIXTURES, SEITEN: SEITEN, ENTSCHEID_NAME: ENTSCHEID_NAME, BROWSER_NAMEN: BROWSER_NAMEN,
   BREITE: BREITE, HOEHE: HOEHE, Q: Q,
   schlaf: schlaf, fixturesPruefen: fixturesPruefen, serverStarten: serverStarten,
   browserStarten: browserStarten, warteBis: warteBis, einschalten: einschalten
