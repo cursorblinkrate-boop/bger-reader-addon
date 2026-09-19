@@ -1,5 +1,7 @@
 [Deutsch](DE-Klammern.md) · [English](EN-Brackets.md) · **Français** · [Italiano](IT-Parentesi.md)
 
+<!-- Ne pas modifier ici dans le wiki : la source est le fichier wiki/FR-Parentheses.md du dépôt, et le workflow écrase le wiki à chaque push. La page allemande wiki/DE-Klammern.md fait foi : y faire d'abord les modifications de contenu, puis les reporter dans cette traduction. -->
+
 Les décisions des tribunaux suisses sont pleines de parenthèses. Une grande partie d'entre elles sont des références : des citations de la jurisprudence comme `(BGE 135 II 45 E. 3.2 S. 47)` (« E. » y désigne le considérant et « S. » la page, soit ATF 135 II 45 consid. 3.2 p. 47) et des références de doctrine comme `(NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, N. 12 zu Art. 47 StGB)`. Elles sont importantes pour consulter les sources, mais à la lecture, elles se lisent comme un calcul : des suites de chiffres dont on n'a pas le contenu en tête et qui interrompent le fil du raisonnement. bger reader replie ces références lorsque le réglage **einfach** (simple) est coché. À leur place reste un petit bouton `▸`; un clic ouvre la parenthèse sur place, un autre la referme. Rien n'est supprimé, et à l'impression, le texte complet apparaît toujours.
 
 ## La règle de base

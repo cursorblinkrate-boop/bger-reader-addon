@@ -1,5 +1,7 @@
 [Deutsch](DE-Schriftarten.md) · [English](EN-Fonts.md) · [Français](FR-Polices.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Caratteri.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Schriftarten.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 bger reader include sette tipi di carattere, forniti insieme all'estensione e mai scaricati da internet, oltre a due voci per i caratteri del proprio sistema. Tutti i caratteri forniti sono caratteri liberi con licenze aperte; possono essere distribuiti insieme all'estensione, e i testi delle licenze sono inclusi nel pacchetto. La scelta avviene nel pannello delle impostazioni sotto **Schriftart** (tipo di carattere); l'elenco mostra ogni voce nel proprio carattere.
 
 ## I caratteri in sintesi

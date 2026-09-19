@@ -1,5 +1,7 @@
 [Deutsch](DE-Bedienung.md) · [English](EN-Usage.md) · **Français** · [Italiano](IT-Utilizzo.md)
 
+<!-- Ne pas modifier ici dans le wiki : la source est le fichier wiki/FR-Utilisation.md du dépôt, et le workflow écrase le wiki à chaque push. La page allemande wiki/DE-Bedienung.md fait foi : y faire d'abord les modifications de contenu, puis les reporter dans cette traduction. -->
+
 bger reader se commande à deux endroits : directement sur la page de la décision, par un petit panneau de réglages qui s'ouvre avec le bouton rose, ou dans une fenêtre séparée, qui s'ouvre par l'icône de l'extension dans la barre d'outils. Les deux montrent les mêmes réglages, accèdent au même stockage et restent synchronisés : ce qui est modifié dans la fenêtre agit immédiatement sur la page, et inversement.
 
 ## Le bouton rose et le panneau de réglages

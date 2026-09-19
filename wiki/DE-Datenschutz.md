@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Privacy.md) · [Français](FR-Confidentialite.md) · [Italiano](IT-Privacy.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Datenschutz.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 bger reader ist so gebaut, dass Datenschutz keine Frage des Vertrauens ist, sondern der Technik: Die Erweiterung hat keine Möglichkeit, Daten zu senden, weil sie keine Verbindung aufbaut. Diese Seite beschreibt, was sie tut, was sie speichert und wie ein Sicherheitsproblem gemeldet werden kann.
 
 ## Was die Erweiterung tut

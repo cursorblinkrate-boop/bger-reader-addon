@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Fonts.md) · [Français](FR-Polices.md) · [Italiano](IT-Caratteri.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Schriftarten.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 bger reader bringt sieben Schriften mit, die der Erweiterung beiliegen und nie aus dem Internet geladen werden, dazu zwei Einträge für die Schriften des eigenen Systems. Alle mitgelieferten Schriften sind freie Schriften unter offenen Lizenzen; sie dürfen mit der Erweiterung weitergegeben werden, und die Lizenztexte liegen im Paket bei. Die Wahl erfolgt im Einstellungsfeld unter **Schriftart**; die Liste zeigt jeden Eintrag in seiner eigenen Schrift.
 
 ## Die Schriften im Überblick

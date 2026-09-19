@@ -1,5 +1,7 @@
 [Deutsch](DE-Datenschutz.md) · **English** · [Français](FR-Confidentialite.md) · [Italiano](IT-Privacy.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Privacy.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Datenschutz.md is the master: make content changes there first, then carry them into this translation. -->
+
 bger reader is built so that privacy is not a matter of trust but of technology: the extension has no way of sending data, because it establishes no connection. This page describes what it does, what it stores and how a security problem can be reported.
 
 ## What the extension does

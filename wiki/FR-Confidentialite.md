@@ -1,5 +1,7 @@
 [Deutsch](DE-Datenschutz.md) · [English](EN-Privacy.md) · **Français** · [Italiano](IT-Privacy.md)
 
+<!-- Ne pas modifier ici dans le wiki : la source est le fichier wiki/FR-Confidentialite.md du dépôt, et le workflow écrase le wiki à chaque push. La page allemande wiki/DE-Datenschutz.md fait foi : y faire d'abord les modifications de contenu, puis les reporter dans cette traduction. -->
+
 bger reader est construit de telle sorte que la protection des données n'est pas une question de confiance, mais de technique : l'extension n'a aucune possibilité d'envoyer des données, parce qu'elle n'établit aucune connexion. Cette page décrit ce qu'elle fait, ce qu'elle enregistre et comment un problème de sécurité peut être signalé.
 
 ## Ce que fait l'extension

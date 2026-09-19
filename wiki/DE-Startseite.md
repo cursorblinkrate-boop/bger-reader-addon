@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Home.md) · [Français](FR-Accueil.md) · [Italiano](IT-Home.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Startseite.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 **bger reader** ist eine kostenlose Browser-Erweiterung (Extension) für Chrome, Brave, Edge und Firefox, die Entscheide des Schweizerischen Bundesgerichts und des Bundesverwaltungsgerichts leichter lesbar macht. Sie verändert nur die Darstellung im eigenen Browser: Schriftart, Schriftgrösse, Abstände, Zeilenlänge und Farbschema lassen sich frei einstellen, und Fundstellen in Klammern – etwa `(BGE 135 II 45 E. 3.2 S. 47)` – werden hinter einem kleinen Pfeil eingeklappt, damit der Gedankengang des Entscheids nicht ständig unterbrochen wird. Der Text selbst bleibt vollständig erhalten; jede Klammer lässt sich mit einem Klick wieder öffnen.
 
 Die Erweiterung arbeitet zu 100 % offline. Sie sendet keine Daten, lädt nichts nach, enthält keine Werbung und keine Statistik-Funktionen. Die einzige Berechtigung, die sie vom Browser verlangt, ist der lokale Speicher, in dem die eigenen Einstellungen abgelegt werden. Mehr dazu unter [Datenschutz und Sicherheit](DE-Datenschutz.md).

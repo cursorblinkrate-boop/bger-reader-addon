@@ -1,5 +1,7 @@
 [Deutsch](DE-Entwicklung.md) · **English** · [Français](FR-Developpement.md) · [Italiano](IT-Sviluppo.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Development.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Entwicklung.md is the master: make content changes there first, then carry them into this translation. -->
+
 This page is aimed at everyone who wants to understand, check or contribute to the code of bger reader. It describes the structure of the repository, how the extension works, the tests, the versioning and the path from commit to published package. The binding short version of the working rules is in the files `CLAUDE.md` and `STARTPROMPT.md` in the repository.
 
 ## Principles

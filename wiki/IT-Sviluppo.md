@@ -1,5 +1,7 @@
 [Deutsch](DE-Entwicklung.md) · [English](EN-Development.md) · [Français](FR-Developpement.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Sviluppo.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Entwicklung.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 Questa pagina si rivolge a chi desidera capire, verificare o contribuire al codice di bger reader. Descrive la struttura del repository, il funzionamento dell'estensione, i test, la gestione delle versioni e il percorso dal commit al pacchetto pubblicato. La versione breve vincolante delle regole di lavoro sono i file `CLAUDE.md` e `STARTPROMPT.md` nel repository.
 
 ## Principi

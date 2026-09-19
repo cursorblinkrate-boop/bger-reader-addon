@@ -1,5 +1,7 @@
 [Deutsch](DE-Websites.md) · [English](EN-Websites.md) · [Français](FR-Sites.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Siti.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Websites.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 bger reader funziona sulle pagine delle decisioni del Tribunale federale svizzero (TF) e del Tribunale amministrativo federale (TAF). Il browser avvia l'estensione solo sugli indirizzi qui elencati; su tutti gli altri siti web non è presente. Le impostazioni valgono congiuntamente per tutte le pagine supportate.
 
 | Indirizzo | Tribunale | Cosa vi si trova |

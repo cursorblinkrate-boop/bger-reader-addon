@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Usage.md) · [Français](FR-Utilisation.md) · [Italiano](IT-Utilizzo.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Bedienung.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 bger reader lässt sich an zwei Stellen bedienen: direkt auf der Entscheidseite über ein kleines Einstellungsfeld, das sich mit dem pinken Knopf öffnet, oder in einem eigenen Fenster, das sich über das Symbol der Erweiterung in der Symbolleiste öffnet. Beide zeigen dieselben Einstellungen, greifen auf denselben Speicher zu und bleiben miteinander abgeglichen: Was im Fenster verstellt wird, wirkt sofort auf der Seite, und umgekehrt.
 
 ## Der pinke Knopf und das Einstellungsfeld

@@ -1,5 +1,7 @@
 [Deutsch](DE-Klammern.md) · [English](EN-Brackets.md) · [Français](FR-Parentheses.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Parentesi.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Klammern.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 Le decisioni dei tribunali svizzeri sono piene di parentesi. Gran parte di esse sono riferimenti (citazioni): citazioni della giurisprudenza come `(BGE 135 II 45 E. 3.2 S. 47)` – la forma tedesca di una citazione DTF, in cui «E.» sta per «Erwägung», cioè il considerando, e «S.» per la pagina – e citazioni dottrinali come `(NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, N. 12 zu Art. 47 StGB)`. Sono importanti per la consultazione, ma durante la lettura si leggono come un calcolo: sequenze di numeri il cui contenuto non si ha in mente e che interrompono il filo del ragionamento. bger reader comprime tali riferimenti quando l'impostazione **einfach** (semplice) è spuntata. Al loro posto rimane un piccolo pulsante `▸`; un clic apre la parentesi sul posto, un altro la richiude. Nulla viene cancellato, e in stampa compare sempre il testo completo.
 
 ## La regola di base

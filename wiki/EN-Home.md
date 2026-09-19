@@ -1,5 +1,7 @@
 [Deutsch](DE-Startseite.md) · **English** · [Français](FR-Accueil.md) · [Italiano](IT-Home.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Home.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Startseite.md is the master: make content changes there first, then carry them into this translation. -->
+
 **bger reader** is a free browser extension for Chrome, Brave, Edge and Firefox that makes decisions of the Swiss Federal Supreme Court and the Federal Administrative Court easier to read. It changes only the display in your own browser: font, font size, spacing, line length and colour scheme can be set freely, and citations in brackets (parentheses) – such as `(BGE 135 II 45 E. 3.2 S. 47)` – are collapsed behind a small arrow so that the line of reasoning of the decision is not constantly interrupted. The text itself remains completely intact; every bracket can be opened again with a single click.
 
 The extension works 100% offline. It sends no data, downloads nothing, contains no advertising and no statistics functions. The only permission it requests from the browser is the local storage in which your own settings are kept. More on this under [Privacy and security](EN-Privacy.md).

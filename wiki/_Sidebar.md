@@ -1,3 +1,5 @@
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist wiki/_Sidebar.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. / Do not edit here: the source is wiki/_Sidebar.md in the repository; the workflow overwrites the wiki on every push. -->
+
 **bger reader** · [Home](Home.md)
 
 **Deutsch**

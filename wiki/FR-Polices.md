@@ -1,5 +1,7 @@
 [Deutsch](DE-Schriftarten.md) · [English](EN-Fonts.md) · **Français** · [Italiano](IT-Caratteri.md)
 
+<!-- Ne pas modifier ici dans le wiki : la source est le fichier wiki/FR-Polices.md du dépôt, et le workflow écrase le wiki à chaque push. La page allemande wiki/DE-Schriftarten.md fait foi : y faire d'abord les modifications de contenu, puis les reporter dans cette traduction. -->
+
 bger reader apporte sept polices, fournies avec l'extension et jamais chargées depuis Internet, plus deux entrées pour les polices de votre propre système. Toutes les polices fournies sont des polices libres sous licences ouvertes; elles peuvent être redistribuées avec l'extension, et les textes des licences sont joints au paquet. Le choix se fait dans le panneau de réglages sous **Schriftart** (police); la liste montre chaque entrée dans sa propre police.
 
 ## Les polices en un coup d'œil

@@ -32,5 +32,6 @@ Jede Seite existiert in vier Sprachen. Der Dateiname beginnt mit dem Sprachkürz
 - Links zwischen den Seiten mit Dateiendung schreiben, zum Beispiel `[Installation](DE-Installation.md)`. So funktionieren sie hier im Repository; der Workflow entfernt die Endung beim Kopieren, weil das Wiki Seiten ohne Endung anspricht. Links zeigen immer auf die Seite derselben Sprache.
 - Keine Umlaute, Akzente oder Leerzeichen in Dateinamen (sie werden zur Adresse der Seite). Der Linktext darf Akzente haben: `[Réglages](FR-Reglages.md)`.
 - Die Seiten beginnen ohne Überschrift erster Ebene, weil das Wiki den Seitennamen bereits als Titel anzeigt.
+- Nach der Sprachleiste folgt in jeder Seite ein unsichtbarer Hinweis (`<!-- Nicht hier im Wiki bearbeiten … -->`). Er erscheint nur im Editor des Wikis und warnt, wer dort auf «Edit» klickt. Bei neuen Seiten mitkopieren und den Dateinamen anpassen.
 - `_Sidebar.md` ist die Navigation am rechten Rand (alle vier Sprachen), `_Footer.md` die Fusszeile jeder Seite. Neue Seiten in der Sidebar, auf der jeweiligen Startseite und in der Tabelle oben eintragen, in allen vier Sprachen.
 - Diese Datei (`README.md`) beschreibt nur den Ordner und wird nicht ins Wiki kopiert.

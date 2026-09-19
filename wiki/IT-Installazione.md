@@ -1,5 +1,7 @@
 [Deutsch](DE-Installation.md) · [English](EN-Installation.md) · [Français](FR-Installation.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Installazione.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Installation.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 Questa pagina descrive come scaricare bger reader e configurarlo nei singoli browser. La via attraverso il pacchetto della versione (release) è un po' più lunga di un clic nello store del browser, ma è ben praticabile; rimane la via standard finché l'estensione non sarà approvata negli store.
 
 ## Requisiti

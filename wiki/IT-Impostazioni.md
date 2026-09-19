@@ -1,5 +1,7 @@
 [Deutsch](DE-Einstellungen.md) · [English](EN-Settings.md) · [Français](FR-Reglages.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Impostazioni.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Einstellungen.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 Questa pagina spiega singolarmente ogni impostazione di bger reader. Le impostazioni si trovano nel pannello delle impostazioni sulla pagina e nella finestra separata nello stesso ordine; le prime sei sono subito visibili, le altre compaiono dopo un clic su **erweitert** (avanzate). Come si aprono i due punti di comando è descritto in [Utilizzo](IT-Utilizzo.md).
 
 ## Panoramica

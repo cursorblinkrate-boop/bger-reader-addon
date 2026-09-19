@@ -7,5 +7,8 @@
   Test-Abhängigkeiten (nie im ausgelieferten Paket): jsdom für die Suite,
   Playwright und Selenium nur für den Browser-Smoke-Test. Keine weiteren.
 - Keine neuen Tests, ausser sie sichern eine konkrete Änderung ab.
+- Wiki: nur im Ordner `wiki/` ändern, nie im GitHub-Wiki selbst (der Workflow
+  überschreibt es). Deutsch (`DE-*`) ist die Quelle; Änderungen dort machen und
+  dann in EN/FR/IT nachziehen. Regeln und Namenstabelle: `wiki/README.md`.
 - Antworten kurz und einfach, die Nutzerin ist Coding-Anfängerin.
 - Details zum Projekt: STARTPROMPT.md

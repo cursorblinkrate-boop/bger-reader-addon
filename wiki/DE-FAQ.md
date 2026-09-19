@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-FAQ.md) · [Français](FR-FAQ.md) · [Italiano](IT-FAQ.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-FAQ.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 Antworten auf häufige Fragen und Hilfe, wenn etwas nicht wie erwartet funktioniert. Wenn die passende Antwort fehlt, hilft ein [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) auf GitHub; was eine Meldung enthalten sollte, steht ganz unten.
 
 ## Der pinke Knopf erscheint nicht

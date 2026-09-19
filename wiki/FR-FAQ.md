@@ -1,5 +1,7 @@
 [Deutsch](DE-FAQ.md) · [English](EN-FAQ.md) · **Français** · [Italiano](IT-FAQ.md)
 
+<!-- Ne pas modifier ici dans le wiki : la source est le fichier wiki/FR-FAQ.md du dépôt, et le workflow écrase le wiki à chaque push. La page allemande wiki/DE-FAQ.md fait foi : y faire d'abord les modifications de contenu, puis les reporter dans cette traduction. -->
+
 Réponses aux questions fréquentes et aide lorsque quelque chose ne fonctionne pas comme prévu. Si la réponse qui convient manque, une [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) sur GitHub aide; ce qu'un signalement devrait contenir est indiqué tout en bas.
 
 ## Le bouton rose n'apparaît pas

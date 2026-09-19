@@ -1,5 +1,7 @@
 [Deutsch](DE-Websites.md) · **English** · [Français](FR-Sites.md) · [Italiano](IT-Siti.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Websites.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Websites.md is the master: make content changes there first, then carry them into this translation. -->
+
 bger reader works on the decision pages of the Swiss Federal Supreme Court and the Federal Administrative Court. The browser starts the extension only on the addresses listed here; on all other websites it is not present. The settings apply jointly to all supported pages.
 
 | Address | Court | What is there |

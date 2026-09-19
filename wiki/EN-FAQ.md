@@ -1,5 +1,7 @@
 [Deutsch](DE-FAQ.md) · **English** · [Français](FR-FAQ.md) · [Italiano](IT-FAQ.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-FAQ.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-FAQ.md is the master: make content changes there first, then carry them into this translation. -->
+
 Answers to frequently asked questions and help when something does not work as expected. If the right answer is missing, an [Issue](https://github.com/cursorblinkrate-boop/bger-reader-addon/issues) on GitHub helps; what a report should contain is described at the very bottom.
 
 ## The pink button does not appear

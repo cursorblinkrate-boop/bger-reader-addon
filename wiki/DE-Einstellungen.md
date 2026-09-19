@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Settings.md) · [Français](FR-Reglages.md) · [Italiano](IT-Impostazioni.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Einstellungen.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 Diese Seite erklärt jede Einstellung von bger reader einzeln. Die Einstellungen stehen im Einstellungsfeld auf der Seite und im separaten Fenster in derselben Reihenfolge; die ersten sechs sind sofort sichtbar, die übrigen erscheinen nach einem Klick auf **erweitert**. Wie die beiden Bedienorte geöffnet werden, steht unter [Bedienung](DE-Bedienung.md).
 
 ## Übersicht

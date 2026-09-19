@@ -1,5 +1,7 @@
 [Deutsch](DE-Schriftarten.md) · **English** · [Français](FR-Polices.md) · [Italiano](IT-Caratteri.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Fonts.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Schriftarten.md is the master: make content changes there first, then carry them into this translation. -->
+
 bger reader comes with seven fonts that are bundled with the extension and are never loaded from the internet, plus two entries for the fonts of your own system. All bundled fonts are free fonts under open licences; they may be distributed together with the extension, and the licence texts are included in the package. The choice is made in the settings panel under **Schriftart** (font); the list shows every entry in its own typeface.
 
 ## The fonts at a glance

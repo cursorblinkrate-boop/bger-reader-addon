@@ -1,3 +1,5 @@
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist wiki/Home.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. / Do not edit here: the source is wiki/Home.md in the repository; the workflow overwrites the wiki on every push. -->
+
 **bger reader** – Wiki · Deutsch · English · Français · Italiano
 
 ## Deutsch

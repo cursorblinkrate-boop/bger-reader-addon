@@ -1,5 +1,7 @@
 [Deutsch](DE-Bedienung.md) · [English](EN-Usage.md) · [Français](FR-Utilisation.md) · **Italiano**
 
+<!-- Non modificare qui nel wiki: la fonte è il file wiki/IT-Utilizzo.md nel repository e il workflow sovrascrive il wiki a ogni push. La pagina tedesca wiki/DE-Bedienung.md è quella di riferimento: apportare prima lì le modifiche di contenuto, poi riportarle in questa traduzione. -->
+
 bger reader si può usare in due punti: direttamente sulla pagina della decisione, tramite un piccolo pannello delle impostazioni che si apre con il pulsante rosa, oppure in una finestra separata, che si apre tramite l'icona dell'estensione nella barra degli strumenti. Entrambi mostrano le stesse impostazioni, accedono alla stessa memoria e restano sincronizzati tra loro: ciò che si modifica nella finestra agisce subito sulla pagina, e viceversa.
 
 ## Il pulsante rosa e il pannello delle impostazioni

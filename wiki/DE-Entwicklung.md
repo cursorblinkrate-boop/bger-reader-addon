@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Development.md) · [Français](FR-Developpement.md) · [Italiano](IT-Sviluppo.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Entwicklung.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 Diese Seite richtet sich an alle, die den Code von bger reader verstehen, prüfen oder daran mitarbeiten möchten. Sie beschreibt den Aufbau des Repositories, die Arbeitsweise der Erweiterung, die Tests, die Versionierung und den Weg vom Commit zum veröffentlichten Paket. Verbindliche Kurzfassung der Arbeitsregeln sind die Dateien `CLAUDE.md` und `STARTPROMPT.md` im Repository.
 
 ## Grundsätze

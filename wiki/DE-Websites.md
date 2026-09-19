@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Websites.md) · [Français](FR-Sites.md) · [Italiano](IT-Siti.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Websites.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 bger reader arbeitet auf den Entscheidseiten des Schweizerischen Bundesgerichts und des Bundesverwaltungsgerichts. Der Browser startet die Erweiterung nur auf den hier aufgeführten Adressen; auf allen anderen Websites ist sie nicht vorhanden. Die Einstellungen gelten gemeinsam für alle unterstützten Seiten.
 
 | Adresse | Gericht | Was dort liegt |

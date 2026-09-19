@@ -1,5 +1,7 @@
 **Deutsch** · [English](EN-Brackets.md) · [Français](FR-Parentheses.md) · [Italiano](IT-Parentesi.md)
 
+<!-- Nicht hier im Wiki bearbeiten: Quelle ist die Datei wiki/DE-Klammern.md im Repository, der Workflow überschreibt das Wiki bei jedem Push. Diese deutsche Fassung ist die Quelle für EN, FR und IT: Änderungen hier machen und dann in die drei Übersetzungen übertragen. -->
+
 Entscheide der Schweizer Gerichte sind voller Klammern. Ein grosser Teil davon sind Fundstellen: Zitate aus der Rechtsprechung wie `(BGE 135 II 45 E. 3.2 S. 47)` und Literaturangaben wie `(NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, N. 12 zu Art. 47 StGB)`. Sie sind wichtig zum Nachschlagen, aber beim Lesen lesen sie sich wie eine Rechnung: Zahlenketten, deren Inhalt man nicht im Kopf hat und die den Gedankengang unterbrechen. bger reader klappt solche Fundstellen ein, wenn die Einstellung **einfach** angehakt ist. An ihrer Stelle bleibt ein kleiner Knopf `▸`; ein Klick öffnet die Klammer an Ort und Stelle, ein weiterer schliesst sie wieder. Nichts wird gelöscht, und beim Drucken erscheint immer der vollständige Text.
 
 ## Die Grundregel

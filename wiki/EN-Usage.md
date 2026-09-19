@@ -1,5 +1,7 @@
 [Deutsch](DE-Bedienung.md) · **English** · [Français](FR-Utilisation.md) · [Italiano](IT-Utilizzo.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Usage.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Bedienung.md is the master: make content changes there first, then carry them into this translation. -->
+
 bger reader can be operated in two places: directly on the decision page via a small settings panel that opens with the pink button, or in a separate window that opens via the extension's icon in the toolbar. Both show the same settings, access the same storage and stay in sync with each other: whatever is changed in the window takes effect immediately on the page, and vice versa.
 
 ## The pink button and the settings panel

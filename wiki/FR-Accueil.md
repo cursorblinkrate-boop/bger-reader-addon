@@ -1,5 +1,7 @@
 [Deutsch](DE-Startseite.md) · [English](EN-Home.md) · **Français** · [Italiano](IT-Home.md)
 
+<!-- Ne pas modifier ici dans le wiki : la source est le fichier wiki/FR-Accueil.md du dépôt, et le workflow écrase le wiki à chaque push. La page allemande wiki/DE-Startseite.md fait foi : y faire d'abord les modifications de contenu, puis les reporter dans cette traduction. -->
+
 **bger reader** est une extension de navigateur gratuite pour Chrome, Brave, Edge et Firefox qui rend plus lisibles les décisions du Tribunal fédéral suisse et du Tribunal administratif fédéral. Elle ne modifie que l'affichage dans votre propre navigateur : la police, la taille de police, les espacements, la longueur des lignes et le jeu de couleurs se règlent librement, et les références entre parenthèses – par exemple `(BGE 135 II 45 E. 3.2 S. 47)`, soit ATF 135 II 45 consid. 3.2 p. 47 – sont repliées derrière une petite flèche, afin que le fil du raisonnement de la décision ne soit pas constamment interrompu. Le texte lui-même reste intégralement conservé; chaque parenthèse se rouvre d'un clic.
 
 L'extension fonctionne à 100 % hors ligne. Elle n'envoie aucune donnée, ne télécharge rien, ne contient ni publicité ni fonctions statistiques. La seule autorisation qu'elle demande au navigateur est le stockage local, dans lequel vos réglages sont enregistrés. Pour en savoir plus, voir [Confidentialité et sécurité](FR-Confidentialite.md).

@@ -1,5 +1,7 @@
 [Deutsch](DE-Klammern.md) · **English** · [Français](FR-Parentheses.md) · [Italiano](IT-Parentesi.md)
 
+<!-- Do not edit here in the wiki: the source is the file wiki/EN-Brackets.md in the repository, and the workflow overwrites the wiki on every push. The German page wiki/DE-Klammern.md is the master: make content changes there first, then carry them into this translation. -->
+
 Decisions of the Swiss courts are full of brackets (parentheses). A large part of them are citations: references to case law such as `(BGE 135 II 45 E. 3.2 S. 47)` and references to legal literature such as `(NIGGLI/WIPRÄCHTIGER, Basler Kommentar, 4. Aufl. 2019, N. 12 zu Art. 47 StGB)`. They are important for looking things up, but while reading they read like an invoice: strings of numbers whose content you do not have in your head and which interrupt the line of reasoning. bger reader collapses such citations when the setting **einfach** (simple) is ticked. In their place, a small button `▸` remains; one click opens the bracket in place, another closes it again. Nothing is deleted, and when printing, the complete text always appears.
 
 ## The basic rule
