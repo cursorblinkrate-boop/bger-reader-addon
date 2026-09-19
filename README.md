@@ -6,7 +6,7 @@
 [![Release](https://img.shields.io/github/v/release/cursorblinkrate-boop/bger-reader-addon?label=Release)](https://github.com/cursorblinkrate-boop/bger-reader-addon/releases)
 [![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-blue.svg)](LICENSE)
 
-> **English summary.** bger reader is a free, open-source accessibility extension for decisions of the Swiss Federal Supreme Court (search.bger.ch, relevancy.bger.ch) and the Swiss Federal Administrative Court (bvger.weblaw.ch). It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes including dark and night mode, and it folds citations in parentheses out of the way so the court's reasoning stays readable. It runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is `storage`, used to remember your settings.
+> **English summary.** bger reader is a free, open-source accessibility extension for decisions of the Swiss Federal Supreme Court (search.bger.ch, relevancy.bger.ch) and the Swiss Federal Administrative Court (bvger.weblaw.ch). It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes including dark and night mode, and it folds citations in parentheses out of the way so the court's reasoning stays readable. The interface is available in German, English, French and Italian. It runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is `storage`, used to remember your settings.
 
 bger reader ist eine Browser-Erweiterung, die Entscheide des Schweizerischen Bundesgerichts und des Bundesverwaltungsgerichts leichter lesbar macht. Sie verändert nur die Darstellung im eigenen Browser: Schriftart, Schriftgrösse, Abstände, Zeilenlänge, Textbreite und Farbschema lassen sich frei einstellen, und Fundstellen in Klammern wie `(BGE 135 II 45 E. 3.2 S. 47)` werden hinter einem kleinen Pfeil eingeklappt, damit der Gedankengang des Entscheids nicht ständig unterbrochen wird. Der Text bleibt vollständig erhalten, jede Klammer lässt sich mit einem Klick öffnen, und beim Drucken erscheint immer der ganze Entscheid.
 
@@ -19,6 +19,7 @@ Die Erweiterung arbeitet zu 100 % offline. Sie sendet keine Daten, lädt nichts 
 - **Farbschema:** Weiss, Sepia, Dunkel, Hoher Kontrast und ein rötlicher Nachtmodus, jeweils für die ganze Seite.
 - **Klammern:** Zitate aus der Rechtsprechung und Literaturangaben werden eingeklappt, Gesetzesverweise und Entscheidtext bleiben offen. Jede Klammer ist einzeln aufklappbar.
 - **Bedienung:** ein Einstellungsfeld direkt auf der Seite und dasselbe als eigenes Fenster über das Symbol in der Symbolleiste, beide miteinander abgeglichen; vollständig per Tastatur bedienbar.
+- **Sprache:** Bedienoberfläche in Deutsch, Englisch, Französisch und Italienisch, umschaltbar in der Kopfzeile des Einstellungsfelds; Standard ist Deutsch.
 - **Speichern:** Einstellungen werden automatisch gespeichert und gelten auf allen unterstützten Seiten.
 
 ## Schnellstart
@@ -65,7 +66,7 @@ Herkunft und Lizenzen im Einzelnen: [extension/fonts/LICENSES.md](extension/font
 
 ## Für Entwicklerinnen und Entwickler
 
-Vanilla JavaScript, Manifest V3, keine Build-Pipeline, keine Abhängigkeiten im Paket. Das Herzstück ist `extension/content.js`; das Einstellungsfenster liegt in `extension/popup.html`, `popup.css` und `popup.js`, das Hintergrundskript in `extension/background.js`. Die Test-Suite läuft ohne Framework mit jsdom, der Browser-Smoke-Test mit Playwright (Chromium und Edge) und Selenium (Firefox). Als Testseiten dienen echte, inhaltlich unverfängliche Entscheide (BGE 116 Ia 359 zum Frauenstimmrecht, BGE 145 I 207 zur Heiratsstrafe-Abstimmung, ein Revisionsentscheid zu Appenzeller Käse und ein Entscheid des Bundesverwaltungsgerichts zum Artenschutz); sie werden nicht im Repository abgelegt, sondern bei Bedarf geladen.
+Vanilla JavaScript, Manifest V3, keine Build-Pipeline, keine Abhängigkeiten im Paket. Das Herzstück ist `extension/content.js`; das Einstellungsfenster liegt in `extension/popup.html`, `popup.css` und `popup.js`, die Texte der Bedienoberfläche in vier Sprachen in `extension/sprachen.js`, das Hintergrundskript in `extension/background.js`. Die Test-Suite läuft ohne Framework mit jsdom, der Browser-Smoke-Test mit Playwright (Chromium und Edge) und Selenium (Firefox). Als Testseiten dienen echte, inhaltlich unverfängliche Entscheide (BGE 116 Ia 359 zum Frauenstimmrecht, BGE 145 I 207 zur Heiratsstrafe-Abstimmung, ein Revisionsentscheid zu Appenzeller Käse und ein Entscheid des Bundesverwaltungsgerichts zum Artenschutz); sie werden nicht im Repository abgelegt, sondern bei Bedarf geladen.
 
 ```
 git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git

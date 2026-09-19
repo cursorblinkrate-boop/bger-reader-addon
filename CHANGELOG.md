@@ -13,6 +13,35 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.10.0 — 2026-09-19
+
+- Neu: **Sprache der Bedienoberfläche** – Deutsch, English, Français,
+  Italiano, wählbar in der Kopfzeile von Panel und Pop-up-Fenster (Globus,
+  jede Sprache in ihrem eigenen Namen). Beschriftungen, Auswahltexte,
+  Tooltips, Vorlesetexte (`aria-label`), die Wertanzeige „aus" und der Titel
+  des Klammer-Pfeils im Entscheidtext folgen der Wahl. Die Sprache wird mit
+  den übrigen Einstellungen gespeichert und zwischen Panel und Pop-up
+  abgeglichen; Zurücksetzen behält sie. Standard bleibt Deutsch.
+  Texte in `extension/sprachen.js`, einer Datei für Panel und Pop-up (das
+  Manifest lädt sie vor `content.js`, `popup.html` vor `popup.js`); das
+  Markup bleibt deutsch, die anderen Sprachen werden nach Element-ID
+  hineingeschrieben, ohne Neuaufbau.
+- Gestaltung von Panel und Pop-up überarbeitet („Rosé Atelier"): Wortmarke
+  in EB Garamond, Bedienoberfläche in Atkinson Hyperlegible Next (beide
+  Schriften liegen bereits im Paket, nichts Neues wird geladen), Farbtokens
+  in Rosé auf warmem Weiss, Regler mit gefüllter Spur, Häkchen als Schalter,
+  runde Knöpfe, Haarlinien statt Rahmen, weicher Schatten. Die Colibre-Icons
+  bleiben unverändert; ihre Blau-Akzente werden per CSS auf Rosé umgelenkt.
+  Bei dunklem Farbschema (Dunkel, Hoher Kontrast, Nacht) werden Panel und
+  Pop-up dunkel. Regler-Zeilen im Panel zweizeilig (Beschriftung und Wert
+  oben, Regler in voller Breite – Platz für lange französische und
+  italienische Beschriftungen). Fokusrahmen in tiefem Rosé (Kontrast 6.8:1),
+  Textfarben mit mindestens 6.6:1. Pop-up-Fenster 660 x 920 Pixel.
+- Tests: `sprachen.js` im Harness; neue Prüfungen für vollständige
+  Wörterbücher (gleiche Schlüssel in allen vier Sprachen), Umschalten in
+  Panel und Pop-up, Sprache per Live-Sync, Zurücksetzen behält die Sprache,
+  dunkles Schema, Design-Tokens in Panel und Pop-up identisch.
+
 ## 0.9.2 — 2026-09-19
 
 - Test-Suite, Testseiten und Screenshot-Werkzeuge auf inhaltlich harmlose

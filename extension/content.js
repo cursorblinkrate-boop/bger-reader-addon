@@ -273,6 +273,13 @@
 
     /* ---------- Ein-/Ausklappen (reversibel, formatierungserhaltend) ---------- */
 
+    /* Titel des Klammer-Pfeils in der Sprache der Bedienoberfläche;
+       gesetzt über beschriftungSetzen() aus sprachAnwenden(). */
+    let klammerTitel = 'Klammerbemerkung ein-/ausklappen';
+    function beschriftungSetzen(texte) {
+      if (texte && texte.klammer) klammerTitel = texte.klammer;
+    }
+
     function pfeilAktualisieren(fold, knopf) {
       const offen = fold.classList.contains('bkl-offen');
       knopf.textContent = offen ? '▾' : '▸';
@@ -347,7 +354,7 @@
         const knopf = document.createElement('button');
         knopf.type = 'button';
         knopf.className = 'bkl-toggle';
-        knopf.title = 'Klammerbemerkung ein-/ausklappen';
+        knopf.title = klammerTitel;
         knopf.setAttribute('aria-expanded', 'false');
         knopf.textContent = '▸';
         knopf.addEventListener('click', function (ev) {
@@ -400,7 +407,8 @@
       blockVerarbeiten: blockVerarbeiten,
       einzelnUmschalten: einzelnUmschalten,
       alleUmschalten: alleUmschalten,
-      allesAufklappenUndEntfernen: allesAufklappenUndEntfernen
+      allesAufklappenUndEntfernen: allesAufklappenUndEntfernen,
+      beschriftungSetzen: beschriftungSetzen
     };
   })();
 
@@ -428,7 +436,8 @@
     klammern: true,             // „einfach": Klammern nach festem Regelsatz einklappen
     ausrichtung: 'links',       // links | mittig | rechts | blocksatz
     spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
-    absatzabstand: 0            // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
+    absatzabstand: 0,           // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
+    sprache: 'de'               // Sprache der Bedienoberfläche: de | en | fr | it (Texte in sprachen.js)
   };
 
   /* Speicher-Strategie (Privacy: 100 % offline, nichts verlässt das Gerät):
@@ -857,6 +866,9 @@
     html.style.setProperty('--bkl-border', farben.border);
     html.style.setProperty('--bkl-toggle-bg', farben.tbg);
     html.style.setProperty('--bkl-toggle-fg', farben.tfg);
+    // Panel und Pop-up folgen dem Farbschema: dunkle Tokens (panelCss) bei
+    // Dunkel, Hoher Kontrast und Nacht, sobald der Lesemodus an ist.
+    host.setAttribute('data-schema', e.aktiv && /^(dunkel|kontrast|nacht)$/.test(e.farbschema) ? 'dunkel' : 'hell');
   }
 
   /* ================================================================== */
@@ -1033,7 +1045,7 @@
     'Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, ' +
     'Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, ' +
     'Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, ' +
-    'Textbreite 625 px, Hintergrund Weiss, Klammern „einfach" ein';
+    'Textbreite 625 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt.';
 
   /* Dropdown-Vorschau: jede Schriftart-Option in ihrer Schrift, jede
      Hintergrund-Option in ihren Farben; das Dropdown selbst zeigt den
@@ -1053,10 +1065,75 @@
     return css;
   }
 
-  const panelCss = `
-    :host { all: initial; }
+  /* ---------- Sprache der Bedienoberfläche ----------
+     Texte aus sprachen.js (BGerReaderSprachen; das Manifest lädt die Datei
+     vor diesem Skript in denselben Kontext). Übersetzt wird in die
+     bestehenden Elemente nach ID, das Markup unten bleibt deutsch. Fehlt die
+     Datei (Skript allein geladen), bleibt alles deutsch. */
+  const Sprachen = window.BGerReaderSprachen || {
+    TEXTE: {},
+    texte: function () { return { allgemein: { aus: 'aus', klammer: 'Klammerbemerkung ein-/ausklappen' }, felder: {} }; },
+    uebersetze: function () { return this.texte(); }
+  };
+  let sprachTexte = Sprachen.texte('de');
+  let angezeigteSprache = null;
 
-    /* Geschlossener Zustand: kleiner runder Pink-Button oben rechts */
+  function sprachAnwenden() {
+    const code = Sprachen.TEXTE[einstellungen.sprache] ? einstellungen.sprache : STANDARDS.sprache;
+    einstellungen.sprache = code;
+    sprachTexte = Sprachen.uebersetze(shadow, code);
+    angezeigteSprache = code;
+    BGerReader.beschriftungSetzen(sprachTexte.allgemein);
+    // Pfeile bereits eingeklappter Klammern im Entscheidtext nachziehen
+    document.querySelectorAll('button.bkl-toggle').forEach(function (k) { k.title = sprachTexte.allgemein.klammer; });
+  }
+
+  /* Globus der Sprachwahl: selbst gezeichnet wie Schliessen-X und Pfeil. */
+  const ICON_GLOBUS =
+    '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<circle cx="8" cy="8" r="6.3"/><path d="M1.7 8h12.6M8 1.7c2.3 2 2.3 10.6 0 12.6M8 1.7c-2.3 2-2.3 10.6 0 12.6M2.7 4.6h10.6M2.7 11.4h10.6"/></svg>';
+
+  const panelCss = `
+    :host {
+      all: initial;
+      /* Design-Tokens „Rosé Atelier", helles Schema. Derselbe Satz steht in
+         popup.css (:root); Block [7] der Suite prüft, dass beide gleich sind.
+         Custom Properties sind von all:initial nicht betroffen. */
+      --ui-bg: #fffafc;
+      --ui-bg-2: #fdf1f7;
+      --ui-fg: #2b1a22;
+      --ui-fg-2: #6d5460;
+      --ui-linie: #f2d4e3;
+      --ui-rahmen: #e6bdd2;
+      --ui-rose: #d63384;
+      --ui-rose-2: #e64980;
+      --ui-rose-3: #a61e63;
+      --ui-rose-weich: #f9dce9;
+      --ui-icon: #4a3542;
+      --ui-knopf: #ffffff;
+      --ui-schatten: 0 1px 2px rgba(60, 10, 35, .06), 0 14px 36px rgba(166, 30, 99, .16);
+      --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
+      --ui-marke: "EB Garamond", Georgia, "Times New Roman", Times, serif;
+    }
+    /* Dunkles Schema: das Panel folgt dem Farbschema der Seite (Dunkel,
+       Hoher Kontrast, Nacht), siehe wendeStileAn(). */
+    :host([data-schema="dunkel"]) {
+      --ui-bg: #221419;
+      --ui-bg-2: #2d1b23;
+      --ui-fg: #f7e9f0;
+      --ui-fg-2: #cfb3c2;
+      --ui-linie: #46293a;
+      --ui-rahmen: #6a3f52;
+      --ui-rose: #e64980;
+      --ui-rose-2: #ff6fa5;
+      --ui-rose-3: #ffb3cf;
+      --ui-rose-weich: #46243a;
+      --ui-icon: #e6cdd9;
+      --ui-knopf: #fff4f8;
+      --ui-schatten: 0 1px 2px rgba(0, 0, 0, .4), 0 14px 36px rgba(0, 0, 0, .5);
+    }
+
+    /* Geschlossener Zustand: runder Pink-Knopf oben rechts */
     #bkl-button {
       position: fixed;
       top: 12px;
@@ -1066,92 +1143,246 @@
       height: 46px;
       padding: 0;
       border-radius: 50%;
-      border: 2px solid #a61e63;
+      border: 1px solid #a61e63;
       background: #d63384;
+      background-image: linear-gradient(145deg, #e64980, #c2276f);
       color: #ffffff;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      box-shadow: 0 2px 6px rgba(166, 30, 99, .25), 0 8px 22px rgba(166, 30, 99, .3), inset 0 1px 0 rgba(255, 255, 255, .3);
     }
-    #bkl-button:hover { background: #e64980; }
+    #bkl-button:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
-    /* Offener Zustand: annähernd quadratisches Panel, scrollbar bei kleinem Bildschirm */
+    /* Offener Zustand: Karte mit weichem Schatten, scrollbar bei kleinem Bildschirm */
     #bkl-panel {
       position: fixed;
       top: 12px;
       right: 12px;
       z-index: 2147483647;
-      width: 340px;
+      width: 352px;
       max-width: calc(100vw - 24px);
       max-height: calc(100vh - 24px);
       overflow: auto;
-      font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+      font-family: var(--ui-schrift);
       font-size: 14px;
-      line-height: 1.35;
-      background: #ffffff;
-      color: #222222;
-      border: 1px solid #bbb;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.25);
-      padding: 10px 12px;
+      line-height: 1.4;
+      background: var(--ui-bg);
+      color: var(--ui-fg);
+      color-scheme: light;
+      border: 1px solid var(--ui-linie);
+      border-radius: 16px;
+      box-shadow: var(--ui-schatten);
+      padding: 12px 16px 16px;
+      -webkit-font-smoothing: antialiased;
     }
+    :host([data-schema="dunkel"]) #bkl-panel { color-scheme: dark; }
     #bkl-panel[hidden],
     #bkl-button[hidden] { display: none; }
 
+    /* Kopfzeile: Wortmarke in EB Garamond, rechts Sprachwahl und Schliessen */
     #bkl-kopf {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #dddddd;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--ui-linie);
     }
     h2 {
-      font-size: 15px;
-      font-weight: bold;
-      margin: 0;
+      flex: 1;
+      min-width: 0;
       display: flex;
       align-items: center;
-      gap: 6px;
-      color: #d63384;
+      gap: 8px;
+      margin: 0;
+      font-family: var(--ui-marke);
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: .01em;
+      color: var(--ui-rose-3);
+      white-space: nowrap;
     }
+    h2 svg { flex: 0 0 auto; }
+    .bkl-sprachwahl {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--ui-fg-2);
+    }
+    .bkl-sprachwahl svg { display: block; }
+    /* nur für Vorlesewerkzeuge sichtbar */
+    .bkl-sr {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    #bkl-sprache { width: auto; max-width: none; font-size: 12.5px; padding: 4px 6px; }
+
     /* Schliessen-Knopf in Pink (wie der Pink-Button auf der Seite) */
     #bkl-schliessen {
-      width: 30px;
-      height: 30px;
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
       padding: 0;
       border: 1px solid #a61e63;
-      border-radius: 6px;
+      border-radius: 50%;
       background: #d63384;
+      background-image: linear-gradient(145deg, #e64980, #c2276f);
       color: #ffffff;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 1px 3px rgba(166, 30, 99, .3), inset 0 1px 0 rgba(255, 255, 255, .25);
     }
-    #bkl-schliessen:hover { background: #e64980; }
+    #bkl-schliessen:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
+    /* Zeilen: Icon, Beschriftung, Bedienelement rechts; Haarlinien dazwischen */
     .bkl-zeile {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin: 6px 0;
+      gap: 10px;
+      min-height: 36px;
+      padding: 3px 0;
     }
+    .bkl-zeile + .bkl-zeile { border-top: 1px solid var(--ui-linie); }
     .bkl-icon {
       flex: 0 0 20px;
       display: inline-flex;
     }
     .bkl-icon svg { display: block; width: 18px; height: 18px; }
-    label { flex: 1; color: #222222; }
-    input[type="range"] { width: 110px; }
-    select { width: 124px; font-size: 13px; }
-    input[type="checkbox"] { width: 18px; height: 18px; }
-    /* Regler-Knöpfe und Häkchen in Pink */
-    input[type="range"],
-    input[type="checkbox"] { accent-color: #d63384; }
-    .bkl-wert { width: 42px; text-align: right; color: #555555; }
+    /* Colibre-Icons ans Schema koppeln: die festen Farben der SVGs (Grau,
+       Blau, Papierweiss) werden über Attribut-Selektoren auf die Tokens
+       umgelenkt; die Icon-Strings selbst bleiben unverändert (identisch zum
+       Pop-up, siehe Block [7]). */
+    .bkl-icon [fill="#3a3a38"] { fill: var(--ui-icon); }
+    .bkl-icon [stroke="#3a3a38"] { stroke: var(--ui-icon); }
+    .bkl-icon [fill="#fafafa"] { fill: var(--ui-bg); }
+    .bkl-icon [fill="#1e8bcd"] { fill: var(--ui-rose); }
+    .bkl-icon [stroke="#1e8bcd"] { stroke: var(--ui-rose); }
+    .bkl-icon [fill="#0063b1"] { fill: var(--ui-rose-3); }
+    .bkl-icon [fill="#83beec"] { fill: var(--ui-rose-weich); }
+    label { flex: 1; min-width: 0; color: var(--ui-fg); }
+    .bkl-wert {
+      flex: 0 0 auto;
+      color: var(--ui-fg-2);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* Regler-Zeilen zweizeilig: Beschriftung und Wert oben, der Regler in
+       voller Breite darunter (feinere Bedienung, Platz für lange Beschriftungen). */
+    .bkl-regler {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      grid-template-areas: "icon label wert" ". regler regler";
+      row-gap: 0;
+      column-gap: 10px;
+      align-items: center;
+    }
+    .bkl-regler .bkl-icon { grid-area: icon; }
+    .bkl-regler label { grid-area: label; }
+    .bkl-regler .bkl-wert { grid-area: wert; }
+    .bkl-regler input[type="range"] { grid-area: regler; width: 100%; }
+
+    /* Regler: Spur in Rosé mit Füllung bis zum Wert (--bkl-p, gesetzt von
+       wertAnzeigen), runder weisser Knopf mit rosé Rand. Firefox füllt die
+       Spur selbst (::-moz-range-progress). */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      accent-color: #d63384;
+      --bkl-p: 0%;
+      width: 100%;
+      height: 22px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--ui-rose) 0 var(--bkl-p), var(--ui-rose-weich) var(--bkl-p) 100%);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -6.5px;
+      border-radius: 50%;
+      background: var(--ui-knopf);
+      border: 2px solid var(--ui-rose);
+      box-shadow: 0 1px 3px rgba(60, 10, 35, .3);
+    }
+    input[type="range"]::-moz-range-track { height: 5px; border-radius: 999px; background: var(--ui-rose-weich); }
+    input[type="range"]::-moz-range-progress { height: 5px; border-radius: 999px; background: var(--ui-rose); }
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--ui-knopf);
+      border: 2px solid var(--ui-rose);
+      box-shadow: 0 1px 3px rgba(60, 10, 35, .3);
+    }
+
+    /* Häkchen als Schalter: Pille mit Knopf, rosé wenn eingeschaltet. Bleibt
+       für Tastatur und Vorlesewerkzeuge eine Checkbox. */
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      accent-color: #d63384;
+      flex: 0 0 auto;
+      position: relative;
+      width: 38px;
+      height: 22px;
+      margin: 0;
+      border-radius: 999px;
+      border: 1px solid var(--ui-rahmen);
+      background: var(--ui-rose-weich);
+      cursor: pointer;
+    }
+    input[type="checkbox"]::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--ui-knopf);
+      box-shadow: 0 1px 2px rgba(60, 10, 35, .35);
+    }
+    input[type="checkbox"]:checked { background: var(--ui-rose); border-color: var(--ui-rose-3); }
+    input[type="checkbox"]:checked::before { left: 18px; }
+
+    /* Auswahllisten: eigener Rahmen, native Pfeil-Schaltfläche (folgt color-scheme) */
+    select {
+      flex: 0 0 auto;
+      width: 152px;
+      max-width: 58%;
+      font: inherit;
+      font-size: 13px;
+      color: var(--ui-fg);
+      background-color: var(--ui-bg);
+      border: 1px solid var(--ui-rahmen);
+      border-radius: 9px;
+      padding: 4px 6px;
+      cursor: pointer;
+    }
+    select:hover { border-color: var(--ui-rose); }
 ${vorschauCss()}
     /* Toggle für den Detail-Bereich (echter Button, aria-expanded) */
     #bkl-details-toggle {
@@ -1159,44 +1390,50 @@ ${vorschauCss()}
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-top: 8px;
-      padding: 7px 8px;
-      border: 1px solid #bbb;
-      border-radius: 6px;
-      background: #f4f4f4;
-      color: #222222;
-      font-size: 14px;
-      font-weight: bold;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border: 1px solid var(--ui-rahmen);
+      border-radius: 999px;
+      background: var(--ui-bg-2);
+      color: var(--ui-rose-3);
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
       cursor: pointer;
       text-align: left;
     }
-    #bkl-details-toggle:hover { background: #e6e6e6; }
+    #bkl-details-toggle:hover { border-color: var(--ui-rose); }
     #bkl-details-toggle .bkl-pfeil { display: inline-flex; }
     /* statische Drehung, absichtlich ohne Transition/Animation */
     #bkl-details-toggle[aria-expanded="true"] .bkl-pfeil svg { transform: rotate(90deg); }
+    #bkl-details { margin-top: 6px; }
     #bkl-details[hidden] { display: none; }
 
-    .bkl-knopfreihe { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .bkl-knopfreihe { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     button.bkl-aktion {
-      border: 1px solid #bbb;
-      border-radius: 6px;
-      background: #f4f4f4;
-      color: #222222;
-      padding: 4px 8px;
-      cursor: pointer;
+      border: 1px solid var(--ui-rahmen);
+      border-radius: 999px;
+      background: var(--ui-bg);
+      color: var(--ui-rose-3);
+      padding: 6px 14px;
+      font: inherit;
       font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
     }
-    button.bkl-aktion:hover { background: #e6e6e6; }
+    button.bkl-aktion:hover { background: var(--ui-bg-2); border-color: var(--ui-rose); }
 
-    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung */
+    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung (tiefes Rosé, 6.8:1 auf hell) */
     #bkl-button:focus-visible,
     #bkl-schliessen:focus-visible,
     #bkl-details-toggle:focus-visible,
     button.bkl-aktion:focus-visible,
     input:focus-visible,
     select:focus-visible {
-      outline: 2px solid #1a56cc;
-      outline-offset: 1px;
+      outline: 2px solid var(--ui-rose-3);
+      outline-offset: 2px;
     }
 
     /* Eigener Tooltip (erscheint erst nach TOOLTIP_VERZOEGERUNG; native
@@ -1206,14 +1443,14 @@ ${vorschauCss()}
       position: fixed;
       z-index: 2147483647;
       max-width: 300px;
-      padding: 6px 9px;
-      border-radius: 6px;
-      background: #222222;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: #2b1a22;
       color: #ffffff;
-      font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+      font-family: var(--ui-schrift);
       font-size: 13px;
-      line-height: 1.35;
-      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      line-height: 1.4;
+      box-shadow: 0 4px 14px rgba(43, 26, 34, .35);
       pointer-events: none;
     }
     #bkl-tooltip[hidden] { display: none; }
@@ -1227,6 +1464,7 @@ ${vorschauCss()}
     <div id="bkl-panel" role="region" aria-label="bger reader Einstellungen" hidden>
       <div id="bkl-kopf">
         <h2>${ICON_MARKE} bger reader</h2>
+        <span class="bkl-sprachwahl">${ICON_GLOBUS}<label for="bkl-sprache" class="bkl-sr">Sprache</label><select id="bkl-sprache" data-tooltip="Sprache der Bedienoberfläche (Deutsch, English, Français, Italiano)" aria-label="Sprache der Bedienoberfläche wählen"><option value="de" lang="de">Deutsch</option><option value="en" lang="en">English</option><option value="fr" lang="fr">Français</option><option value="it" lang="it">Italiano</option></select></span>
         <button type="button" id="bkl-schliessen"
                 data-tooltip="Einstellungen schliessen (Escape)"
                 aria-label="Einstellungen schliessen">${svgIcon(PFAD_SCHLIESSEN)}</button>
@@ -1238,7 +1476,7 @@ ${vorschauCss()}
           <label for="bkl-aktiv">einschalten</label>
           <input type="checkbox" id="bkl-aktiv" data-tooltip="Lesemodus ein-/ausschalten" aria-label="Lesemodus ein-/ausschalten">
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.groesse}</span>
           <label for="bkl-groesse">Schriftgrösse</label>
           <input type="range" id="bkl-groesse" min="6" max="50" step="1" data-tooltip="Schriftgrösse (6 bis 50, Standard 18)" aria-label="Schriftgrösse"><span class="bkl-wert" id="bkl-groesse-w"></span>
@@ -1269,7 +1507,7 @@ ${vorschauCss()}
             <option value="nacht">Nacht (rötlich)</option>
           </select>
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.spalte}</span>
           <label for="bkl-spalte">Textbreite</label>
           <input type="range" id="bkl-spalte" min="400" max="1400" step="25" data-tooltip="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
@@ -1294,27 +1532,27 @@ ${vorschauCss()}
             <option value="fett">fett</option>
           </select>
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.zeilen}</span>
           <label for="bkl-zeilenabstand">Zeilenabstand</label>
           <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1" data-tooltip="Zeilenabstand (Faktor)" aria-label="Zeilenabstand (Faktor)"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.absatz}</span>
           <label for="bkl-absatz">Absatzabstand</label>
           <input type="range" id="bkl-absatz" min="0" max="3" step="0.25" data-tooltip="Zusätzlicher Abstand nach jedem Absatz (Faktor der Schriftgrösse, 0 = Seiten-Standard)" aria-label="Absatzabstand (Faktor, 0 = Seiten-Standard)"><span class="bkl-wert" id="bkl-absatz-w"></span>
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.buchstaben}</span>
           <label for="bkl-buchstaben">Buchstabenabstand</label>
           <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.1" data-tooltip="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.worte}</span>
           <label for="bkl-worte">Wortabstand</label>
           <input type="range" id="bkl-worte" min="0" max="10" step="0.1" data-tooltip="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
         </div>
-        <div class="bkl-zeile">
+        <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.laenge}</span>
           <label for="bkl-laenge">Zeilenlänge</label>
           <input type="range" id="bkl-laenge" min="0" max="120" step="10" data-tooltip="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
@@ -1439,6 +1677,8 @@ ${vorschauCss()}
 
   function aktualisiereAnzeige() {
     const e = einstellungen;
+    if (e.sprache !== angezeigteSprache) sprachAnwenden();
+    shadow.getElementById('bkl-sprache').value = e.sprache;
     shadow.getElementById('bkl-aktiv').checked = e.aktiv;
     shadow.getElementById('bkl-groesse').value = e.schriftgroesse;
     shadow.getElementById('bkl-art').value = e.schriftart;
@@ -1529,13 +1769,22 @@ ${vorschauCss()}
      Bedienelemente wie in aktualisiereAnzeige(). Schriftgrösse bewusst ohne
      Einheit (nur die Zahl). Bei den Dropdowns Schriftart/Hintergrund wird
      stattdessen data-wert gesetzt (Vorschau im geschlossenen Dropdown). */
+  /* Füllung der Regler-Spur bis zum Wert: CSS-Variable --bkl-p am Regler
+     (panelCss zeichnet die Spur als Verlauf bis zu diesem Prozentwert). */
+  function reglerFuellung(el) {
+    if (!el || el.type !== 'range') return;
+    const min = +el.min || 0, max = +el.max || 100, wert = +el.value;
+    const p = max > min ? Math.max(0, Math.min(100, (wert - min) / (max - min) * 100)) : 0;
+    el.style.setProperty('--bkl-p', p.toFixed(1) + '%');
+  }
+
   const WERTANZEIGE = {
     'bkl-groesse':       function (e) { return String(e.schriftgroesse); },
     'bkl-zeilenabstand': function (e) { return String(e.zeilenabstand); },
-    'bkl-absatz':        function (e) { return e.absatzabstand === 0 ? 'aus' : String(e.absatzabstand); },
+    'bkl-absatz':        function (e) { return e.absatzabstand === 0 ? sprachTexte.allgemein.aus : String(e.absatzabstand); },
     'bkl-buchstaben':    function (e) { return (+e.buchstabenabstand).toFixed(1) + 'px'; },
     'bkl-worte':         function (e) { return (+e.wortabstand).toFixed(1) + 'px'; },
-    'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? 'aus' : String(e.zeilenlaenge); },
+    'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? sprachTexte.allgemein.aus : String(e.zeilenlaenge); },
     'bkl-spalte':        function (e) { return e.spaltenbreite + 'px'; },
     'bkl-art':           null,
     'bkl-farbe':         null
@@ -1551,6 +1800,7 @@ ${vorschauCss()}
     }
     const el = shadow.getElementById(id + '-w');
     if (el) el.textContent = f(einstellungen);
+    reglerFuellung(shadow.getElementById(id));
   }
 
   /* Pfad A – Typografie und Farben: Darstellung sofort, Folds unberuehrt.
@@ -1605,11 +1855,14 @@ ${vorschauCss()}
   bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; stilGeaendert('bkl-ausrichtung'); });
   bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; stilGeaendert('bkl-spalten'); });
   bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; stilGeaendert('bkl-absatz', true); });
+  // Sprache: Panel und Pfeil-Titel sofort umschreiben, Wertanzeige („aus") nachziehen, speichern.
+  bei('bkl-sprache', 'change', function (e) { einstellungen.sprache = e.target.value; sprachAnwenden(); aktualisiereAnzeige(); speichereSofort(); });
   // Regler losgelassen: den letzten Wert nicht in der Buendelung haengen lassen.
   ['bkl-groesse', 'bkl-zeilenabstand', 'bkl-buchstaben', 'bkl-worte', 'bkl-laenge', 'bkl-spalte', 'bkl-absatz']
     .forEach(function (id) { bei(id, 'change', nachschreiben); });
   bei('bkl-reset', 'click', function () {
-    einstellungen = Object.assign({}, STANDARDS);
+    // Alles auf Standard, nur die Sprache bleibt (wer Französisch liest, soll nicht Deutsch bekommen).
+    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache });
     allesAnwenden();
   });
   }

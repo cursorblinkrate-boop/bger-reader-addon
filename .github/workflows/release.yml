@@ -43,8 +43,8 @@ jobs:
         working-directory: test
         run: npm install --no-save --no-audit --no-fund "$JSDOM"
 
-      - name: Syntaxprüfung des ausgelieferten Skripts
-        run: node --check extension/content.js
+      - name: Syntaxprüfung der ausgelieferten Skripte
+        run: for f in extension/sprachen.js extension/content.js extension/popup.js extension/background.js; do node --check "$f"; done
 
       - name: Manifest ist gültiges JSON
         run: node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
