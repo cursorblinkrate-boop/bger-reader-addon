@@ -208,8 +208,15 @@ alle zusammen installieren.
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,
   Panel-CSS muss ins shadow.innerHTML.
 - Beschriftungen laut Skizze der Autorin (v0.7.0): „bger reader" klein,
-  „einschalten", „Hintergrund", „einfach", „erweitert" — Block [4] prüft sie.
-  Deutsch ist die Quelle im Markup; en/fr/it stehen in sprachen.js.
+  „einschalten", „Hintergrund", „einfach", „erweitert", seit v0.10.0 kurz
+  „Breite", „Zeilen", „Absatz" — Block [4] prüft sie. Deutsch ist die Quelle
+  im Markup; en/fr/it stehen in sprachen.js. Standardsprache ist Italienisch
+  (Vorgabe der Autorin). NIE automatisch nach navigator.language oder der
+  Seitensprache wählen, und nie prefers-color-scheme lesen: die Erweiterung
+  fragt nichts über Browser oder System ab (Datenschutz). Das dunkle Panel
+  folgt allein der eigenen Einstellung „Hintergrund".
+- Textbreite: Standard 800 px (Vorgabe der Autorin), die Seite selbst hat
+  625 px; Zurücksetzen stellt 800 ein.
 - Pop-up und Panel duplizieren Markup/Icons und die Design-Tokens bewusst
   (kein Build-Schritt); Block [7] prüft, dass beide identisch bleiben.
 - Colibre-Icons nie umfärben: ihre festen Farben (#3a3a38, #1e8bcd, #0063b1,

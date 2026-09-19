@@ -6,6 +6,9 @@
  * Build-Schritt: das Manifest lädt sie vor content.js in denselben
  * Kontext, popup.html lädt sie vor popup.js.
  *
+ * Standardsprache ist Italienisch (Vorgabe der Autorin). Bewusst keine
+ * Automatik nach Browser- oder Seitensprache: die Erweiterung fragt nichts
+ * über Browser oder Umgebung ab (Datenschutz).
  * Deutsch ist die Quelle: das Markup in content.js und popup.html ist
  * deutsch. uebersetze() schreibt eine andere Sprache in dieselben Elemente,
  * adressiert über die Element-IDs (label[for], data-tooltip, aria-label,
@@ -47,13 +50,13 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (Arial-ähnlich)', 'liberation-serif': 'Liberation Serif (Times-ähnlich)', sans: 'System Sans', serif: 'System Serif' } },
         'bkl-farbe':          { label: 'Hintergrund', tip: 'Hintergrund und Textfarbe wählen (Vorschau in der Liste)', aria: 'Hintergrund wählen',
                                 optionen: { hell: 'Weiss', sepia: 'Sepia', dunkel: 'Dunkel', kontrast: 'Hoher Kontrast', nacht: 'Nacht (rötlich)' } },
-        'bkl-spalte':         { label: 'Textbreite', tip: 'Breite des Textrahmens in Pixel (Seiten-Standard: 625)', aria: 'Breite des Textrahmens in Pixel' },
+        'bkl-spalte':         { label: 'Breite', tip: 'Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)', aria: 'Breite des Textrahmens in Pixel' },
         'bkl-klammern':       { label: 'einfach', tip: 'Klammerbemerkungen einklappen (Regel: Fundstellen wie BGE-Zitate und Literatur werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen)', aria: 'Klammerbemerkungen einklappen' },
         'bkl-details-toggle': { label: 'erweitert', tip: 'Weitere Einstellungen ein-/ausblenden', aria: 'Erweiterte Einstellungen ein-/ausblenden' },
         'bkl-staerke':        { label: 'Schriftstärke', tip: 'Schriftstärke wählen', aria: 'Schriftstärke wählen',
                                 optionen: { normal: 'normal', fett: 'fett' } },
-        'bkl-zeilenabstand':  { label: 'Zeilenabstand', tip: 'Zeilenabstand (Faktor)', aria: 'Zeilenabstand (Faktor)' },
-        'bkl-absatz':         { label: 'Absatzabstand', tip: 'Zusätzlicher Abstand nach jedem Absatz (Faktor der Schriftgrösse, 0 = Seiten-Standard)', aria: 'Absatzabstand (Faktor, 0 = Seiten-Standard)' },
+        'bkl-zeilenabstand':  { label: 'Zeilen', tip: 'Zeilenabstand (Faktor)', aria: 'Zeilenabstand (Faktor)' },
+        'bkl-absatz':         { label: 'Absatz', tip: 'Zusätzlicher Abstand nach jedem Absatz (Faktor der Schriftgrösse, 0 = Seiten-Standard)', aria: 'Absatzabstand (Faktor, 0 = Seiten-Standard)' },
         'bkl-buchstaben':     { label: 'Buchstabenabstand', tip: 'Buchstabenabstand in Pixel', aria: 'Buchstabenabstand in Pixel' },
         'bkl-worte':          { label: 'Wortabstand', tip: 'Wortabstand in Pixel', aria: 'Wortabstand in Pixel' },
         'bkl-laenge':         { label: 'Zeilenlänge', tip: 'Zeilenlänge begrenzen (Zeichen, 0 = aus)', aria: 'Zeilenlänge begrenzen (Zeichen, 0 = aus)' },
@@ -63,7 +66,7 @@
         'bkl-spalten':        { label: 'Spalten', tip: 'Entscheidtext in 1, 2 oder 3 Spalten (Zeitungssatz)', aria: 'Anzahl Textspalten wählen',
                                 optionen: { '1': '1 Spalte', '2': '2 Spalten', '3': '3 Spalten' } },
         'bkl-reset':          { label: 'Zurücksetzen',
-                                tip: 'Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 625 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt.',
+                                tip: 'Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt.',
                                 aria: 'Alle Einstellungen auf Standard zurücksetzen' }
       }
     },
@@ -87,7 +90,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (Arial-like)', 'liberation-serif': 'Liberation Serif (Times-like)', sans: 'System Sans', serif: 'System Serif' } },
         'bkl-farbe':          { label: 'Background', tip: 'Choose background and text colour (preview in the list)', aria: 'Choose background',
                                 optionen: { hell: 'White', sepia: 'Sepia', dunkel: 'Dark', kontrast: 'High contrast', nacht: 'Night (reddish)' } },
-        'bkl-spalte':         { label: 'Text width', tip: 'Width of the text frame in pixels (site default: 625)', aria: 'Width of the text frame in pixels' },
+        'bkl-spalte':         { label: 'Text width', tip: 'Width of the text frame in pixels (default 800, the site itself 625)', aria: 'Width of the text frame in pixels' },
         'bkl-klammern':       { label: 'simplify', tip: 'Fold parentheticals away (rule: citations such as BGE/ATF references and literature are folded; references to statutes and the court’s own text stay open)', aria: 'Fold parentheticals' },
         'bkl-details-toggle': { label: 'advanced', tip: 'Show or hide further settings', aria: 'Show or hide advanced settings' },
         'bkl-staerke':        { label: 'Font weight', tip: 'Choose font weight', aria: 'Choose font weight',
@@ -103,7 +106,7 @@
         'bkl-spalten':        { label: 'Columns', tip: 'Decision text in 1, 2 or 3 columns (newspaper layout)', aria: 'Choose number of text columns',
                                 optionen: { '1': '1 column', '2': '2 columns', '3': '3 columns' } },
         'bkl-reset':          { label: 'Reset',
-                                tip: 'Reset all settings to their defaults: reading mode off, font size 18, font System Serif, weight normal, line spacing 1.6, paragraph spacing off, letter and word spacing 0, line length off, hyphenation off, alignment left, 1 column, text width 625 px, background White, “simplify” on. The language stays.',
+                                tip: 'Reset all settings to their defaults: reading mode off, font size 18, font System Serif, weight normal, line spacing 1.6, paragraph spacing off, letter and word spacing 0, line length off, hyphenation off, alignment left, 1 column, text width 800 px, background White, “simplify” on. The language stays.',
                                 aria: 'Reset all settings to their defaults' }
       }
     },
@@ -127,7 +130,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (proche d’Arial)', 'liberation-serif': 'Liberation Serif (proche de Times)', sans: 'Sans-serif système', serif: 'Serif système' } },
         'bkl-farbe':          { label: 'Arrière-plan', tip: 'Choisir l’arrière-plan et la couleur du texte (aperçu dans la liste)', aria: 'Choisir l’arrière-plan',
                                 optionen: { hell: 'Blanc', sepia: 'Sépia', dunkel: 'Sombre', kontrast: 'Contraste élevé', nacht: 'Nuit (rougeâtre)' } },
-        'bkl-spalte':         { label: 'Largeur du texte', tip: 'Largeur du cadre de texte en pixels (valeur du site : 625)', aria: 'Largeur du cadre de texte en pixels' },
+        'bkl-spalte':         { label: 'Largeur du texte', tip: 'Largeur du cadre de texte en pixels (par défaut 800, le site lui-même 625)', aria: 'Largeur du cadre de texte en pixels' },
         'bkl-klammern':       { label: 'simplifier', tip: 'Replier les parenthèses (règle : les références telles que les citations d’ATF et la doctrine sont repliées ; les renvois aux lois et le texte de l’arrêt restent ouverts)', aria: 'Replier les parenthèses' },
         'bkl-details-toggle': { label: 'avancé', tip: 'Afficher ou masquer les autres paramètres', aria: 'Afficher ou masquer les paramètres avancés' },
         'bkl-staerke':        { label: 'Graisse', tip: 'Choisir la graisse de la police', aria: 'Choisir la graisse',
@@ -143,7 +146,7 @@
         'bkl-spalten':        { label: 'Colonnes', tip: 'Texte de l’arrêt sur 1, 2 ou 3 colonnes (mise en page journal)', aria: 'Choisir le nombre de colonnes',
                                 optionen: { '1': '1 colonne', '2': '2 colonnes', '3': '3 colonnes' } },
         'bkl-reset':          { label: 'Réinitialiser',
-                                tip: 'Rétablir tous les paramètres par défaut : mode lecture désactivé, taille 18, police Serif système, graisse normale, interligne 1.6, espacement des paragraphes désactivé, espacement des lettres et des mots 0, longueur de ligne désactivée, césure désactivée, alignement à gauche, 1 colonne, largeur du texte 625 px, arrière-plan Blanc, « simplifier » activé. La langue est conservée.',
+                                tip: 'Rétablir tous les paramètres par défaut : mode lecture désactivé, taille 18, police Serif système, graisse normale, interligne 1.6, espacement des paragraphes désactivé, espacement des lettres et des mots 0, longueur de ligne désactivée, césure désactivée, alignement à gauche, 1 colonne, largeur du texte 800 px, arrière-plan Blanc, « simplifier » activé. La langue est conservée.',
                                 aria: 'Rétablir tous les paramètres par défaut' }
       }
     },
@@ -167,7 +170,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (simile ad Arial)', 'liberation-serif': 'Liberation Serif (simile a Times)', sans: 'Sans-serif di sistema', serif: 'Serif di sistema' } },
         'bkl-farbe':          { label: 'Sfondo', tip: 'Scegliere sfondo e colore del testo (anteprima nell’elenco)', aria: 'Scegliere lo sfondo',
                                 optionen: { hell: 'Bianco', sepia: 'Seppia', dunkel: 'Scuro', kontrast: 'Contrasto elevato', nacht: 'Notte (rossastro)' } },
-        'bkl-spalte':         { label: 'Larghezza del testo', tip: 'Larghezza del riquadro di testo in pixel (valore del sito: 625)', aria: 'Larghezza del riquadro di testo in pixel' },
+        'bkl-spalte':         { label: 'Larghezza del testo', tip: 'Larghezza del riquadro di testo in pixel (predefinita 800, il sito stesso 625)', aria: 'Larghezza del riquadro di testo in pixel' },
         'bkl-klammern':       { label: 'semplificare', tip: 'Ripiegare le parentesi (regola: i riferimenti come le citazioni DTF e la dottrina vengono ripiegati; i rinvii alle leggi e il testo della sentenza restano aperti)', aria: 'Ripiegare le parentesi' },
         'bkl-details-toggle': { label: 'avanzate', tip: 'Mostrare o nascondere le altre impostazioni', aria: 'Mostrare o nascondere le impostazioni avanzate' },
         'bkl-staerke':        { label: 'Peso', tip: 'Scegliere il peso del carattere', aria: 'Scegliere il peso del carattere',
@@ -183,7 +186,7 @@
         'bkl-spalten':        { label: 'Colonne', tip: 'Testo della sentenza su 1, 2 o 3 colonne (impaginazione a giornale)', aria: 'Scegliere il numero di colonne',
                                 optionen: { '1': '1 colonna', '2': '2 colonne', '3': '3 colonne' } },
         'bkl-reset':          { label: 'Ripristina',
-                                tip: 'Ripristinare tutte le impostazioni predefinite: modalità lettura disattivata, dimensione 18, carattere Serif di sistema, peso normale, interlinea 1.6, spaziatura paragrafi disattivata, spaziatura lettere e parole 0, lunghezza riga disattivata, sillabazione disattivata, allineamento a sinistra, 1 colonna, larghezza del testo 625 px, sfondo Bianco, «semplificare» attivo. La lingua resta invariata.',
+                                tip: 'Ripristinare tutte le impostazioni predefinite: modalità lettura disattivata, dimensione 18, carattere Serif di sistema, peso normale, interlinea 1.6, spaziatura paragrafi disattivata, spaziatura lettere e parole 0, lunghezza riga disattivata, sillabazione disattivata, allineamento a sinistra, 1 colonna, larghezza del testo 800 px, sfondo Bianco, «semplificare» attivo. La lingua resta invariata.',
                                 aria: 'Ripristinare tutte le impostazioni predefinite' }
       }
     }
@@ -238,6 +241,9 @@
       });
     const main = wurzel.querySelector('main[aria-label]');
     if (main) main.setAttribute('aria-label', t.allgemein.bereich);
+    // Flagge der gewählten Sprache neben der Sprachwahl (CSS blendet die übrigen aus).
+    const wahl = wurzel.querySelector('.bkl-sprachwahl');
+    if (wahl) wahl.setAttribute('data-sprache', code);
     // Sprache für Vorlesewerkzeuge: am Shadow-Host des Panels bzw. am Dokument.
     if (wurzel.host) wurzel.host.setAttribute('lang', code);
     else if (wurzel.documentElement) {

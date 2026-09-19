@@ -1,6 +1,6 @@
 /* bger reader – Pop-up-Fenster: grössere Bedienfläche als das Seiten-Panel.
    Gleiche Gestaltung („Rosé Atelier") und gleiche Bedienelemente, nur
-   grosszügiger (eigenes Fenster statt 352px-Panel). */
+   grosszügiger (eigenes Fenster statt 300px-Panel). */
 
 * { box-sizing: border-box; }
 
@@ -9,60 +9,68 @@ html, body { margin: 0; padding: 0; }
 /* Design-Tokens: identisch zum Panel in content.js (:host); Block [7] der
    Suite prüft die Gleichheit. */
 :root {
-  --ui-bg: #fffafc;
-  --ui-bg-2: #fdf1f7;
-  --ui-fg: #2b1a22;
-  --ui-fg-2: #6d5460;
-  --ui-linie: #f2d4e3;
-  --ui-rahmen: #e6bdd2;
+  --ui-bg: #fff4f9;
+  --ui-bg-2: #fbe1ee;
+  --ui-fg: #3b1233;
+  --ui-fg-2: #7d3468;
+  --ui-linie: #f5c6dc;
+  --ui-rahmen: #d34f98;
   --ui-rose: #d63384;
   --ui-rose-2: #e64980;
   --ui-rose-3: #a61e63;
-  --ui-rose-weich: #f9dce9;
-  --ui-icon: #4a3542;
+  --ui-rose-weich: #f6cadf;
+  --ui-violett: #8b5cf6;
+  --ui-icon: #7a2a63;
   --ui-knopf: #ffffff;
-  --ui-schatten: 0 1px 2px rgba(60, 10, 35, .06), 0 14px 36px rgba(166, 30, 99, .16);
+  --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23fff4f9' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  --ui-schatten: 0 2px 4px rgba(166, 30, 99, .1), 0 16px 40px rgba(166, 30, 99, .24);
   --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
   --ui-marke: "EB Garamond", Georgia, "Times New Roman", Times, serif;
 }
-/* Dunkles Schema: das Fenster folgt dem Farbschema der Seite (popup.js) */
+/* Dunkles Schema: das Fenster folgt der eigenen Einstellung „Hintergrund"
+   (popup.js), nie dem System – keine Abfrage von prefers-color-scheme. */
 body[data-schema="dunkel"] {
   --ui-bg: #221419;
   --ui-bg-2: #2d1b23;
   --ui-fg: #f7e9f0;
-  --ui-fg-2: #cfb3c2;
-  --ui-linie: #46293a;
-  --ui-rahmen: #6a3f52;
+  --ui-fg-2: #d9b8cb;
+  --ui-linie: #4d2a3d;
+  --ui-rahmen: #8a4468;
   --ui-rose: #e64980;
   --ui-rose-2: #ff6fa5;
   --ui-rose-3: #ffb3cf;
   --ui-rose-weich: #46243a;
+  --ui-violett: #c4a4ff;
   --ui-icon: #e6cdd9;
   --ui-knopf: #fff4f8;
-  --ui-schatten: 0 1px 2px rgba(0, 0, 0, .4), 0 14px 36px rgba(0, 0, 0, .5);
+  --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6fa5' stroke='%23221419' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  --ui-schatten: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 40px rgba(0, 0, 0, .55);
 }
 
 body {
   font-family: var(--ui-schrift);
   font-size: 16px;
   line-height: 1.4;
-  background: var(--ui-bg);
+  background-color: var(--ui-bg);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(139, 92, 246, .09));
+  background-attachment: fixed;
   color: var(--ui-fg);
   color-scheme: light;
   padding: 18px 24px 24px 24px;
   min-width: 440px;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
-body[data-schema="dunkel"] { color-scheme: dark; }
+body[data-schema="dunkel"] { color-scheme: dark; background-image: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(196, 164, 255, .08)); }
 
-/* Kopfzeile: Wortmarke in EB Garamond, rechts Sprachwahl und Schliessen */
+/* Kopfzeile: Wortmarke in EB Garamond, rechts Sprachwahl mit Flagge und Schliessen */
 #bkl-kopf {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--ui-linie);
+  border-bottom: 2px solid var(--ui-linie);
 }
 h1 {
   flex: 1;
@@ -83,10 +91,23 @@ h1 svg { flex: 0 0 auto; }
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   color: var(--ui-fg-2);
 }
-.bkl-sprachwahl svg { display: block; }
+/* Flagge der gewählten Sprache (data-sprache, gesetzt von sprachen.js) */
+.bkl-flagge {
+  display: none;
+  width: 22px;
+  height: 16px;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(60, 10, 35, .25);
+}
+.bkl-flagge svg { display: block; width: 22px; height: 16px; }
+.bkl-sprachwahl[data-sprache="de"] .bkl-flagge[data-flagge="de"],
+.bkl-sprachwahl[data-sprache="en"] .bkl-flagge[data-flagge="en"],
+.bkl-sprachwahl[data-sprache="fr"] .bkl-flagge[data-flagge="fr"],
+.bkl-sprachwahl[data-sprache="it"] .bkl-flagge[data-flagge="it"] { display: block; }
 /* nur für Vorlesewerkzeuge sichtbar */
 .bkl-sr {
   position: absolute;
@@ -107,7 +128,7 @@ h1 svg { flex: 0 0 auto; }
   width: 38px;
   height: 38px;
   padding: 0;
-  border: 1px solid #a61e63;
+  border: 2px solid #a61e63;
   border-radius: 50%;
   background: #d63384;
   background-image: linear-gradient(145deg, #e64980, #c2276f);
@@ -120,7 +141,7 @@ h1 svg { flex: 0 0 auto; }
 }
 #bkl-schliessen:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
-/* Zeilen: Icon, Beschriftung, Bedienelement rechts; Haarlinien dazwischen */
+/* Zeilen: Icon, Beschriftung, Bedienelement rechts; pinke Haarlinien dazwischen */
 .bkl-zeile {
   display: flex;
   align-items: center;
@@ -158,48 +179,52 @@ label { flex: 1; min-width: 0; color: var(--ui-fg); }
 .bkl-regler input[type="range"] { width: 240px; }
 .bkl-regler .bkl-wert { width: 60px; }
 
-/* Regler: Spur in Rosé mit Füllung bis zum Wert (--bkl-p, gesetzt von
-   popup.js), runder Knopf mit rosé Rand; Firefox füllt selbst (::-moz-range-progress). */
+/* Regler: Spur mit Füllung von Rosé nach Violett bis zum Wert (--bkl-p,
+   gesetzt von popup.js), pinkes Herz als Knopf (--ui-herz); Firefox füllt
+   die Spur selbst (::-moz-range-progress). */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   accent-color: #d63384;
   --bkl-p: 0%;
   width: 100%;
-  height: 26px;
+  height: 30px;
   margin: 0;
   padding: 0;
   background: transparent;
   cursor: pointer;
 }
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 6px;
+  height: 7px;
   border-radius: 999px;
-  background: linear-gradient(to right, var(--ui-rose) 0 var(--bkl-p), var(--ui-rose-weich) var(--bkl-p) 100%);
+  background: linear-gradient(to right, var(--ui-rose) 0, var(--ui-violett) var(--bkl-p), var(--ui-rose-weich) var(--bkl-p) 100%);
+  box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 22px;
-  height: 22px;
-  margin-top: -8px;
-  border-radius: 50%;
-  background: var(--ui-knopf);
-  border: 2px solid var(--ui-rose);
-  box-shadow: 0 1px 3px rgba(60, 10, 35, .3);
+  width: 28px;
+  height: 28px;
+  margin-top: -10.5px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ui-herz) center / 28px 28px no-repeat;
+  box-shadow: none;
 }
-input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--ui-rose-weich); }
-input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--ui-rose); }
+input[type="range"]::-moz-range-track { height: 7px; border-radius: 999px; background: var(--ui-rose-weich); box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18); }
+input[type="range"]::-moz-range-progress { height: 7px; border-radius: 999px; background: linear-gradient(to right, var(--ui-rose), var(--ui-violett)); }
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--ui-knopf);
-  border: 2px solid var(--ui-rose);
-  box-shadow: 0 1px 3px rgba(60, 10, 35, .3);
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ui-herz) center / 26px 26px no-repeat;
+  background-color: transparent;
+  box-shadow: none;
 }
 
-/* Häkchen als Schalter (bleibt eine Checkbox für Tastatur und Vorlesewerkzeuge) */
+/* Häkchen als Schalter: Pille mit pinkem Rand, eingeschaltet Rosé-Violett mit
+   Herz im Knopf (bleibt eine Checkbox für Tastatur und Vorlesewerkzeuge) */
 input[type="checkbox"] {
   -webkit-appearance: none;
   appearance: none;
@@ -210,7 +235,7 @@ input[type="checkbox"] {
   height: 26px;
   margin: 0;
   border-radius: 999px;
-  border: 1px solid var(--ui-rahmen);
+  border: 2px solid var(--ui-rahmen);
   background: var(--ui-rose-weich);
   cursor: pointer;
 }
@@ -219,16 +244,16 @@ input[type="checkbox"]::before {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--ui-knopf);
   box-shadow: 0 1px 2px rgba(60, 10, 35, .35);
 }
-input[type="checkbox"]:checked { background: var(--ui-rose); border-color: var(--ui-rose-3); }
-input[type="checkbox"]:checked::before { left: 22px; }
+input[type="checkbox"]:checked { background: linear-gradient(90deg, var(--ui-rose), var(--ui-violett)); border-color: var(--ui-rose-3); }
+input[type="checkbox"]:checked::before { left: 22px; background: var(--ui-herz) center / 12px 12px no-repeat, var(--ui-knopf); }
 
-/* Auswahllisten: eigener Rahmen, native Pfeil-Schaltfläche (folgt color-scheme) */
+/* Auswahllisten: pinker Rand, native Pfeil-Schaltfläche (folgt color-scheme) */
 select {
   flex: 0 0 auto;
   width: 240px;
@@ -236,13 +261,13 @@ select {
   font: inherit;
   font-size: 15px;
   color: var(--ui-fg);
-  background-color: var(--ui-bg);
-  border: 1px solid var(--ui-rahmen);
+  background-color: var(--ui-bg-2);
+  border: 2px solid var(--ui-rahmen);
   border-radius: 10px;
-  padding: 6px 8px;
+  padding: 5px 8px;
   cursor: pointer;
 }
-select:hover { border-color: var(--ui-rose); }
+select:hover { border-color: var(--ui-rose-3); }
 
 /* Dropdown-Vorschau Schriftart: jede Option in ihrer Schrift, das Dropdown
    selbst in der gewählten (data-wert, gesetzt von popup.js). Die gebündelten
@@ -283,10 +308,10 @@ select:hover { border-color: var(--ui-rose); }
   align-items: center;
   gap: 10px;
   margin-top: 14px;
-  padding: 10px 16px;
-  border: 1px solid var(--ui-rahmen);
+  padding: 9px 16px;
+  border: 2px solid var(--ui-rahmen);
   border-radius: 999px;
-  background: var(--ui-bg-2);
+  background: linear-gradient(90deg, var(--ui-bg-2), color-mix(in srgb, var(--ui-violett) 22%, var(--ui-bg)));
   color: var(--ui-rose-3);
   font: inherit;
   font-size: 14px;
@@ -296,7 +321,7 @@ select:hover { border-color: var(--ui-rose); }
   cursor: pointer;
   text-align: left;
 }
-#bkl-details-toggle:hover { border-color: var(--ui-rose); }
+#bkl-details-toggle:hover { border-color: var(--ui-rose-3); }
 #bkl-details-toggle .bkl-pfeil { display: inline-flex; }
 /* statische Drehung, absichtlich ohne Transition/Animation */
 #bkl-details-toggle[aria-expanded="true"] .bkl-pfeil svg { transform: rotate(90deg); }
@@ -305,19 +330,19 @@ select:hover { border-color: var(--ui-rose); }
 
 .bkl-knopfreihe { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 button.bkl-aktion {
-  border: 1px solid var(--ui-rahmen);
+  border: 2px solid var(--ui-rahmen);
   border-radius: 999px;
-  background: var(--ui-bg);
+  background: var(--ui-bg-2);
   color: var(--ui-rose-3);
-  padding: 8px 18px;
+  padding: 7px 18px;
   font: inherit;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
-button.bkl-aktion:hover { background: var(--ui-bg-2); border-color: var(--ui-rose); }
+button.bkl-aktion:hover { border-color: var(--ui-rose-3); }
 
-/* Sichtbarer Fokus-Rahmen für Tastaturbedienung (tiefes Rosé, 6.8:1 auf hell) */
+/* Sichtbarer Fokus-Rahmen für Tastaturbedienung (tiefes Rosé, 6.5:1 auf hell) */
 #bkl-schliessen:focus-visible,
 #bkl-details-toggle:focus-visible,
 button.bkl-aktion:focus-visible,
@@ -335,11 +360,11 @@ select:focus-visible {
   max-width: 340px;
   padding: 8px 11px;
   border-radius: 8px;
-  background: #2b1a22;
+  background: #3b1233;
   color: #ffffff;
   font-size: 14px;
   line-height: 1.4;
-  box-shadow: 0 4px 14px rgba(43, 26, 34, .35);
+  box-shadow: 0 4px 14px rgba(59, 18, 51, .35);
   pointer-events: none;
 }
 #bkl-tooltip[hidden] { display: none; }

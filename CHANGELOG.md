@@ -21,7 +21,11 @@ hinten bei Korrekturen.
   Tooltips, Vorlesetexte (`aria-label`), die Wertanzeige „aus" und der Titel
   des Klammer-Pfeils im Entscheidtext folgen der Wahl. Die Sprache wird mit
   den übrigen Einstellungen gespeichert und zwischen Panel und Pop-up
-  abgeglichen; Zurücksetzen behält sie. Standard bleibt Deutsch.
+  abgeglichen; Zurücksetzen behält sie. Standardsprache ist Italienisch
+  (Vorgabe der Autorin). Bewusst keine Automatik nach Browser- oder
+  Seitensprache: die Erweiterung fragt nichts über Browser oder Umgebung ab
+  (Datenschutz). Neben der Sprachwahl steht die Flagge der gewählten Sprache
+  (Schweiz für Deutsch, Grossbritannien, Frankreich, Italien) als Inline-SVG.
   Texte in `extension/sprachen.js`, einer Datei für Panel und Pop-up (das
   Manifest lädt sie vor `content.js`, `popup.html` vor `popup.js`); das
   Markup bleibt deutsch, die anderen Sprachen werden nach Element-ID
@@ -29,18 +33,25 @@ hinten bei Korrekturen.
 - Gestaltung von Panel und Pop-up überarbeitet („Rosé Atelier"): Wortmarke
   in EB Garamond, Bedienoberfläche in Atkinson Hyperlegible Next (beide
   Schriften liegen bereits im Paket, nichts Neues wird geladen), Farbtokens
-  in Rosé auf warmem Weiss, Regler mit gefüllter Spur, Häkchen als Schalter,
-  runde Knöpfe, Haarlinien statt Rahmen, weicher Schatten. Die Colibre-Icons
+  in Rosa, Pink und Violett auf rosé getöntem Weiss, pinke Ränder an Panel,
+  Auswahllisten, Schaltern und Knöpfen, Regler mit pinkem Herz als Knopf und
+  Füllung von Rosé nach Violett, Schalter mit Herz im Knopf, Panel 300 px
+  schmal, pinke Haarlinien, weicher Schatten. Die Colibre-Icons
   bleiben unverändert; ihre Blau-Akzente werden per CSS auf Rosé umgelenkt.
   Bei dunklem Farbschema (Dunkel, Hoher Kontrast, Nacht) werden Panel und
   Pop-up dunkel. Regler-Zeilen im Panel zweizeilig (Beschriftung und Wert
   oben, Regler in voller Breite – Platz für lange französische und
   italienische Beschriftungen). Fokusrahmen in tiefem Rosé (Kontrast 6.8:1),
   Textfarben mit mindestens 6.6:1. Pop-up-Fenster 660 x 920 Pixel.
+- Beschriftungen gekürzt (Vorgabe der Autorin): „Breite", „Zeilen", „Absatz"
+  statt Textbreite, Zeilenabstand, Absatzabstand; die Tooltips nennen weiter
+  die vollen Begriffe. Standard der Breite neu 800 px statt der 625 px der
+  Seite; Zurücksetzen stellt 800 px ein.
 - Tests: `sprachen.js` im Harness; neue Prüfungen für vollständige
   Wörterbücher (gleiche Schlüssel in allen vier Sprachen), Umschalten in
   Panel und Pop-up, Sprache per Live-Sync, Zurücksetzen behält die Sprache,
-  dunkles Schema, Design-Tokens in Panel und Pop-up identisch.
+  dunkles Schema, Design-Tokens und Flaggen in Panel und Pop-up identisch,
+  Start auf Italienisch.
 
 ## 0.9.2 — 2026-09-19
 

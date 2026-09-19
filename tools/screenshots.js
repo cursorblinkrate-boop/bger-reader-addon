@@ -50,7 +50,8 @@ const BEDIENUNG = {
   farbschema:       { id: 'bkl-farbe',         art: 'change' },
   klammern:         { id: 'bkl-klammern',      art: 'haekchen' },
   ausrichtung:      { id: 'bkl-ausrichtung',   art: 'change',   erweitert: true },
-  spalten:          { id: 'bkl-spalten',       art: 'change',   erweitert: true }
+  spalten:          { id: 'bkl-spalten',       art: 'change',   erweitert: true },
+  sprache:          { id: 'bkl-sprache',       art: 'change' }
 };
 
 /* Die Szenen. e = Einstellungen zusätzlich zu Lesemodus an + OpenDyslexic
@@ -67,6 +68,12 @@ const SZENEN = [
   { datei: '03-panel-erweitert', titel: 'Das Panel, erweitert',
     text: 'Unter „erweitert": Schriftstärke, Zeilen-, Absatz-, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten, Zurücksetzen.',
     e: {}, panelAuf: true, erweitert: true, store: true, kopf: true },
+  { datei: '04-panel-italienisch', titel: 'Das Panel auf Italienisch (Standardsprache)',
+    text: 'Die Bedienoberfläche gibt es in Deutsch, Englisch, Französisch und Italienisch; Standard ist Italienisch, umschaltbar in der Kopfzeile (Flagge der gewählten Sprache).',
+    e: { sprache: 'it' }, panelAuf: true, store: true, kopf: true },
+  { datei: '05-panel-franzoesisch-dunkel', titel: 'Das Panel auf Französisch, dunkles Schema',
+    text: 'Bei den Hintergründen Dunkel, Hoher Kontrast und Nacht wird auch das Panel dunkel – nach der eigenen Einstellung, nicht nach dem System.',
+    e: { sprache: 'fr', farbschema: 'dunkel' }, panelAuf: true, erweitert: true },
 
   { datei: '10-schrift-atkinson', titel: 'Schriftart Atkinson Hyperlegible', text: 'Vom Braille Institute für gute Lesbarkeit entworfen: Buchstaben, die sich deutlich unterscheiden.', e: { schriftart: 'atkinson' } },
   { datei: '11-schrift-luciole', titel: 'Schriftart Luciole', text: 'Für sehbehinderte Menschen entwickelte Schrift (CTRDV, Frankreich).', e: { schriftart: 'luciole' } },
@@ -87,7 +94,7 @@ const SZENEN = [
   { datei: '33-absatzabstand', titel: 'Absatzabstand', text: 'Zusätzlicher Abstand nach jedem Absatz, hier 1 Schrifthöhe.', e: { absatzabstand: 1 } },
   { datei: '34-buchstaben-und-wortabstand', titel: 'Buchstaben- und Wortabstand', text: 'Buchstaben 1 Pixel, Wörter 4 Pixel weiter auseinander.', e: { buchstabenabstand: 1, wortabstand: 4 } },
   { datei: '35-zeilenlaenge', titel: 'Zeilenlänge', text: 'Zeilen auf 60 Zeichen begrenzt: das Auge findet leichter zur nächsten Zeile.', e: { zeilenlaenge: 60 } },
-  { datei: '36-textbreite', titel: 'Textbreite', text: 'Die Spalte des Entscheids breiter oder schmaler, hier 900 Pixel statt 625.', e: { spaltenbreite: 900 } },
+  { datei: '36-textbreite', titel: 'Textbreite', text: 'Die Spalte des Entscheids breiter oder schmaler, hier 900 Pixel statt der 800 des Lesemodus (die Seite selbst hat 625).', e: { spaltenbreite: 900 } },
   { datei: '37-blocksatz-silbentrennung', titel: 'Blocksatz mit Silbentrennung', text: 'Ausrichtung Blocksatz und Silbentrennung in der Sprache des Entscheids.', e: { ausrichtung: 'blocksatz', silbentrennung: true } },
   { datei: '38-zwei-spalten', titel: 'Zwei Spalten', text: 'Zeitungssatz: der Entscheid in zwei Spalten.', e: { spalten: 2 } },
   { datei: '39-drei-spalten', titel: 'Drei Spalten', text: 'Drei Spalten, mit Textbreite 1200 sinnvoll.', e: { spalten: 3, spaltenbreite: 1200 } },
@@ -169,7 +176,7 @@ async function einstellen(seite, e) {
         if (sz.popup) {
           // Stand für das Fenster: OpenDyslexic, Sepia, Lesemodus an
           await s.js(Q.panelKlick, 'bkl-reset');
-          await einstellen(s, { aktiv: true, schriftart: 'opendyslexic', farbschema: 'sepia' });
+          await einstellen(s, { aktiv: true, schriftart: 'opendyslexic', farbschema: 'sepia', sprache: 'de' });
           const popup = await b.popupSeite();
           if (!popup) { warnungen.push(sz.datei + ': Pop-up-Seite in diesem Browser nicht automatisierbar'); continue; }
           await U.warteBis(popup, `function () { return document.body.hasAttribute('data-bereit'); }`, null, 10000);
@@ -182,7 +189,8 @@ async function einstellen(seite, e) {
           // Bedienelemente reagieren auch bei geschlossenem Panel auf die
           // synthetischen Ereignisse; geöffnet wird es nur fürs Bild.
           await s.js(Q.panelKlick, 'bkl-reset');
-          const e = Object.assign({ aktiv: true, schriftart: 'opendyslexic' }, sz.e || {});
+          // Galerie auf Deutsch (Standardsprache der Erweiterung ist Italienisch)
+          const e = Object.assign({ aktiv: true, schriftart: 'opendyslexic', sprache: 'de' }, sz.e || {});
           await einstellen(s, e);
           await s.js(Z.detailsAuf, !!sz.erweitert);
           await s.js(Z.panelAuf, !!sz.panelAuf);

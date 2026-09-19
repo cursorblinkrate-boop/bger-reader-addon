@@ -22,14 +22,16 @@
     buchstabenabstand: 0,       // px
     wortabstand: 0,             // px
     zeilenlaenge: 0,            // 0 = unbegrenzt, sonst Zeichen (ch)
-    spaltenbreite: 625,         // px – Breite der Haarlinien-Textspalte (Seiten-Standard: 625)
+    spaltenbreite: 800,         // px – Breite der Textspalte im Lesemodus (Vorgabe der Autorin; die Seite selbst hat 625)
     silbentrennung: false,
     farbschema: 'hell',         // hell | sepia | dunkel | kontrast | nacht
     klammern: true,             // „einfach": Klammern nach festem Regelsatz einklappen
     ausrichtung: 'links',       // links | mittig | rechts | blocksatz
     spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
     absatzabstand: 0,           // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
-    sprache: 'de'               // Sprache der Bedienoberfläche: de | en | fr | it (Texte in sprachen.js)
+    sprache: 'it'               // Sprache der Bedienoberfläche: it | de | en | fr (Texte in sprachen.js).
+                                // Standard Italienisch nach Vorgabe der Autorin; bewusst KEINE Automatik nach
+                                // Browser- oder Seitensprache – die Erweiterung fragt nichts ab (Datenschutz).
   };
 
   /* Speicher-Strategie wie in content.js: Extension-Speicher wenn vorhanden,
