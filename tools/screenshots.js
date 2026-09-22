@@ -104,6 +104,7 @@ const SZENEN = [
   { datei: '42-klammern-aus', titel: '„einfach" ausgeschaltet', text: 'Der Entscheid mit allen Klammern, wie im Original.', e: { klammern: false }, store: true },
 
   { datei: '50-popup', titel: 'Einstellungsfenster', text: 'Ein Klick auf das Extension-Symbol öffnet dieselben Einstellungen als eigenes Fenster; Änderungen wirken sofort auf der Seite.', popup: true },
+  { datei: '51-popup-dunkel', titel: 'Einstellungsfenster, Oberfläche dunkel', text: 'Dasselbe Fenster mit eingeschaltetem „Oberfläche dunkel“.', popup: true, e: { oberflaecheDunkel: true } },
   { datei: '60-uebersicht-opendyslexic-sepia', titel: 'Übersicht: OpenDyslexic auf Sepia', text: 'Ein bis zwei Bildschirmseiten Entscheid am Stück.', e: { farbschema: 'sepia' } },
   { datei: '61-uebersicht-atkinson-nacht', titel: 'Übersicht: Atkinson Hyperlegible auf Nacht', text: 'Ein bis zwei Bildschirmseiten Entscheid am Stück.', e: { schriftart: 'atkinson', farbschema: 'nacht' } },
   { datei: '62-uebersicht-zwei-spalten', titel: 'Übersicht: zwei Spalten', text: 'Zeitungssatz über eine ganze Bildschirmseite.', e: { spalten: 2, spaltenbreite: 1000 } },
@@ -177,7 +178,7 @@ async function einstellen(seite, e) {
         if (sz.popup) {
           // Stand für das Fenster: OpenDyslexic, Sepia, Lesemodus an
           await s.js(Q.panelKlick, 'bkl-reset');
-          await einstellen(s, { aktiv: true, schriftart: 'opendyslexic', farbschema: 'sepia', sprache: 'de' });
+          await einstellen(s, Object.assign({ aktiv: true, schriftart: 'opendyslexic', farbschema: 'sepia', sprache: 'de', oberflaecheDunkel: false }, sz.e || {}));
           const popup = await b.popupSeite();
           if (!popup) { warnungen.push(sz.datei + ': Pop-up-Seite in diesem Browser nicht automatisierbar'); continue; }
           await U.warteBis(popup, `function () { return document.body.hasAttribute('data-bereit'); }`, null, 10000);
@@ -191,7 +192,9 @@ async function einstellen(seite, e) {
           // synthetischen Ereignisse; geöffnet wird es nur fürs Bild.
           await s.js(Q.panelKlick, 'bkl-reset');
           // Galerie auf Deutsch (Standardsprache der Erweiterung ist Italienisch)
-          const e = Object.assign({ aktiv: true, schriftart: 'opendyslexic', sprache: 'de' }, sz.e || {});
+          // Zurücksetzen behält Sprache und dunkle Oberfläche – beide hier ausdrücklich setzen,
+          // sonst liefe der Schalter aus Szene 05 in alle späteren Szenen.
+          const e = Object.assign({ aktiv: true, schriftart: 'opendyslexic', sprache: 'de', oberflaecheDunkel: false }, sz.e || {});
           await einstellen(s, e);
           await s.js(Z.detailsAuf, !!sz.erweitert);
           await s.js(Z.panelAuf, !!sz.panelAuf);
@@ -223,7 +226,7 @@ async function einstellen(seite, e) {
     console.log('\nHinweise:');
     warnungen.forEach(function (w) { console.log('  ⚠️  ' + w); });
   }
-  process.exit(anzahl >= SZENEN.length - 3 ? 0 : 1); // bvger, Druck und Pop-up dürfen fehlen
+  process.exit(anzahl >= SZENEN.length - 4 ? 0 : 1); // bvger, Druck und die zwei Pop-up-Szenen dürfen fehlen
 })().catch(function (e) {
   console.error('\n❌ Screenshots abgebrochen: ' + (e && e.stack || e));
   process.exit(1);

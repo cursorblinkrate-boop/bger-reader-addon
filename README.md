@@ -54,7 +54,7 @@ Herkunft und Lizenzen im Einzelnen: [extension/fonts/LICENSES.md](extension/font
 
 ## Bildschirmfotos
 
-Panel und Einstellungsfenster in der Gestaltung „Klar" (Version 0.10.0), erzeugt mit `tools/screenshots.js` in Chromium auf BGE 116 Ia 359 (Frauenstimmrecht); die vollständige Galerie mit rund 30 Szenen entsteht bei jedem CI-Lauf als Artefakt.
+Panel und Einstellungsfenster in der Gestaltung „Klar" (Version 0.10.1), erzeugt mit `tools/screenshots.js` in Chromium auf BGE 116 Ia 359 (Frauenstimmrecht); die vollständige Galerie mit rund 30 Szenen entsteht bei jedem CI-Lauf als Artefakt.
 
 ![Das Panel: einschalten, Schriftgrösse, Schriftart, Hintergrund, Oberfläche dunkel, Breite, einfach](bilder/02-panel.png)
 
@@ -65,6 +65,8 @@ Panel und Einstellungsfenster in der Gestaltung „Klar" (Version 0.10.0), erzeu
 ![Das Panel auf Französisch mit dunkler Oberfläche](bilder/05-panel-franzoesisch-dunkel.png)
 
 ![Das Einstellungsfenster über das Symbol in der Symbolleiste](bilder/50-popup.png)
+
+![Das Einstellungsfenster mit dunkler Oberfläche](bilder/51-popup-dunkel.png)
 
 Alle Schriftarten, jeweils die Erwägungen desselben Entscheids:
 

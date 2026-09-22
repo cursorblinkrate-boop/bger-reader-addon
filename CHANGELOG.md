@@ -13,6 +13,33 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.10.1 — 2026-09-22
+
+- Korrekturen aus dem Review von 0.10.0 (Bedienoberfläche „Klar"):
+  Schalter-Knopf mit Ring in tiefem Rosé, damit er auch im Aus-Zustand auf
+  der hellen Spur sichtbar ist (vorher 1.4:1, jetzt 5:1 zur Spur); Herz im
+  eingeschalteten Knopf mit eigenem Token `--ui-herz-knopf` (Pink auf Weiss
+  in beiden Schemata, im dunklen Schema vorher nur 2.6:1); Tooltip im dunklen
+  Schema mit Neon-Rand, damit er sich vom fast schwarzen Grund abhebt.
+- Reset-Tooltip: das schliessende Anführungszeichen nach „einfach“ ist jetzt
+  typografisch. Das ASCII-Zeichen beendete im Markup von Panel und Pop-up das
+  Attribut vorzeitig; sichtbar war das nicht, weil `sprachen.js` den Text beim
+  Start ersetzt, aber der Rest hing als Fremdattribute am Knopf. Die Suite
+  prüft das jetzt (kein Fremdattribut, Tooltip endet mit „bleiben.“).
+- Vorlesetexte der Zeile „Oberfläche dunkel“ beginnen in allen vier Sprachen
+  mit der sichtbaren Beschriftung (WCAG 2.5.3); Französisch und Italienisch
+  sagen „en mode sombre“ bzw. „in modalità scura“ statt der wörtlichen
+  Übertragung.
+- `tools/screenshots.js`: der Schalter „Oberfläche dunkel“ aus Szene 05 lief
+  in alle späteren Szenen (Zurücksetzen behält ihn absichtlich); die Basis
+  setzt ihn jetzt ausdrücklich zurück. Neue Szene 51: Einstellungsfenster mit
+  dunkler Oberfläche. README-Galerie mit beiden Fenstern.
+- Tests: Live-Sync von „Oberfläche dunkel“ in beide Richtungen, gespeicherter
+  Wert und ältere Speicherstände ohne den Schlüssel, Übersetzungen der neuen
+  Zeile und Reset-Tipps in allen Sprachen, Quellen-Scan auf System-Abfragen
+  mit Gegenprobe und über alle sechs Dateien, Schriftregeln nur im Panel-CSS
+  geprüft, Fensterhöhe 960 direkt.
+
 ## 0.10.0 — 2026-09-19
 
 - Neu: **Sprache der Bedienoberfläche** – Deutsch, English, Français,

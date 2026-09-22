@@ -517,8 +517,13 @@ console.log('\n[4] Panel und Stile');
       .every(function (k) { return panelCss.indexOf('#bkl-art option[value="' + k + '"]') !== -1; }) &&
     ['hell', 'sepia', 'dunkel', 'kontrast', 'nacht']
       .every(function (k) { return panelCss.indexOf('#bkl-farbe option[value="' + k + '"]') !== -1; }));
-  pruefe('Zurücksetzen-Tooltip nennt die Standardwerte',
-    /18/.test(wert('bkl-reset').getAttribute('data-tooltip')) && /800/.test(wert('bkl-reset').getAttribute('data-tooltip')));
+  // Das Markup-Attribut darf nicht an einem ASCII-Anführungszeichen enden („einfach“ typografisch):
+  // sonst zerfällt der Rest in Müll-Attribute am Knopf, auch wenn sprachen.js den Text später ersetzt.
+  pruefe('Zurücksetzen-Tooltip nennt die Standardwerte, endet mit „bleiben.", keine Fremdattribute am Knopf',
+    /18/.test(wert('bkl-reset').getAttribute('data-tooltip')) && /800/.test(wert('bkl-reset').getAttribute('data-tooltip')) &&
+    /bleiben\.$/.test(wert('bkl-reset').getAttribute('data-tooltip')) &&
+    Array.prototype.every.call(wert('bkl-reset').attributes, function (a) { return /^(class|id|data-tooltip|aria-label)$/.test(a.name); }),
+    Array.prototype.map.call(wert('bkl-reset').attributes, function (a) { return a.name; }).join(','));
 
   // Lesemodus, Stile, Farbschema
   ereignis(dom, Object.assign(wert('bkl-aktiv'), { checked: true }), 'change');
@@ -542,11 +547,14 @@ console.log('\n[4] Panel und Stile');
   // (kein prefers-color-scheme/matchMedia) und nie nach der Browsersprache.
   const dunkel = wert('bkl-dunkel');
   ereignis(dom, Object.assign(dunkel, { checked: true }), 'change');
-  pruefe('„Oberfläche dunkel": Panel-Host auf dunkles Schema (data-schema), gespeichert; nichts vom System (kein prefers-color-scheme, matchMedia, navigator.language)',
+  // Muster für System-Abfragen (mit Gegenprobe, damit ein Tippfehler den Scan nicht leer laufen lässt)
+  const SYSTEM = /\(prefers-color-scheme|matchMedia\s*\(|navigator\.language|i18n\.get(UILanguage|AcceptLanguages)|color-scheme:\s*[^;}]*light\s+dark|name="color-scheme"/;
+  const QUELLEN = ['content.js', 'popup.js', 'popup.css', 'popup.html', 'sprachen.js', 'background.js'].map(function (f) { return fs.readFileSync(path.join(EXT, f), 'utf8'); }).join('\n');
+  pruefe('„Oberfläche dunkel": Panel-Host auf dunkles Schema (data-schema), gespeichert; keine Quelle fragt das System ab (prefers-color-scheme, matchMedia, navigator.language, i18n, color-scheme light dark)',
     doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'dunkel' &&
     JSON.parse(dom.window.localStorage.getItem(SCHLUESSEL)).oberflaecheDunkel === true &&
-    !/\(prefers-color-scheme|matchMedia\s*\(|navigator\.language/.test(SCRIPT + fs.readFileSync(path.join(EXT, 'popup.js'), 'utf8') +
-      fs.readFileSync(path.join(EXT, 'popup.css'), 'utf8') + fs.readFileSync(path.join(EXT, 'sprachen.js'), 'utf8')));
+    !SYSTEM.test(QUELLEN) && SYSTEM.test('@media (prefers-color-scheme: dark)') && SYSTEM.test('window.matchMedia("x")') &&
+    SYSTEM.test('navigator.languages[0]') && SYSTEM.test('chrome.i18n.getUILanguage()') && SYSTEM.test('color-scheme: light dark'));
   const art = wert('bkl-art');
   art.value = 'garamond';
   ereignis(dom, art, 'change');
@@ -631,8 +639,12 @@ console.log('\n[4] Panel und Stile');
   }
   const deSchluessel = schluessel(S.TEXTE.de).join('|');
   const luecken = S.SPRACHEN.filter(function (k) { return schluessel(S.TEXTE[k]).join('|') !== deSchluessel; });
-  pruefe('sprachen.js: de/en/fr/it mit identischen Schlüsseln, Sprachwahl im Kopf mit vier Optionen (Eigennamen, lang je Option)',
+  pruefe('sprachen.js: de/en/fr/it mit identischen Schlüsseln, Texte der Zeile „Oberfläche dunkel" (Beschriftung im aria-Namen) und der Reset-Tipps, Sprachwahl im Kopf mit vier Optionen (Eigennamen, lang je Option)',
     S.SPRACHEN.join(',') === 'de,en,fr,it' && luecken.length === 0 && Object.keys(S.TEXTE.de.felder).length >= 20 &&
+    S.TEXTE.en.felder['bkl-dunkel'].label === 'Dark interface' && S.TEXTE.it.felder['bkl-dunkel'].label === 'Interfaccia scura' &&
+    [['de', /dunkle Oberfläche bleiben\.$/], ['en', /dark interface stay\.$/], ['fr', /interface sombre sont conservées\.$/], ['it', /interfaccia scura restano invariate\.$/]]
+      .every(function (p) { return p[1].test(S.TEXTE[p[0]].felder['bkl-reset'].tip); }) &&
+    S.SPRACHEN.every(function (k) { const f = S.TEXTE[k].felder['bkl-dunkel']; return f.aria.indexOf(f.label) === 0; }) && // Label in Name (WCAG 2.5.3)
     Array.prototype.map.call(wert('bkl-sprache').options, function (o) { return o.value + ':' + o.lang + ':' + o.textContent; }).join(',') ===
       'de:de:Deutsch,en:en:English,fr:fr:Français,it:it:Italiano', 'Lücken: ' + luecken.join(','));
   sprache.value = 'fr'; ereignis(dom, sprache, 'change');
@@ -685,9 +697,10 @@ console.log('\n[5] Speicher und Live-Sync');
   speicher[SCHLUESSEL] = { schriftgroesse: 22, aktiv: true, schriftart: 'gibts-nicht-mehr' };
   const t = domMitChrome(SYNTHESE, speicher);
   const html = t.doc.documentElement;
-  pruefe('gespeicherte Werte aus chrome.storage.local geladen (22px, aktiv), unbekannte Schriftart -> Standard',
+  pruefe('gespeicherte Werte aus chrome.storage.local geladen (22px, aktiv), unbekannte Schriftart -> Standard; ohne oberflaecheDunkel (ältere Version) -> Oberfläche hell',
     html.style.getPropertyValue('--bkl-size') === '22px' && html.classList.contains('bkl-aktiv') &&
-    /Georgia/.test(html.style.getPropertyValue('--bkl-font')) && t.shadow.getElementById('bkl-art').value === 'serif');
+    /Georgia/.test(html.style.getPropertyValue('--bkl-font')) && t.shadow.getElementById('bkl-art').value === 'serif' &&
+    t.doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'hell' && t.shadow.getElementById('bkl-dunkel').checked === false);
   pruefe('localStorage der Seite bleibt unberührt', t.dom.window.localStorage.getItem(SCHLUESSEL) === null);
 
   // Bündelung: Reglerzug = 1 Schreibvorgang (führende Kante), pagehide schreibt nach
@@ -717,7 +730,7 @@ console.log('\n[5] Speicher und Live-Sync');
   // Speicherzugriff über eine Sekunde, Browser-Smoke-Test).
   {
     const speicherV = {};
-    speicherV[SCHLUESSEL] = { schriftgroesse: 26, aktiv: true, farbschema: 'sepia' };
+    speicherV[SCHLUESSEL] = { schriftgroesse: 26, aktiv: true, farbschema: 'sepia', oberflaecheDunkel: true };
     const v = domMitChrome(SYNTHESE, speicherV, null, true);
     const host = v.doc.getElementById('bkl-panel-host');
     const aktiv = v.shadow.getElementById('bkl-aktiv');
@@ -725,10 +738,11 @@ console.log('\n[5] Speicher und Live-Sync');
     const vorher = { geschrieben: v.gesetzt.length, bereit: host.hasAttribute('data-bereit') };
     v.laden();
     const nachher = { size: v.doc.documentElement.style.getPropertyValue('--bkl-size'), aktiv: v.doc.documentElement.classList.contains('bkl-aktiv'),
-      bereit: host.hasAttribute('data-bereit'), gespeichert: speicherV[SCHLUESSEL].schriftgroesse };
+      bereit: host.hasAttribute('data-bereit'), gespeichert: speicherV[SCHLUESSEL].schriftgroesse,
+      dunkel: host.getAttribute('data-schema') === 'dunkel' && v.shadow.getElementById('bkl-dunkel').checked === true };
     aktiv.checked = false; ereignis(v.dom, aktiv, 'change');
-    pruefe('vor dem Laden: Klick schreibt nichts, kein data-bereit; nach dem Laden: 26px, aktiv, data-bereit, Klick wirkt',
-      vorher.geschrieben === 0 && !vorher.bereit && nachher.size === '26px' && nachher.aktiv && nachher.bereit && nachher.gespeichert === 26 &&
+    pruefe('vor dem Laden: Klick schreibt nichts, kein data-bereit; nach dem Laden: 26px, aktiv, Oberfläche dunkel (data-schema, Schalter), data-bereit, Klick wirkt',
+      vorher.geschrieben === 0 && !vorher.bereit && nachher.size === '26px' && nachher.aktiv && nachher.dunkel && nachher.bereit && nachher.gespeichert === 26 &&
       v.gesetzt.length === 1 && !v.doc.documentElement.classList.contains('bkl-aktiv'),
       JSON.stringify({ vorher: vorher, nachher: nachher, danach: v.gesetzt.length }));
   }
@@ -756,9 +770,10 @@ console.log('\n[5] Speicher und Live-Sync');
   t.gesetzt.length = 0;
   t.listener[0]({ [SCHLUESSEL]: { newValue: JSON.parse(JSON.stringify(speicher[SCHLUESSEL])) } }, 'local');
   pruefe('Eigen-Echo baut nichts neu auf', t.doc.querySelector('.bkl-fold') === foldJetzt);
-  t.listener[0]({ [SCHLUESSEL]: { newValue: Object.assign({}, speicher[SCHLUESSEL], { schriftgroesse: 24, spalten: 2, sprache: 'en' }) } }, 'local');
-  pruefe('fremde Änderung: Stil sofort (24px, 2 Spalten), Sprache Englisch (Beschriftung, Pfeil-Titel), Panel synchron, Folds unberührt, kein Rückschreiben',
+  t.listener[0]({ [SCHLUESSEL]: { newValue: Object.assign({}, speicher[SCHLUESSEL], { schriftgroesse: 24, spalten: 2, sprache: 'en', oberflaecheDunkel: true }) } }, 'local');
+  pruefe('fremde Änderung: Stil sofort (24px, 2 Spalten), Sprache Englisch (Beschriftung, Pfeil-Titel), Oberfläche dunkel (data-schema, Schalter), Panel synchron, Folds unberührt, kein Rückschreiben',
     html.style.getPropertyValue('--bkl-size') === '24px' && t.doc.querySelector('.bkl-spalten-container') &&
+    t.doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'dunkel' && t.shadow.getElementById('bkl-dunkel').checked === true &&
     t.shadow.getElementById('bkl-groesse').value === '24' && t.doc.querySelector('.bkl-fold') === foldJetzt &&
     t.shadow.querySelector('label[for="bkl-aktiv"]').textContent === 'enable' && t.shadow.getElementById('bkl-sprache').value === 'en' &&
     t.doc.querySelector('.bkl-toggle').title === 'Show or hide parenthetical' && t.gesetzt.length === 0);
@@ -879,9 +894,11 @@ console.log('\n[7] Pop-up-Fenster');
     };
     dom.window.eval(bgQuelle);
     const P = dom.window.BGerReaderPopup;
-    pruefe('zentriert(): Mitte relativ zum Browser-Fenster, nie negativ',
-      P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, 660, 860).left === 390 &&
-      P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, 660, 860).top === 0);
+    pruefe('zentriert(): Mitte relativ zum Browser-Fenster, nie negativ; Fenster 660 x 960',
+      P.POPUP_BREITE === 660 && P.POPUP_HOEHE === 960 &&
+      P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, P.POPUP_BREITE, P.POPUP_HOEHE).left === 390 &&
+      P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, P.POPUP_BREITE, P.POPUP_HOEHE).top === 0);
+    // Mock-Fenster 1440 x 900 bei 100/40: left 100 + (1440 - 660) / 2 = 490, top 40 + (900 - 960) / 2 = 10
     klickHandler[0]();
     await new Promise(function (r) { setTimeout(r, 0); });
     await new Promise(function (r) { setTimeout(r, 0); });
@@ -915,13 +932,21 @@ console.log('\n[7] Pop-up-Fenster');
       if (!el.getAttribute('data-tooltip') || !el.getAttribute('aria-label') || el.hasAttribute('title')) ohne.push(el.id);
     });
     function plabel(id) { const l = pdoc.querySelector('label[for="' + id + '"]'); return l ? l.textContent.trim() : null; }
-    pruefe('Pop-up: Beschriftungen, Regler 6–50, data-tooltip statt title, kein Zähler-Hinweis',
+    // Ein ASCII-Anführungszeichen im Tooltip-Text würde das Attribut abschneiden und den Rest zu Fremdattributen machen.
+    const fremdeAttr = [];
+    pdoc.querySelectorAll('input, select, button').forEach(function (el) {
+      Array.prototype.forEach.call(el.attributes, function (a) {
+        if (!/^(id|class|type|min|max|step|hidden|aria-[a-z]+|data-[a-z-]+)$/.test(a.name)) fremdeAttr.push(el.id + ':' + a.name);
+      });
+    });
+    pruefe('Pop-up: Beschriftungen, Regler 6–50, data-tooltip statt title, Reset-Tooltip vollständig, keine Fremdattribute, kein Zähler-Hinweis',
+      fremdeAttr.length === 0 && /bleiben\.$/.test(pdoc.getElementById('bkl-reset').getAttribute('data-tooltip')) &&
       pdoc.querySelector('h1').textContent.trim() === 'bger reader' && plabel('bkl-aktiv') === 'einschalten' &&
       plabel('bkl-farbe') === 'Hintergrund' && plabel('bkl-dunkel') === 'Oberfläche dunkel' && plabel('bkl-klammern') === 'einfach' && plabel('bkl-sprache') === 'Sprache' &&
       !!pdoc.querySelector('#bkl-kopf #bkl-sprache') && /<script src="sprachen\.js"><\/script>\s*<script src="popup\.js">/.test(popupHtml) &&
       pdoc.getElementById('bkl-details-toggle').textContent.trim() === 'erweitert' &&
       pdoc.getElementById('bkl-groesse').getAttribute('max') === '50' && ohne.length === 0 &&
-      !pdoc.getElementById('bkl-zaehler') && !!pdoc.getElementById('bkl-tooltip'), ohne.join(','));
+      !pdoc.getElementById('bkl-zaehler') && !!pdoc.getElementById('bkl-tooltip'), ohne.concat(fremdeAttr).join(','));
     // Rohstrings vergleichen (jsdom serialisiert <path/> zu <path></path>)
     const popupIcons = popupHtml.match(/<span class="bkl-icon">(<svg[\s\S]*?<\/svg>)<\/span>/g) || [];
     const popupFlaggen = popupHtml.match(/<span class="bkl-flagge"[^>]*>[\s\S]*?<\/span>/g) || [];
@@ -942,15 +967,20 @@ console.log('\n[7] Pop-up-Fenster');
       const block = i === -1 ? '' : css.slice(i, css.indexOf('}', i));
       return (block.match(/--ui-[a-z0-9-]+:\s*[^;]+;/g) || []).map(function (z) { return z.replace(/\s+/g, ' '); });
     }
-    const hellPanel = tokens(SCRIPT, ':host {'), dunkelPanel = tokens(SCRIPT, ':host([data-schema="dunkel"])');
-    pruefe('Design-Tokens hell (18) und dunkel (17) im Pop-up-CSS identisch zum Panel; Schrift Atkinson Hyperlegible Next, Herz-Regler, Neon-Rand und Violett als Token; Titel fett ohne Versalien, Beschriftungen normal',
-      hellPanel.length === 18 && hellPanel.join('|') === tokens(popupCss, ':root {').join('|') &&
+    // Nur das Panel-CSS prüfen, nicht das Seiten-CSS der Gerichtsseite (SCRIPT enthält beides).
+    const panelCssQuelle = SCRIPT.slice(SCRIPT.indexOf('const panelCss = `'), SCRIPT.indexOf('`;', SCRIPT.indexOf('const panelCss = `')));
+    const hellPanel = tokens(panelCssQuelle, ':host {'), dunkelPanel = tokens(panelCssQuelle, ':host([data-schema="dunkel"])');
+    pruefe('Design-Tokens hell (19) und dunkel (17) im Pop-up-CSS identisch zum Panel; Schrift Atkinson Hyperlegible Next, Herz-Regler, Herz im Knopf, Neon-Rand und Violett als Token; Titel fett ohne Versalien, Beschriftungen normal, Knopf-Ring, Tooltip-Rand dunkel',
+      hellPanel.length === 19 && hellPanel.join('|') === tokens(popupCss, ':root {').join('|') &&
       dunkelPanel.length === 17 && dunkelPanel.join('|') === tokens(popupCss, 'body[data-schema="dunkel"]').join('|') &&
       /--ui-schrift: "Atkinson Hyperlegible Next"/.test(hellPanel.join('|')) && /--ui-herz: url\("data:image\/svg\+xml/.test(hellPanel.join('|')) &&
+      /--ui-herz-knopf: url\("data:image\/svg\+xml/.test(hellPanel.join('|')) && /checked::before \{[^}]*var\(--ui-herz-knopf\)/.test(panelCssQuelle) && /checked::before \{[^}]*var\(--ui-herz-knopf\)/.test(popupCss) &&
+      /::before \{[^}]*box-shadow: 0 0 0 1px var\(--ui-rose-3\)/.test(panelCssQuelle) && /::before \{[^}]*box-shadow: 0 0 0 1px var\(--ui-rose-3\)/.test(popupCss) &&
+      /:host\(\[data-schema="dunkel"\]\) #bkl-tooltip \{[^}]*var\(--ui-rahmen\)/.test(panelCssQuelle) && /body\[data-schema="dunkel"\] #bkl-tooltip \{[^}]*var\(--ui-rahmen\)/.test(popupCss) &&
       /--ui-rahmen: #f0329a/.test(hellPanel.join('|')) && /--ui-rahmen: #ff4fa3/.test(dunkelPanel.join('|')) && /--ui-violett: #/.test(hellPanel.join('|')) &&
-      /\n\s*h2\s*\{[^}]*font-weight:\s*700/.test(SCRIPT) && /\nh1\s*\{[^}]*font-weight:\s*700/.test(popupCss) &&
-      !/text-transform:\s*uppercase/.test(SCRIPT) && !/text-transform:\s*uppercase/.test(popupCss) &&
-      /\n\s*label\s*\{[^}]*font-weight:\s*400/.test(SCRIPT) && /\nlabel\s*\{[^}]*font-weight:\s*400/.test(popupCss),
+      /\n\s*h2\s*\{[^}]*font-weight:\s*700/.test(panelCssQuelle) && /\nh1\s*\{[^}]*font-weight:\s*700/.test(popupCss) &&
+      !/text-transform:\s*uppercase/.test(panelCssQuelle) && !/text-transform:\s*uppercase/.test(popupCss) &&
+      /\n\s*label\s*\{[^}]*font-weight:\s*400/.test(panelCssQuelle) && /\nlabel\s*\{[^}]*font-weight:\s*400/.test(popupCss),
       hellPanel.length + '/' + dunkelPanel.length);
     const fontUrls = [];
     popupCss.replace(/url\("(fonts\/[^"]+)"\)/g, function (m2, u) { fontUrls.push(u); return m2; });
@@ -992,8 +1022,8 @@ console.log('\n[7] Pop-up-Fenster');
     dom.window.eval(SPRACHEN_SRC);
     dom.window.eval(popupJs);
     const doc = dom.window.document;
-    pruefe('Pop-up lädt gespeicherte Werte (22 ohne Einheit, dunkel, Garamond mit data-wert)',
-      doc.getElementById('bkl-groesse').value === '22' && doc.getElementById('bkl-groesse-w').textContent === '22' &&
+    pruefe('Pop-up lädt gespeicherte Werte (22 ohne Einheit, dunkel, Garamond mit data-wert, Schalter „Oberfläche dunkel" an)',
+      doc.getElementById('bkl-groesse').value === '22' && doc.getElementById('bkl-groesse-w').textContent === '22' && doc.getElementById('bkl-dunkel').checked === true &&
       doc.getElementById('bkl-farbe').getAttribute('data-wert') === 'dunkel' &&
       doc.getElementById('bkl-art').getAttribute('data-wert') === 'garamond');
     ereignis(dom, Object.assign(doc.getElementById('bkl-aktiv'), { checked: true }), 'change');
@@ -1006,8 +1036,9 @@ console.log('\n[7] Pop-up-Fenster');
       speicher[SCHLUESSEL].absatzabstand === 1.5 && doc.getElementById('bkl-absatz-w').textContent === '1.5' &&
       doc.body.getAttribute('data-schema') === 'dunkel');
     listener[0]({ [SCHLUESSEL]: { newValue: { schriftgroesse: 26 } } }, 'local');
-    pruefe('Änderung vom Seiten-Panel erscheint live im Fenster',
-      doc.getElementById('bkl-groesse').value === '26' && doc.getElementById('bkl-groesse-w').textContent === '26');
+    pruefe('Änderung vom Seiten-Panel erscheint live im Fenster (26; Paket ohne oberflaecheDunkel -> Fenster hell, Schalter aus)',
+      doc.getElementById('bkl-groesse').value === '26' && doc.getElementById('bkl-groesse-w').textContent === '26' &&
+      doc.body.getAttribute('data-schema') === 'hell' && doc.getElementById('bkl-dunkel').checked === false);
     // Echo eines älteren eigenen Schreibens (asynchron) setzt den Regler nicht zurück
     const g = doc.getElementById('bkl-groesse');
     g.value = '20'; ereignis(dom, g, 'input');

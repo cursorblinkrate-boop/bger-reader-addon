@@ -1053,7 +1053,7 @@
     'Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, ' +
     'Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, ' +
     'Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, ' +
-    'Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Sprache und dunkle Oberfläche bleiben.';
+    'Textbreite 800 px, Hintergrund Weiss, Klammern „einfach“ ein. Sprache und dunkle Oberfläche bleiben.';
 
   /* Dropdown-Vorschau: jede Schriftart-Option in ihrer Schrift, jede
      Hintergrund-Option in ihren Farben; das Dropdown selbst zeigt den
@@ -1133,6 +1133,7 @@
       --ui-icon: #4a3542;
       --ui-knopf: #ffffff;
       --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23fff8fb' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+      --ui-herz-knopf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23ffffff' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
       --ui-schatten: 0 1px 2px rgba(60, 10, 35, .06), 0 12px 32px rgba(166, 30, 99, .14);
       --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
     }
@@ -1383,8 +1384,11 @@
     }
 
     /* Häkchen als Schalter mit Neon-Rand: aus grau-rosé, ein mit Verlauf
-       Rosé-Violett und Herz im Knopf (Herz-Knöpfe, Vorgabe der Autorin).
-       Bleibt für Tastatur und Vorlesewerkzeuge eine Checkbox. */
+       Rosé-Violett und Herz im Knopf (Herz-Knöpfe, Vorgabe der Autorin); der
+       Knopf trägt einen Ring in tiefem Rosé, damit er auch im Aus-Zustand auf
+       der hellen Spur sichtbar bleibt (WCAG 1.4.11). Das Herz im Knopf hat
+       sein eigenes Token (--ui-herz-knopf: Pink auf weissem Knopf in beiden
+       Schemata). Bleibt für Tastatur und Vorlesewerkzeuge eine Checkbox. */
     input[type="checkbox"] {
       -webkit-appearance: none;
       appearance: none;
@@ -1409,10 +1413,10 @@
       height: 14px;
       border-radius: 50%;
       background: var(--ui-knopf);
-      box-shadow: 0 1px 2px rgba(60, 10, 35, .35);
+      box-shadow: 0 0 0 1px var(--ui-rose-3), 0 1px 2px rgba(60, 10, 35, .35);
     }
     input[type="checkbox"]:checked { background: linear-gradient(90deg, var(--ui-rose), var(--ui-violett)); border-color: var(--ui-rose-3); }
-    input[type="checkbox"]:checked::before { left: 20px; background: var(--ui-herz) center / 10px 10px no-repeat, var(--ui-knopf); }
+    input[type="checkbox"]:checked::before { left: 20px; background: var(--ui-herz-knopf) center / 10px 10px no-repeat, var(--ui-knopf); }
 
     /* Auswahllisten: weisses Feld mit Neon-Rand, native Pfeil-Schaltfläche (folgt color-scheme) */
     select {
@@ -1503,6 +1507,7 @@ ${vorschauCss()}
       pointer-events: none;
     }
     #bkl-tooltip[hidden] { display: none; }
+    :host([data-schema="dunkel"]) #bkl-tooltip { border: 1px solid var(--ui-rahmen); }
   `;
 
   shadow.innerHTML = `
@@ -1559,7 +1564,7 @@ ${vorschauCss()}
         <div class="bkl-zeile">
           <span class="bkl-icon">${ICONS.dunkel}</span>
           <label for="bkl-dunkel">Oberfläche dunkel</label>
-          <input type="checkbox" id="bkl-dunkel" data-tooltip="Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System" aria-label="Bedienoberfläche dunkel darstellen">
+          <input type="checkbox" id="bkl-dunkel" data-tooltip="Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System" aria-label="Oberfläche dunkel: Panel und Einstellungsfenster dunkel darstellen">
         </div>
         <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.spalte}</span>
