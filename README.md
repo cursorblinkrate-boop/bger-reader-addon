@@ -54,9 +54,37 @@ Herkunft und Lizenzen im Einzelnen: [extension/fonts/LICENSES.md](extension/font
 
 ## Bildschirmfotos
 
-<img width="957" height="790" alt="Entscheidseite mit geöffnetem Einstellungsfeld" src="https://github.com/user-attachments/assets/4ae7d44b-6423-4ff9-9613-93a000e02cbf" />
+Panel und Einstellungsfenster in der Gestaltung „Klar" (Version 0.10.0), erzeugt mit `tools/screenshots.js` in Chromium auf BGE 116 Ia 359 (Frauenstimmrecht); die vollständige Galerie mit rund 30 Szenen entsteht bei jedem CI-Lauf als Artefakt.
 
-<img width="1701" height="978" alt="Entscheid in der Schrift Comic Neue" src="https://github.com/user-attachments/assets/927c9d71-2dce-472a-b2b9-b5568c734456" />
+![Das Panel: einschalten, Schriftgrösse, Schriftart, Hintergrund, Oberfläche dunkel, Breite, einfach](bilder/02-panel.png)
+
+![Das Panel, erweitert: Schriftstärke, Zeilen, Absatz, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten](bilder/03-panel-erweitert.png)
+
+![Das Panel auf Italienisch, der Standardsprache](bilder/04-panel-italienisch.png)
+
+![Das Panel auf Französisch mit dunkler Oberfläche](bilder/05-panel-franzoesisch-dunkel.png)
+
+![Das Einstellungsfenster über das Symbol in der Symbolleiste](bilder/50-popup.png)
+
+Alle Schriftarten, jeweils die Erwägungen desselben Entscheids:
+
+![Atkinson Hyperlegible](bilder/10-schrift-atkinson.png)
+
+![Luciole](bilder/11-schrift-luciole.png)
+
+![OpenDyslexic](bilder/12-schrift-opendyslexic.png)
+
+![Comic Neue](bilder/13-schrift-comic-neue.png)
+
+![EB Garamond](bilder/14-schrift-eb-garamond.png)
+
+![Liberation Sans](bilder/15-schrift-liberation-sans.png)
+
+![Liberation Serif](bilder/16-schrift-liberation-serif.png)
+
+![Hintergrund Nacht](bilder/23-hintergrund-nacht.png)
+
+![Fundstellen eingeklappt, eine Klammer aufgeklappt](bilder/41-klammer-aufgeklappt.png)
 
 <img width="1335" height="789" alt="Entscheidseite im Lesemodus" src="https://github.com/user-attachments/assets/d6fc10e1-0db4-4294-9829-c21ed0219134" />
 

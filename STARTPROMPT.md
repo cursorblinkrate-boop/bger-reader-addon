@@ -51,6 +51,10 @@ extension/popup.html/.css/.js  Einstellungen im mittigen Fenster: gleiche
                           Seite ueber storage.onChanged (keine neuen Rechte)
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
 extension/icons/          icon16/48/128.png (pinkes Buch-Icon), LICENSES.md
+bilder/                   Bilder für die README-Galerie (Panel, Pop-up, alle
+                          Schriftarten, Nacht, Klammern), Kopien aus
+                          tools/screenshots.js (Chromium); bei sichtbaren
+                          Änderungen an Panel oder Pop-up neu erzeugen
 test/test-runner.js       Suite ohne Framework, 8 nummerierte Blöcke, bewusst
                           kompakt (rund 100 Prüfungen): ein Test pro Sachverhalt,
                           Fehlschläge nennen die betroffenen Fälle
