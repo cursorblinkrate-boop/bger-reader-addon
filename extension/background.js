@@ -22,7 +22,7 @@
 
   const FENSTER_SCHLUESSEL = 'bger-reader-popup-fenster';
   const POPUP_BREITE = 660;
-  const POPUP_HOEHE = 920;
+  const POPUP_HOEHE = 960;
 
   /* Mittige Position relativ zum übergebenen Browser-Fenster. Rein funktional,
      ohne Seiteneffekte. */

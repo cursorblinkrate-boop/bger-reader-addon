@@ -50,6 +50,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (Arial-ähnlich)', 'liberation-serif': 'Liberation Serif (Times-ähnlich)', sans: 'System Sans', serif: 'System Serif' } },
         'bkl-farbe':          { label: 'Hintergrund', tip: 'Hintergrund und Textfarbe wählen (Vorschau in der Liste)', aria: 'Hintergrund wählen',
                                 optionen: { hell: 'Weiss', sepia: 'Sepia', dunkel: 'Dunkel', kontrast: 'Hoher Kontrast', nacht: 'Nacht (rötlich)' } },
+        'bkl-dunkel':         { label: 'Oberfläche dunkel', tip: 'Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System', aria: 'Bedienoberfläche dunkel darstellen' },
         'bkl-spalte':         { label: 'Breite', tip: 'Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)', aria: 'Breite des Textrahmens in Pixel' },
         'bkl-klammern':       { label: 'einfach', tip: 'Klammerbemerkungen einklappen (Regel: Fundstellen wie BGE-Zitate und Literatur werden eingeklappt; Gesetzesverweise und Entscheidtext bleiben offen)', aria: 'Klammerbemerkungen einklappen' },
         'bkl-details-toggle': { label: 'erweitert', tip: 'Weitere Einstellungen ein-/ausblenden', aria: 'Erweiterte Einstellungen ein-/ausblenden' },
@@ -66,7 +67,7 @@
         'bkl-spalten':        { label: 'Spalten', tip: 'Entscheidtext in 1, 2 oder 3 Spalten (Zeitungssatz)', aria: 'Anzahl Textspalten wählen',
                                 optionen: { '1': '1 Spalte', '2': '2 Spalten', '3': '3 Spalten' } },
         'bkl-reset':          { label: 'Zurücksetzen',
-                                tip: 'Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt.',
+                                tip: 'Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Sprache und dunkle Oberfläche bleiben.',
                                 aria: 'Alle Einstellungen auf Standard zurücksetzen' }
       }
     },
@@ -90,6 +91,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (Arial-like)', 'liberation-serif': 'Liberation Serif (Times-like)', sans: 'System Sans', serif: 'System Serif' } },
         'bkl-farbe':          { label: 'Background', tip: 'Choose background and text colour (preview in the list)', aria: 'Choose background',
                                 optionen: { hell: 'White', sepia: 'Sepia', dunkel: 'Dark', kontrast: 'High contrast', nacht: 'Night (reddish)' } },
+        'bkl-dunkel':         { label: 'Dark interface', tip: 'Show the panel and the settings window in dark colours, independent of the decision’s background and never taken from the system', aria: 'Show the interface in dark colours' },
         'bkl-spalte':         { label: 'Text width', tip: 'Width of the text frame in pixels (default 800, the site itself 625)', aria: 'Width of the text frame in pixels' },
         'bkl-klammern':       { label: 'simplify', tip: 'Fold parentheticals away (rule: citations such as BGE/ATF references and literature are folded; references to statutes and the court’s own text stay open)', aria: 'Fold parentheticals' },
         'bkl-details-toggle': { label: 'advanced', tip: 'Show or hide further settings', aria: 'Show or hide advanced settings' },
@@ -106,7 +108,7 @@
         'bkl-spalten':        { label: 'Columns', tip: 'Decision text in 1, 2 or 3 columns (newspaper layout)', aria: 'Choose number of text columns',
                                 optionen: { '1': '1 column', '2': '2 columns', '3': '3 columns' } },
         'bkl-reset':          { label: 'Reset',
-                                tip: 'Reset all settings to their defaults: reading mode off, font size 18, font System Serif, weight normal, line spacing 1.6, paragraph spacing off, letter and word spacing 0, line length off, hyphenation off, alignment left, 1 column, text width 800 px, background White, “simplify” on. The language stays.',
+                                tip: 'Reset all settings to their defaults: reading mode off, font size 18, font System Serif, weight normal, line spacing 1.6, paragraph spacing off, letter and word spacing 0, line length off, hyphenation off, alignment left, 1 column, text width 800 px, background White, “simplify” on. Language and dark interface stay.',
                                 aria: 'Reset all settings to their defaults' }
       }
     },
@@ -130,6 +132,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (proche d’Arial)', 'liberation-serif': 'Liberation Serif (proche de Times)', sans: 'Sans-serif système', serif: 'Serif système' } },
         'bkl-farbe':          { label: 'Arrière-plan', tip: 'Choisir l’arrière-plan et la couleur du texte (aperçu dans la liste)', aria: 'Choisir l’arrière-plan',
                                 optionen: { hell: 'Blanc', sepia: 'Sépia', dunkel: 'Sombre', kontrast: 'Contraste élevé', nacht: 'Nuit (rougeâtre)' } },
+        'bkl-dunkel':         { label: 'Interface sombre', tip: 'Afficher le panneau et la fenêtre des paramètres en sombre, indépendamment de l’arrière-plan de l’arrêt et jamais d’après le système', aria: 'Afficher l’interface en sombre' },
         'bkl-spalte':         { label: 'Largeur du texte', tip: 'Largeur du cadre de texte en pixels (par défaut 800, le site lui-même 625)', aria: 'Largeur du cadre de texte en pixels' },
         'bkl-klammern':       { label: 'simplifier', tip: 'Replier les parenthèses (règle : les références telles que les citations d’ATF et la doctrine sont repliées ; les renvois aux lois et le texte de l’arrêt restent ouverts)', aria: 'Replier les parenthèses' },
         'bkl-details-toggle': { label: 'avancé', tip: 'Afficher ou masquer les autres paramètres', aria: 'Afficher ou masquer les paramètres avancés' },
@@ -146,7 +149,7 @@
         'bkl-spalten':        { label: 'Colonnes', tip: 'Texte de l’arrêt sur 1, 2 ou 3 colonnes (mise en page journal)', aria: 'Choisir le nombre de colonnes',
                                 optionen: { '1': '1 colonne', '2': '2 colonnes', '3': '3 colonnes' } },
         'bkl-reset':          { label: 'Réinitialiser',
-                                tip: 'Rétablir tous les paramètres par défaut : mode lecture désactivé, taille 18, police Serif système, graisse normale, interligne 1.6, espacement des paragraphes désactivé, espacement des lettres et des mots 0, longueur de ligne désactivée, césure désactivée, alignement à gauche, 1 colonne, largeur du texte 800 px, arrière-plan Blanc, « simplifier » activé. La langue est conservée.',
+                                tip: 'Rétablir tous les paramètres par défaut : mode lecture désactivé, taille 18, police Serif système, graisse normale, interligne 1.6, espacement des paragraphes désactivé, espacement des lettres et des mots 0, longueur de ligne désactivée, césure désactivée, alignement à gauche, 1 colonne, largeur du texte 800 px, arrière-plan Blanc, « simplifier » activé. La langue et l’interface sombre sont conservées.',
                                 aria: 'Rétablir tous les paramètres par défaut' }
       }
     },
@@ -170,6 +173,7 @@
                                 optionen: { 'liberation-sans': 'Liberation Sans (simile ad Arial)', 'liberation-serif': 'Liberation Serif (simile a Times)', sans: 'Sans-serif di sistema', serif: 'Serif di sistema' } },
         'bkl-farbe':          { label: 'Sfondo', tip: 'Scegliere sfondo e colore del testo (anteprima nell’elenco)', aria: 'Scegliere lo sfondo',
                                 optionen: { hell: 'Bianco', sepia: 'Seppia', dunkel: 'Scuro', kontrast: 'Contrasto elevato', nacht: 'Notte (rossastro)' } },
+        'bkl-dunkel':         { label: 'Interfaccia scura', tip: 'Mostrare il pannello e la finestra delle impostazioni in scuro, indipendentemente dallo sfondo della sentenza e mai in base al sistema', aria: 'Mostrare l’interfaccia in scuro' },
         'bkl-spalte':         { label: 'Larghezza del testo', tip: 'Larghezza del riquadro di testo in pixel (predefinita 800, il sito stesso 625)', aria: 'Larghezza del riquadro di testo in pixel' },
         'bkl-klammern':       { label: 'semplificare', tip: 'Ripiegare le parentesi (regola: i riferimenti come le citazioni DTF e la dottrina vengono ripiegati; i rinvii alle leggi e il testo della sentenza restano aperti)', aria: 'Ripiegare le parentesi' },
         'bkl-details-toggle': { label: 'avanzate', tip: 'Mostrare o nascondere le altre impostazioni', aria: 'Mostrare o nascondere le impostazioni avanzate' },
@@ -186,7 +190,7 @@
         'bkl-spalten':        { label: 'Colonne', tip: 'Testo della sentenza su 1, 2 o 3 colonne (impaginazione a giornale)', aria: 'Scegliere il numero di colonne',
                                 optionen: { '1': '1 colonna', '2': '2 colonne', '3': '3 colonne' } },
         'bkl-reset':          { label: 'Ripristina',
-                                tip: 'Ripristinare tutte le impostazioni predefinite: modalità lettura disattivata, dimensione 18, carattere Serif di sistema, peso normale, interlinea 1.6, spaziatura paragrafi disattivata, spaziatura lettere e parole 0, lunghezza riga disattivata, sillabazione disattivata, allineamento a sinistra, 1 colonna, larghezza del testo 800 px, sfondo Bianco, «semplificare» attivo. La lingua resta invariata.',
+                                tip: 'Ripristinare tutte le impostazioni predefinite: modalità lettura disattivata, dimensione 18, carattere Serif di sistema, peso normale, interlinea 1.6, spaziatura paragrafi disattivata, spaziatura lettere e parole 0, lunghezza riga disattivata, sillabazione disattivata, allineamento a sinistra, 1 colonna, larghezza del testo 800 px, sfondo Bianco, «semplificare» attivo. Lingua e interfaccia scura restano invariate.',
                                 aria: 'Ripristinare tutte le impostazioni predefinite' }
       }
     }

@@ -31,8 +31,9 @@ extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
                           Pink-Button ICON_BUCH_SMILE (weisser Strich),
                           eigene Tooltips nach 3 s (data-tooltip, kein title),
                           Sprachwahl im Panel-Kopf (sprachAnwenden), Panel-CSS
-                          mit Design-Tokens „Swiss Boutique, Pink Edition" (hell/dunkel, folgt
-                          dem Farbschema), chrome.storage.local-Persistenz
+                          mit Design-Tokens „Klar" (hell/dunkel nach dem Schalter
+                          „Oberfläche dunkel", Einstellung oberflaecheDunkel),
+                          chrome.storage.local-Persistenz
 extension/sprachen.js     Texte der Bedienoberfläche in vier Sprachen (de/en/
                           fr/it) für Panel UND Pop-up: je Element-ID label,
                           tip, aria, optionen; uebersetze(root, sprache)
@@ -213,8 +214,10 @@ alle zusammen installieren.
   im Markup; en/fr/it stehen in sprachen.js. Standardsprache ist Italienisch
   (Vorgabe der Autorin). NIE automatisch nach navigator.language oder der
   Seitensprache wählen, und nie prefers-color-scheme lesen: die Erweiterung
-  fragt nichts über Browser oder System ab (Datenschutz). Das dunkle Panel
-  folgt allein der eigenen Einstellung „Hintergrund".
+  fragt nichts über Browser oder System ab (Datenschutz). Dunkles Panel und
+  Pop-up folgen allein dem eigenen Schalter „Oberfläche dunkel" (Einstellung
+  oberflaecheDunkel, Standard hell), nicht dem Hintergrund des Entscheids;
+  Zurücksetzen behält ihn wie die Sprache.
 - Textbreite: Standard 800 px (Vorgabe der Autorin), die Seite selbst hat
   625 px; Zurücksetzen stellt 800 ein.
 - Pop-up und Panel duplizieren Markup/Icons und die Design-Tokens bewusst

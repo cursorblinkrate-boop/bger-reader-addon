@@ -18,7 +18,7 @@ Die Erweiterung arbeitet zu 100 % offline. Sie sendet keine Daten, lädt nichts 
 - **Abstände und Satz:** Zeilen-, Absatz-, Buchstaben- und Wortabstand, Zeilenlänge, Textbreite, Silbentrennung, Ausrichtung, ein bis drei Spalten.
 - **Farbschema:** Weiss, Sepia, Dunkel, Hoher Kontrast und ein rötlicher Nachtmodus, jeweils für die ganze Seite.
 - **Klammern:** Zitate aus der Rechtsprechung und Literaturangaben werden eingeklappt, Gesetzesverweise und Entscheidtext bleiben offen. Jede Klammer ist einzeln aufklappbar.
-- **Bedienung:** ein Einstellungsfeld direkt auf der Seite und dasselbe als eigenes Fenster über das Symbol in der Symbolleiste, beide miteinander abgeglichen; vollständig per Tastatur bedienbar.
+- **Bedienung:** ein Einstellungsfeld direkt auf der Seite und dasselbe als eigenes Fenster über das Symbol in der Symbolleiste, beide miteinander abgeglichen; vollständig per Tastatur bedienbar. Die Oberfläche ist wahlweise hell oder dunkel, per eigenem Schalter und nie nach den Systemeinstellungen.
 - **Sprache:** Bedienoberfläche in Deutsch, Englisch, Französisch und Italienisch, umschaltbar in der Kopfzeile des Einstellungsfelds; Standard ist Italienisch. Die Erweiterung fragt weder Browser- noch Seitensprache ab.
 - **Speichern:** Einstellungen werden automatisch gespeichert und gelten auf allen unterstützten Seiten.
 

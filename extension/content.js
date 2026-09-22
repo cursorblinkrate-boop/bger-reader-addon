@@ -437,6 +437,8 @@
     ausrichtung: 'links',       // links | mittig | rechts | blocksatz
     spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
     absatzabstand: 0,           // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
+    oberflaecheDunkel: false,   // Bedienoberfläche (Panel und Pop-up) dunkel – eigene Wahl per Schalter, unabhängig
+                                // vom Hintergrund des Entscheids und nie nach dem System (kein prefers-color-scheme).
     sprache: 'it'               // Sprache der Bedienoberfläche: it | de | en | fr (Texte in sprachen.js).
                                 // Standard Italienisch nach Vorgabe der Autorin; bewusst KEINE Automatik nach
                                 // Browser- oder Seitensprache – die Erweiterung fragt nichts ab (Datenschutz).
@@ -870,9 +872,10 @@
     html.style.setProperty('--bkl-border', farben.border);
     html.style.setProperty('--bkl-toggle-bg', farben.tbg);
     html.style.setProperty('--bkl-toggle-fg', farben.tfg);
-    // Panel und Pop-up folgen dem Farbschema: dunkle Tokens (panelCss) bei
-    // Dunkel, Hoher Kontrast und Nacht, sobald der Lesemodus an ist.
-    host.setAttribute('data-schema', e.aktiv && /^(dunkel|kontrast|nacht)$/.test(e.farbschema) ? 'dunkel' : 'hell');
+    // Panel (und Pop-up, popup.js): dunkle Tokens (panelCss) allein nach dem
+    // eigenen Schalter „Oberfläche dunkel" – unabhängig vom Hintergrund des
+    // Entscheids und nie nach dem System (kein prefers-color-scheme).
+    host.setAttribute('data-schema', e.oberflaecheDunkel ? 'dunkel' : 'hell');
   }
 
   /* ================================================================== */
@@ -1016,7 +1019,8 @@
     silben:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7.93 0v9.59h0.35l0.77-0.77 0.01-0.07c0.01 0.01 0.02 0.02 0.03 0.03l0.36-0.36c0.01-0.01 0.03-0.02 0.04-0.04-0.13-0.11-0.25-0.23-0.37-0.39v-3.18c0.23-0.31 0.48-0.56 0.76-0.73 0.28-0.17 0.6-0.26 0.96-0.26 0.53 0 0.94 0.19 1.23 0.57 0.29 0.38 0.43 0.97 0.43 1.77 0 0.86-0.16 1.51-0.49 1.95-0.11 0.15-0.25 0.27-0.39 0.37 0.12 0.13 0.22 0.26 0.28 0.41 0.07 0.17 0.1 0.37 0.1 0.57 0.03-0.01 0.06-0.02 0.08-0.03 0.35-0.17 0.64-0.41 0.88-0.72 0.24-0.31 0.43-0.69 0.56-1.13 0.13-0.44 0.2-0.92 0.2-1.46 0-0.5-0.06-0.95-0.18-1.35-0.11-0.4-0.28-0.74-0.49-1.02-0.22-0.28-0.48-0.49-0.78-0.64-0.31-0.15-0.65-0.22-1.03-0.22-0.45 0-0.85 0.09-1.19 0.28-0.35 0.18-0.65 0.43-0.92 0.75v-3.93zm-4.12 2.88c-0.51 0-0.98 0.09-1.4 0.26-0.42 0.17-0.81 0.43-1.17 0.78l0.22 0.38c0.04 0.06 0.08 0.12 0.14 0.16 0.06 0.04 0.13 0.06 0.21 0.06 0.1 0 0.21-0.04 0.3-0.11 0.1-0.07 0.22-0.15 0.36-0.24 0.14-0.09 0.3-0.16 0.49-0.24 0.19-0.07 0.43-0.11 0.71-0.11 0.42 0 0.74 0.13 0.95 0.39 0.22 0.26 0.33 0.64 0.33 1.15v0.51c-0.75 0.02-1.38 0.09-1.89 0.21-0.51 0.12-0.93 0.27-1.25 0.46-0.32 0.19-0.55 0.41-0.7 0.65-0.14 0.24-0.21 0.49-0.21 0.75 0 0.3 0.05 0.56 0.14 0.78 0.1 0.22 0.23 0.4 0.4 0.54 0.17 0.14 0.37 0.25 0.59 0.32 0.13 0.04 0.28 0.06 0.42 0.08-0.25 0.15-0.47 0.32-0.65 0.54-0.25 0.3-0.43 0.66-0.56 1.07-0.13 0.41-0.19 0.86-0.19 1.35 0 0.54 0.07 1.01 0.21 1.43 0.14 0.41 0.34 0.77 0.58 1.06 0.25 0.29 0.54 0.5 0.88 0.66 0.33 0.15 0.69 0.23 1.08 0.23 0.22 0 0.44-0.02 0.66-0.06 0.22-0.04 0.43-0.1 0.63-0.18 0.2-0.08 0.39-0.19 0.56-0.31 0.17-0.13 0.33-0.28 0.47-0.46l-0.34-0.43c-0.05-0.08-0.12-0.12-0.21-0.12-0.08 0-0.16 0.03-0.23 0.1-0.07 0.07-0.16 0.14-0.28 0.22-0.11 0.08-0.25 0.15-0.41 0.22-0.17 0.07-0.38 0.1-0.63 0.1-0.27 0-0.51-0.05-0.72-0.16-0.21-0.11-0.4-0.27-0.55-0.48-0.15-0.21-0.27-0.47-0.36-0.77-0.08-0.31-0.12-0.66-0.12-1.05 0-0.38 0.04-0.72 0.11-1.02 0.08-0.3 0.19-0.56 0.34-0.77 0.15-0.21 0.34-0.38 0.56-0.49 0.23-0.12 0.49-0.17 0.78-0.17 0.22 0 0.41 0.03 0.56 0.08 0.16 0.05 0.29 0.11 0.39 0.18 0.11 0.06 0.2 0.12 0.27 0.17 0.07 0.05 0.14 0.08 0.21 0.08 0.06 0 0.11-0.01 0.14-0.03 0.04-0.03 0.07-0.06 0.11-0.11l0.31-0.43c-0.26-0.27-0.55-0.48-0.89-0.62-0.26-0.12-0.56-0.17-0.88-0.2 0.09-0.05 0.18-0.1 0.27-0.16 0.17-0.13 0.33-0.27 0.51-0.43l0.15 0.61c0.02 0.11 0.06 0.19 0.13 0.22 0.06 0.04 0.15 0.05 0.27 0.05h0.53v-4.21c0-0.37-0.05-0.71-0.15-1.02-0.1-0.31-0.25-0.57-0.44-0.79-0.19-0.22-0.43-0.39-0.72-0.51-0.29-0.12-0.62-0.18-0.99-0.18zm1.14 3.74v1.36c-0.13 0.13-0.26 0.26-0.4 0.37-0.13 0.11-0.27 0.2-0.42 0.28-0.15 0.07-0.31 0.13-0.47 0.17-0.17 0.04-0.35 0.06-0.54 0.06-0.15 0-0.29-0.02-0.42-0.05-0.13-0.04-0.24-0.1-0.34-0.17-0.09-0.08-0.17-0.18-0.23-0.3-0.05-0.13-0.08-0.27-0.08-0.45 0-0.18 0.05-0.34 0.15-0.48 0.1-0.15 0.27-0.28 0.5-0.38 0.23-0.11 0.54-0.19 0.9-0.26 0.37-0.07 0.82-0.11 1.34-0.14z" fill="#3a3a38"/><path d="m15 8v2c0 1.1-0.9 2-2 2l-4.29-0.02 2.15-2.15c0.33-0.32 0.09-0.87-0.36-0.86-0.13 0-0.25 0.06-0.34 0.15l-2.96 2.96c-0.26 0.2-0.26 0.59 0 0.79l0.01 0 2.95 2.95c0.47 0.49 1.2-0.24 0.71-0.71l-2.15-2.15 4.29 0.02c1.66 0 3-1.34 3-3v-2z" fill="#1e8bcd" fill-rule="evenodd"/></svg>',
     ausrichtung:'<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.5" width="14" x="1" y="2"/><rect height="1" ry="0.48" width="14" x="1" y="12"/><rect height="1" ry="0.5" width="14" x="1" y="14"/><rect height="1" ry="0.48" width="14" x="1" y="4"/><rect height="1" ry="0.48" width="14" x="1" y="9"/><rect height="1" ry="0.48" width="14" x="1" y="7"/></g></svg>',
     spalten:    '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m3 0c-0.55 0-1 0.45-1 1v14c0 0.55 0.45 1 1 1h11c0.55 0 1-0.45 1-1v-14c0-0.55-0.45-1-1-1zm0 1h11v14h-11z" fill="#3a3a38"/><path d="m3 1h11v14h-11z" fill="#fafafa"/><rect fill="#1e8bcd" height="1" ry="0.5" width="4" x="4" y="3"/><g fill="#3a3a38"><rect height="1" ry="0.5" width="4" x="4" y="7"/><rect height="1" ry="0.5" width="4" x="4" y="13"/><rect height="1" ry="0.5" width="4" x="4" y="10"/></g><rect fill="#1e8bcd" height="1" ry="0.5" width="4" x="9" y="3"/><g fill="#3a3a38"><rect height="1" ry="0.5" width="4" x="9" y="7"/><rect height="1" ry="0.5" width="4" x="9" y="13"/><rect height="1" ry="0.5" width="4" x="9" y="10"/></g></svg>',
-    absatz:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="1" y="2"/><rect height="1" ry="0.44" width="7" x="1" y="12"/><rect height="1" ry="0.5" width="8" x="1" y="14"/><rect height="1" ry="0.48" width="8" x="1" y="4"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m9 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m9 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg>'
+    absatz:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="1" y="2"/><rect height="1" ry="0.44" width="7" x="1" y="12"/><rect height="1" ry="0.5" width="8" x="1" y="14"/><rect height="1" ry="0.48" width="8" x="1" y="4"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m9 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m9 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg>',
+    dunkel:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m8 1a7 7 0 0 0 -7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7 7 7 0 0 0 -7-7z" fill="#fafafa"/><path d="m8 0c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 1c3.87 0 7 3.13 7 7 0 3.87-3.13 7-7 7z" fill="#3a3a38"/></svg>'
   };
 
   /* Marken-Icon in der Kopfzeile: das Extension-Icon (icons/icon128.png)
@@ -1049,7 +1053,7 @@
     'Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, ' +
     'Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, ' +
     'Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, ' +
-    'Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt.';
+    'Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Sprache und dunkle Oberfläche bleiben.';
 
   /* Dropdown-Vorschau: jede Schriftart-Option in ihrer Schrift, jede
      Hintergrund-Option in ihren Farben; das Dropdown selbst zeigt den
@@ -1107,51 +1111,53 @@
   const panelCss = `
     :host {
       all: initial;
-      /* Design-Tokens „Swiss Boutique, Pink Edition", helles Schema: strenge
-         Kanten, Versalien-Wortmarke, fette Beschriftungen, Rosa, Pink und
-         Violett, Herz als Regler-Knopf. Derselbe Satz steht in popup.css
-         (:root); Block [7] der Suite prüft, dass beide gleich sind.
-         Custom Properties sind von all:initial nicht betroffen. */
-      --ui-bg: #fff4f9;
-      --ui-bg-2: #fbe1ee;
-      --ui-fg: #3b1233;
-      --ui-fg-2: #7d3468;
-      --ui-linie: #f5c6dc;
-      --ui-rahmen: #d34f98;
+      /* Design-Tokens „Klar" (Variante A, Wahl der Autorin), helles Schema:
+         ruhige Fläche in zartem Rosé, Schrift Atkinson Hyperlegible Next,
+         Pink als Akzent (Neon-Rand an Panel, Auswahllisten, Schaltern und
+         Knöpfen; Herz als Regler-Knopf und im Schalter). Derselbe Satz steht
+         in popup.css (:root); Block [7] der Suite prüft, dass beide gleich
+         sind. Custom Properties sind von all:initial nicht betroffen. */
+      --ui-bg: #fff8fb;
+      --ui-bg-2: #fbeaf2;
+      --ui-feld: #ffffff;
+      --ui-fg: #1f1a1d;
+      --ui-fg-2: #5c4a55;
+      --ui-linie: #f2cfe0;
+      --ui-rahmen: #f0329a;
       --ui-rose: #d63384;
       --ui-rose-2: #e64980;
       --ui-rose-3: #a61e63;
-      --ui-rose-weich: #f6cadf;
+      --ui-rose-weich: #f3d9e5;
       --ui-violett: #7c3aed;
-      --ui-auf-akzent: #ffffff;
-      --ui-icon: #7a2a63;
+      --ui-aus: #e6d3dc;
+      --ui-icon: #4a3542;
       --ui-knopf: #ffffff;
-      --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23fff4f9' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
-      --ui-schatten: 0 2px 4px rgba(166, 30, 99, .12), 0 16px 40px rgba(166, 30, 99, .26);
+      --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23fff8fb' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+      --ui-schatten: 0 1px 2px rgba(60, 10, 35, .06), 0 12px 32px rgba(166, 30, 99, .14);
       --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
-      --ui-marke: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
     }
-    /* Dunkles Schema (Leitbild der Autorin): das Panel folgt der eigenen
-       Einstellung „Hintergrund" (Dunkel, Hoher Kontrast, Nacht), siehe
-       wendeStileAn() – nie dem System (kein prefers-color-scheme, kein
-       Fingerprinting). */
+    /* Dunkles Schema: fast schwarz mit einem Hauch Pflaume, Pink als Akzent.
+       Gilt nach der eigenen Einstellung „Oberfläche dunkel" (Schalter im
+       Panel, siehe wendeStileAn) – unabhängig vom Hintergrund des Entscheids
+       und nie nach dem System (kein prefers-color-scheme, kein Fingerprinting). */
     :host([data-schema="dunkel"]) {
-      --ui-bg: #221419;
-      --ui-bg-2: #2d1b23;
-      --ui-fg: #f7e9f0;
-      --ui-fg-2: #d9b8cb;
-      --ui-linie: #4d2a3d;
-      --ui-rahmen: #b8578d;
-      --ui-rose: #e64980;
-      --ui-rose-2: #ff6fa5;
+      --ui-bg: #16141a;
+      --ui-bg-2: #211d26;
+      --ui-feld: #211d26;
+      --ui-fg: #f2ecf0;
+      --ui-fg-2: #bdaeb7;
+      --ui-linie: #352a34;
+      --ui-rahmen: #ff4fa3;
+      --ui-rose: #ff6fa5;
+      --ui-rose-2: #ff8fbb;
       --ui-rose-3: #ffb3cf;
-      --ui-rose-weich: #46243a;
-      --ui-violett: #c4a4ff;
-      --ui-auf-akzent: #221419;
-      --ui-icon: #e6cdd9;
-      --ui-knopf: #fff4f8;
-      --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6fa5' stroke='%23221419' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
-      --ui-schatten: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 40px rgba(0, 0, 0, .55);
+      --ui-rose-weich: #3a2f38;
+      --ui-violett: #b794ff;
+      --ui-aus: #3a333f;
+      --ui-icon: #e2d6dd;
+      --ui-knopf: #ffffff;
+      --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6fa5' stroke='%2316141a' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+      --ui-schatten: 0 1px 2px rgba(0, 0, 0, .5), 0 14px 36px rgba(0, 0, 0, .6);
     }
 
     /* Geschlossener Zustand: runder Pink-Knopf oben rechts */
@@ -1164,7 +1170,7 @@
       height: 46px;
       padding: 0;
       border-radius: 50%;
-      border: 2px solid #a61e63;
+      border: 1px solid #a61e63;
       background: #d63384;
       background-image: linear-gradient(145deg, #e64980, #c2276f);
       color: #ffffff;
@@ -1176,8 +1182,7 @@
     }
     #bkl-button:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
-    /* Offener Zustand: schmale Karte mit harten Kanten, pinkem Rahmen und
-       Akzentbalken links; scrollbar bei kleinem Bildschirm */
+    /* Offener Zustand: schmale Karte mit Neon-Rand; scrollbar bei kleinem Bildschirm */
     #bkl-panel {
       position: fixed;
       top: 12px;
@@ -1194,8 +1199,7 @@
       color: var(--ui-fg);
       color-scheme: light;
       border: 2px solid var(--ui-rahmen);
-      border-left: 6px solid var(--ui-rose);
-      border-radius: 0;
+      border-radius: 12px;
       box-shadow: var(--ui-schatten);
       padding: 10px 12px 12px;
       -webkit-font-smoothing: antialiased;
@@ -1204,14 +1208,14 @@
     #bkl-panel[hidden],
     #bkl-button[hidden] { display: none; }
 
-    /* Kopfzeile: Wortmarke in fetten Versalien, rechts Sprachwahl mit Flagge und Schliessen */
+    /* Kopfzeile: Wortmarke fett in Gross-/Kleinschreibung, rechts Sprachwahl mit Flagge und Schliessen */
     #bkl-kopf {
       display: flex;
       align-items: center;
       gap: 6px;
       margin-bottom: 6px;
       padding-bottom: 8px;
-      border-bottom: 2px solid var(--ui-rahmen);
+      border-bottom: 1px solid var(--ui-linie);
     }
     h2 {
       flex: 1;
@@ -1220,12 +1224,12 @@
       align-items: center;
       gap: 7px;
       margin: 0;
-      font-family: var(--ui-marke);
-      font-size: 14px;
+      font-family: var(--ui-schrift);
+      font-size: 15px;
       font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--ui-rose-3);
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--ui-fg);
       white-space: nowrap;
     }
     h2 svg { flex: 0 0 auto; }
@@ -1243,8 +1247,9 @@
       display: none;
       width: 18px;
       height: 13px;
+      border-radius: 2px;
       overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(60, 10, 35, .3);
+      box-shadow: 0 0 0 1px rgba(60, 10, 35, .25);
     }
     .bkl-flagge svg { display: block; width: 18px; height: 13px; }
     .bkl-sprachwahl[data-sprache="de"] .bkl-flagge[data-flagge="de"],
@@ -1263,16 +1268,16 @@
       white-space: nowrap;
       border: 0;
     }
-    #bkl-sprache { width: auto; max-width: none; font-size: 12px; font-weight: 700; padding: 3px 4px; }
+    #bkl-sprache { width: auto; max-width: none; font-size: 12px; padding: 2px 4px; }
 
-    /* Schliessen-Knopf: pinkes Quadrat (wie der Pink-Button auf der Seite) */
+    /* Schliessen-Knopf: runder Pink-Knopf (wie der Pink-Button auf der Seite) */
     #bkl-schliessen {
       flex: 0 0 auto;
-      width: 30px;
-      height: 30px;
+      width: 28px;
+      height: 28px;
       padding: 0;
-      border: 2px solid #a61e63;
-      border-radius: 0;
+      border: 1px solid #a61e63;
+      border-radius: 50%;
       background: #d63384;
       background-image: linear-gradient(145deg, #e64980, #c2276f);
       color: #ffffff;
@@ -1284,7 +1289,7 @@
     }
     #bkl-schliessen:hover { background-image: linear-gradient(145deg, #f0619a, #d63384); }
 
-    /* Zeilen: Icon, fette Beschriftung, Bedienelement rechts; pinke Haarlinien dazwischen */
+    /* Zeilen: Icon, Beschriftung, Bedienelement rechts; zarte Haarlinien dazwischen */
     .bkl-zeile {
       display: flex;
       align-items: center;
@@ -1309,8 +1314,7 @@
     .bkl-icon [stroke="#1e8bcd"] { stroke: var(--ui-rose); }
     .bkl-icon [fill="#0063b1"] { fill: var(--ui-rose-3); }
     .bkl-icon [fill="#83beec"] { fill: var(--ui-rose-weich); }
-    /* Beschriftungen fett (Vorgabe der Autorin), Werte normal */
-    label { flex: 1; min-width: 0; color: var(--ui-fg); font-weight: 700; }
+    label { flex: 1; min-width: 0; color: var(--ui-fg); font-weight: 400; }
     .bkl-wert {
       flex: 0 0 auto;
       color: var(--ui-fg-2);
@@ -1335,53 +1339,52 @@
     .bkl-regler .bkl-wert { grid-area: wert; }
     .bkl-regler input[type="range"] { grid-area: regler; width: 100%; }
 
-    /* Regler: flache Spur mit Füllung von Rosé nach Violett bis zum Wert
-       (--bkl-p, gesetzt von wertAnzeigen), pinkes Herz als Knopf (--ui-herz).
-       Firefox füllt die Spur selbst (::-moz-range-progress). */
+    /* Regler: flache Spur, bis zum Wert in Rosé gefüllt (--bkl-p, gesetzt
+       von wertAnzeigen), pinkes Herz als Knopf (--ui-herz). Firefox füllt die
+       Spur selbst (::-moz-range-progress). */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
       accent-color: #d63384;
       --bkl-p: 0%;
       width: 100%;
-      height: 26px;
+      height: 22px;
       margin: 0;
       padding: 0;
       background: transparent;
       cursor: pointer;
     }
     input[type="range"]::-webkit-slider-runnable-track {
-      height: 6px;
-      border-radius: 0;
-      background: linear-gradient(to right, var(--ui-rose) 0, var(--ui-violett) var(--bkl-p), var(--ui-rose-weich) var(--bkl-p) 100%);
-      box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18);
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--ui-rose) 0 var(--bkl-p), var(--ui-rose-weich) var(--bkl-p) 100%);
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 24px;
-      height: 24px;
-      margin-top: -9px;
+      width: 20px;
+      height: 20px;
+      margin-top: -7.5px;
       border: 0;
       border-radius: 0;
-      background: var(--ui-herz) center / 24px 24px no-repeat;
+      background: var(--ui-herz) center / 20px 20px no-repeat;
       box-shadow: none;
     }
-    input[type="range"]::-moz-range-track { height: 6px; border-radius: 0; background: var(--ui-rose-weich); box-shadow: inset 0 0 0 1px rgba(166, 30, 99, .18); }
-    input[type="range"]::-moz-range-progress { height: 6px; border-radius: 0; background: linear-gradient(to right, var(--ui-rose), var(--ui-violett)); }
+    input[type="range"]::-moz-range-track { height: 5px; border-radius: 999px; background: var(--ui-rose-weich); }
+    input[type="range"]::-moz-range-progress { height: 5px; border-radius: 999px; background: var(--ui-rose); }
     input[type="range"]::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       border: 0;
       border-radius: 0;
-      background: var(--ui-herz) center / 22px 22px no-repeat;
+      background: var(--ui-herz) center / 18px 18px no-repeat;
       background-color: transparent;
       box-shadow: none;
     }
 
-    /* Häkchen als eckiger Schalter: Kasten mit pinkem Rand, eingeschaltet
-       Rosé-Violett mit Herz im Knopf. Bleibt für Tastatur und Vorlesewerkzeuge
-       eine Checkbox. */
+    /* Häkchen als Schalter mit Neon-Rand: aus grau-rosé, ein mit Verlauf
+       Rosé-Violett und Herz im Knopf (Herz-Knöpfe, Vorgabe der Autorin).
+       Bleibt für Tastatur und Vorlesewerkzeuge eine Checkbox. */
     input[type="checkbox"] {
       -webkit-appearance: none;
       appearance: none;
@@ -1390,11 +1393,11 @@
       flex: 0 0 auto;
       position: relative;
       width: 40px;
-      height: 24px;
+      height: 22px;
       margin: 0;
-      border-radius: 0;
+      border-radius: 999px;
       border: 2px solid var(--ui-rahmen);
-      background: var(--ui-rose-weich);
+      background: var(--ui-aus);
       cursor: pointer;
     }
     input[type="checkbox"]::before {
@@ -1402,55 +1405,54 @@
       position: absolute;
       top: 2px;
       left: 2px;
-      width: 16px;
-      height: 16px;
-      border-radius: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
       background: var(--ui-knopf);
       box-shadow: 0 1px 2px rgba(60, 10, 35, .35);
     }
     input[type="checkbox"]:checked { background: linear-gradient(90deg, var(--ui-rose), var(--ui-violett)); border-color: var(--ui-rose-3); }
-    input[type="checkbox"]:checked::before { left: 18px; background: var(--ui-herz) center / 11px 11px no-repeat, var(--ui-knopf); }
+    input[type="checkbox"]:checked::before { left: 20px; background: var(--ui-herz) center / 10px 10px no-repeat, var(--ui-knopf); }
 
-    /* Auswahllisten: eckig, pinker Rand, native Pfeil-Schaltfläche (folgt color-scheme) */
+    /* Auswahllisten: weisses Feld mit Neon-Rand, native Pfeil-Schaltfläche (folgt color-scheme) */
     select {
       flex: 0 0 auto;
       width: 134px;
       max-width: 54%;
       font: inherit;
       font-size: 12.5px;
-      font-weight: 700;
       color: var(--ui-fg);
-      background-color: var(--ui-bg-2);
+      background-color: var(--ui-feld);
       border: 2px solid var(--ui-rahmen);
-      border-radius: 0;
+      border-radius: 9px;
       padding: 3px 5px;
       cursor: pointer;
     }
     select:hover { border-color: var(--ui-rose-3); }
 ${vorschauCss()}
-    /* Toggle für den Detail-Bereich (echter Button, aria-expanded): Block in
-       Rosé-Violett mit Versalien */
+    /* Toggle für den Detail-Bereich (echter Button, aria-expanded): flacher
+       Knopf in Rosé mit pinkem Pfeil, ohne Verlauf */
     #bkl-details-toggle {
       width: 100%;
       display: flex;
       align-items: center;
       gap: 8px;
       margin-top: 10px;
-      padding: 8px 12px;
-      border: 0;
-      border-radius: 0;
-      background: linear-gradient(90deg, var(--ui-rose), var(--ui-violett));
-      color: var(--ui-auf-akzent);
+      padding: 7px 10px;
+      border: 1px solid var(--ui-linie);
+      border-radius: 8px;
+      background: var(--ui-bg-2);
+      color: var(--ui-fg);
       font: inherit;
-      font-size: 12px;
+      font-size: 13.5px;
       font-weight: 700;
-      letter-spacing: .16em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: none;
       cursor: pointer;
       text-align: left;
     }
-    #bkl-details-toggle:hover { background: linear-gradient(90deg, var(--ui-rose-2), var(--ui-violett)); }
-    #bkl-details-toggle .bkl-pfeil { display: inline-flex; }
+    #bkl-details-toggle:hover { border-color: var(--ui-rahmen); }
+    #bkl-details-toggle .bkl-pfeil { display: inline-flex; color: var(--ui-rose); }
     /* statische Drehung, absichtlich ohne Transition/Animation */
     #bkl-details-toggle[aria-expanded="true"] .bkl-pfeil svg { transform: rotate(90deg); }
     #bkl-details { margin-top: 6px; }
@@ -1459,20 +1461,20 @@ ${vorschauCss()}
     .bkl-knopfreihe { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     button.bkl-aktion {
       border: 2px solid var(--ui-rahmen);
-      border-radius: 0;
-      background: var(--ui-bg-2);
-      color: var(--ui-rose-3);
-      padding: 5px 14px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ui-fg);
+      padding: 4px 12px;
       font: inherit;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: none;
       cursor: pointer;
     }
-    button.bkl-aktion:hover { border-color: var(--ui-rose-3); }
+    button.bkl-aktion:hover { background: var(--ui-bg-2); border-color: var(--ui-rose-3); }
 
-    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung (tiefes Rosé, 6.5:1 auf hell) */
+    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung (tiefes Rosé, 6.7:1 auf hell, 11:1 auf dunkel) */
     #bkl-button:focus-visible,
     #bkl-schliessen:focus-visible,
     #bkl-details-toggle:focus-visible,
@@ -1491,14 +1493,13 @@ ${vorschauCss()}
       z-index: 2147483647;
       max-width: 300px;
       padding: 7px 10px;
-      border-radius: 0;
-      border-left: 4px solid #d63384;
-      background: #3b1233;
+      border-radius: 8px;
+      background: #1f1a1d;
       color: #ffffff;
       font-family: var(--ui-schrift);
       font-size: 13px;
       line-height: 1.4;
-      box-shadow: 0 4px 14px rgba(59, 18, 51, .35);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
       pointer-events: none;
     }
     #bkl-tooltip[hidden] { display: none; }
@@ -1554,6 +1555,11 @@ ${vorschauCss()}
             <option value="kontrast">Hoher Kontrast</option>
             <option value="nacht">Nacht (rötlich)</option>
           </select>
+        </div>
+        <div class="bkl-zeile">
+          <span class="bkl-icon">${ICONS.dunkel}</span>
+          <label for="bkl-dunkel">Oberfläche dunkel</label>
+          <input type="checkbox" id="bkl-dunkel" data-tooltip="Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System" aria-label="Bedienoberfläche dunkel darstellen">
         </div>
         <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.spalte}</span>
@@ -1739,6 +1745,7 @@ ${vorschauCss()}
     shadow.getElementById('bkl-spalte').value = e.spaltenbreite;
     shadow.getElementById('bkl-silben').checked = e.silbentrennung;
     shadow.getElementById('bkl-farbe').value = e.farbschema;
+    shadow.getElementById('bkl-dunkel').checked = e.oberflaecheDunkel;
     shadow.getElementById('bkl-klammern').checked = e.klammern;
     shadow.getElementById('bkl-ausrichtung').value = e.ausrichtung;
     shadow.getElementById('bkl-spalten').value = String(e.spalten);
@@ -1900,6 +1907,7 @@ ${vorschauCss()}
   bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; stilGeaendert('bkl-spalte', true); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; stilGeaendert('bkl-silben'); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; stilGeaendert('bkl-farbe'); });
+  bei('bkl-dunkel', 'change', function (e) { einstellungen.oberflaecheDunkel = e.target.checked; stilGeaendert('bkl-dunkel'); });
   bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; stilGeaendert('bkl-ausrichtung'); });
   bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; stilGeaendert('bkl-spalten'); });
   bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; stilGeaendert('bkl-absatz', true); });
@@ -1909,8 +1917,9 @@ ${vorschauCss()}
   ['bkl-groesse', 'bkl-zeilenabstand', 'bkl-buchstaben', 'bkl-worte', 'bkl-laenge', 'bkl-spalte', 'bkl-absatz']
     .forEach(function (id) { bei(id, 'change', nachschreiben); });
   bei('bkl-reset', 'click', function () {
-    // Alles auf Standard, nur die Sprache bleibt (wer Französisch liest, soll nicht Deutsch bekommen).
-    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache });
+    // Alles auf Standard; Sprache und dunkle Oberfläche bleiben (wer Französisch
+    // liest, soll nicht Deutsch bekommen, und die Oberfläche soll nicht umspringen).
+    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache, oberflaecheDunkel: einstellungen.oberflaecheDunkel });
     allesAnwenden();
   });
   }
