@@ -34,8 +34,8 @@ fi
 tail -1 /tmp/bger-release-tests.log | sed 's/^/        /'
 
 # 2. Syntaxprüfung des ausgelieferten Skripts.
-echo "  [2/4] Syntaxprüfung extension/content.js"
-node --check extension/content.js
+echo "  [2/4] Syntaxprüfung der ausgelieferten Skripte"
+for f in extension/sprachen.js extension/content.js extension/popup.js extension/background.js; do node --check "$f"; done
 echo "        in Ordnung"
 
 # 3. Paket bauen – ausschliesslich aus extension/.

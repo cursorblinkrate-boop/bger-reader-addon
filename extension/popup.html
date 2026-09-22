@@ -5,7 +5,8 @@
      grösserer Bedienfläche. Skripte/CSS extern (MV3-CSP erlaubt kein Inline-JS).
      Zeilen-Icons: Colibre (Standard-Icon-Thema von LibreOffice, CC0, siehe
      icons/LICENSES.md), identische Strings wie ICONS in content.js.
-     Tooltips stehen in data-tooltip und erscheinen erst nach 3 s (popup.js). -->
+     Tooltips stehen in data-tooltip und erscheinen erst nach 3 s (popup.js).
+     Texte deutsch (Quelle); andere Sprachen schreibt sprachen.js per ID hinein. -->
 <html lang="de">
 <head>
   <meta charset="utf-8">
@@ -16,9 +17,10 @@
   <main aria-label="bger reader Einstellungen">
     <header id="bkl-kopf">
       <h1><svg viewBox="0 0 16 16" width="26" height="26" aria-hidden="true" focusable="false"><path d="M2 1h5.6v14H2a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 2 1z" fill="#d63384"/><path d="M8.4 1H14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 14 15H8.4z" fill="#e64980"/><path d="M7.6 1h.8v14h-.8z" fill="#a61e63"/><circle cx="4.4" cy="5.8" r="1" fill="#fff"/><circle cx="11.6" cy="5.8" r="1" fill="#fff"/><path d="M3.6 9c1.4 1.8 7.4 1.8 8.8 0" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M2.2 12.6h11.6" stroke="#fff" stroke-width=".7" opacity=".7"/></svg> bger reader</h1>
+      <span class="bkl-sprachwahl"><span class="bkl-flagge" data-flagge="de" aria-hidden="true"><svg viewBox="0 0 16 12" width="18" height="13" focusable="false"><rect width="16" height="12" fill="#e30613"/><path d="M6.5 2.5h3v7h-3zM4.5 4.5h7v3h-7z" fill="#fff"/></svg></span><span class="bkl-flagge" data-flagge="en" aria-hidden="true"><svg viewBox="0 0 16 12" width="18" height="13" focusable="false"><rect width="16" height="12" fill="#012169"/><path d="M0 0l16 12M16 0L0 12" stroke="#fff" stroke-width="2.4"/><path d="M0 0l16 12M16 0L0 12" stroke="#c8102e" stroke-width=".8"/><path d="M8 0v12M0 6h16" stroke="#fff" stroke-width="4"/><path d="M8 0v12M0 6h16" stroke="#c8102e" stroke-width="2.4"/></svg></span><span class="bkl-flagge" data-flagge="fr" aria-hidden="true"><svg viewBox="0 0 16 12" width="18" height="13" focusable="false"><rect width="16" height="12" fill="#fff"/><rect width="5.34" height="12" fill="#0055a4"/><rect x="10.66" width="5.34" height="12" fill="#ef4135"/></svg></span><span class="bkl-flagge" data-flagge="it" aria-hidden="true"><svg viewBox="0 0 16 12" width="18" height="13" focusable="false"><rect width="16" height="12" fill="#fff"/><rect width="5.34" height="12" fill="#009246"/><rect x="10.66" width="5.34" height="12" fill="#ce2b37"/></svg></span><label for="bkl-sprache" class="bkl-sr">Sprache</label><select id="bkl-sprache" data-tooltip="Sprache der Bedienoberfläche (Deutsch, English, Français, Italiano)" aria-label="Sprache der Bedienoberfläche wählen"><option value="de" lang="de">Deutsch</option><option value="en" lang="en">English</option><option value="fr" lang="fr">Français</option><option value="it" lang="it">Italiano</option></select></span>
       <button type="button" id="bkl-schliessen"
-              data-tooltip="Fenster schliessen (Escape)"
-              aria-label="Fenster schliessen"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M3 3 L13 13 M13 3 L3 13"/></svg></button>
+              data-tooltip="Einstellungen schliessen (Escape)"
+              aria-label="Einstellungen schliessen"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true" focusable="false"><path d="M3 3 L13 13 M13 3 L3 13"/></svg></button>
     </header>
 
     <section class="bkl-bereich" id="bkl-allgemein" aria-label="Einstellungen">
@@ -27,7 +29,7 @@
         <label for="bkl-aktiv">einschalten</label>
         <input type="checkbox" id="bkl-aktiv" data-tooltip="Lesemodus ein-/ausschalten" aria-label="Lesemodus ein-/ausschalten">
       </div>
-      <div class="bkl-zeile">
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7.39 1-5.17 14h1.26c0.16 0 0.3-0.05 0.41-0.14 0.12-0.09 0.2-0.2 0.24-0.32l1.23-3.54h5.28l1.23 3.54c0.04 0.12 0.12 0.23 0.24 0.32 0.11 0.09 0.25 0.14 0.41 0.14h1.26l-3.74-10.11c-0.54 0.2-1.18 0.1-1.61-0.33-0.02-0.02-0.04-0.05-0.06-0.07l1.92 5.52h-4.59l2.02-5.82c0.06-0.17 0.13-0.37 0.2-0.6 0.02-0.08 0.05-0.17 0.07-0.25 0.01 0.02 0.01 0.04 0.02 0.06 0.03-0.35 0.16-0.69 0.42-0.95l0.51-0.51-0.34-0.93h-0.61z" fill="#3a3a38"/><path d="m12.5 7c-0.28 0-0.5-0.22-0.5-0.5v-4.79l-2.15 2.15c-0.2 0.2-0.51 0.2-0.71 0-0.2-0.2-0.2-0.51 0-0.71l3-3c0.1-0.1 0.23-0.15 0.35-0.15 0.06 0 0.13 0.01 0.19 0.04 0.06 0.02 0.12 0.06 0.17 0.11l3 3c0.2 0.2 0.2 0.51 0 0.71-0.2 0.2-0.51 0.2-0.71 0l-2.15-2.15v4.79c0 0.28-0.22 0.5-0.5 0.5z" fill="#1e8bcd"/></svg></span>
         <label for="bkl-groesse">Schriftgrösse</label>
         <input type="range" id="bkl-groesse" min="6" max="50" step="1" data-tooltip="Schriftgrösse (6 bis 50, Standard 18)" aria-label="Schriftgrösse"><span class="bkl-wert" id="bkl-groesse-w"></span>
@@ -59,9 +61,14 @@
         </select>
       </div>
       <div class="bkl-zeile">
+        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m8 1a7 7 0 0 0 -7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7 7 7 0 0 0 -7-7z" fill="#fafafa"/><path d="m8 0c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 1c3.87 0 7 3.13 7 7 0 3.87-3.13 7-7 7z" fill="#3a3a38"/></svg></span>
+        <label for="bkl-dunkel">Oberfläche dunkel</label>
+        <input type="checkbox" id="bkl-dunkel" data-tooltip="Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System" aria-label="Bedienoberfläche dunkel darstellen">
+      </div>
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m10 1h-4v6.11c0.24 0.08 0.46 0.21 0.62 0.39 0.27 0.3 0.38 0.67 0.38 1.01s-0.11 0.71-0.38 1.01c-0.16 0.18-0.38 0.31-0.62 0.39v5.08h4v-5.09c-0.24-0.08-0.46-0.22-0.62-0.39-0.27-0.3-0.38-0.66-0.38-1.01s0.11-0.71 0.38-1.01c0.16-0.18 0.38-0.31 0.62-0.39z" fill="#fafafa"/><path d="m11 0h-1-5v1h5v4h-4v-4h-1v4 0.36c0 0.03 0.01 0.05 0.01 0.07 0 0.06-0.01 0.12-0.01 0.18v0.38 1.01h0.48c0.17 0 0.35 0.03 0.52 0.09v-1.11h4v1.1c0.17-0.06 0.35-0.1 0.52-0.09h0.48v-1.4c-0.01-0.06-0.02-0.12-0.01-0.18 0-0.03 0.01-0.05 0.01-0.07zm0 10h-0.48c-0.17 0-0.35-0.03-0.52-0.09v1.09h-4v-1.08c-0.17 0.06-0.35 0.1-0.52 0.09h-0.48v0.99 0.33c0.01 0.09 0.02 0.17 0.02 0.25 0 0.04-0.01 0.08-0.02 0.11v3.3h1v-3h4v3h-5v1h5 1v-4.31c-0.01-0.04-0.02-0.07-0.02-0.11 0-0.08 0.01-0.17 0.02-0.25z" fill="#3a3a38"/><g fill="#1e8bcd" fill-rule="evenodd"><path d="m16 8.48c0-0.16-0.08-0.3-0.2-0.39l-2.95-2.94c-0.47-0.47-1.18 0.24-0.71 0.71l2.14 2.14-3.78 0.01c-0.68-0.01-0.68 1.01 0 1l3.78-0.01-2.14 2.15c-0.49 0.47 0.24 1.2 0.71 0.7l2.95-2.96c0.13-0.1 0.2-0.25 0.2-0.4z"/><path d="m0 8.49c0-0.16 0.08-0.3 0.2-0.39l2.95-2.94c0.47-0.47 1.18 0.24 0.71 0.71l-2.14 2.14 3.78 0.01c0.68-0.01 0.68 1.01 0 1l-3.78-0.01 2.14 2.15c0.49 0.47-0.24 1.2-0.71 0.7l-2.95-2.96c-0.13-0.1-0.2-0.25-0.2-0.4z"/></g></svg></span>
-        <label for="bkl-spalte">Textbreite</label>
-        <input type="range" id="bkl-spalte" min="400" max="1400" step="25" data-tooltip="Breite des Textrahmens in Pixel (Seiten-Standard: 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+        <label for="bkl-spalte">Breite</label>
+        <input type="range" id="bkl-spalte" min="400" max="1400" step="25" data-tooltip="Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
       </div>
       <div class="bkl-zeile">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m6 0c-1.1 0-2 0.9-2 2v12c0 1.1 0.9 2 2 2h1v-1h-1c-0.55 0-1-0.45-1-1v-8.28-3.72c0-0.55 0.43-1 1-1h1v-1zm3 0v1h1c0.55 0 1 0.45 1 1v3.72 8.28c0 0.55-0.45 1-1 1h-1v1h1c1.1 0 2-0.9 2-2v-12c0-1.1-0.62-2-2-2z" fill="#1e8bcd"/></svg></span>
@@ -83,27 +90,27 @@
           <option value="fett">fett</option>
         </select>
       </div>
-      <div class="bkl-zeile">
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="7" y="3"/><rect height="1" ry="0.44" width="7" x="7" y="9"/><rect height="1" ry="0.5" width="8" x="7" y="12"/><rect height="1" ry="0.48" width="8" x="7" y="6"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m0 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m0 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg></span>
-        <label for="bkl-zeilenabstand">Zeilenabstand</label>
+        <label for="bkl-zeilenabstand">Zeilen</label>
         <input type="range" id="bkl-zeilenabstand" min="1" max="2.5" step="0.1" data-tooltip="Zeilenabstand (Faktor)" aria-label="Zeilenabstand (Faktor)"><span class="bkl-wert" id="bkl-zeilenabstand-w"></span>
       </div>
-      <div class="bkl-zeile">
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="1" y="2"/><rect height="1" ry="0.44" width="7" x="1" y="12"/><rect height="1" ry="0.5" width="8" x="1" y="14"/><rect height="1" ry="0.48" width="8" x="1" y="4"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m9 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m9 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg></span>
-        <label for="bkl-absatz">Absatzabstand</label>
+        <label for="bkl-absatz">Absatz</label>
         <input type="range" id="bkl-absatz" min="0" max="3" step="0.25" data-tooltip="Zusätzlicher Abstand nach jedem Absatz (Faktor der Schriftgrösse, 0 = Seiten-Standard)" aria-label="Absatzabstand (Faktor, 0 = Seiten-Standard)"><span class="bkl-wert" id="bkl-absatz-w"></span>
       </div>
-      <div class="bkl-zeile">
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m3.75 0-3.75 10h0.88l0.85-0.85 0.76-2.15c0 0 0.01 0 0.01 0h3.92l0.95 2.68c0.04 0.09 0.1 0.17 0.17 0.23 0.08 0.06 0.17 0.09 0.29 0.09h1.07l-3.74-10zm0.7 1.31c0.05 0.19 0.09 0.36 0.14 0.53 0.05 0.16 0.1 0.3 0.15 0.43l1.32 3.74h-3.23l1.31-3.73c0.05-0.12 0.1-0.26 0.15-0.43 0.05-0.16 0.1-0.34 0.15-0.53z" fill="#3a3a38"/><path d="m7.25 0 3.75 10h0.11c-0.13-0.36-0.13-0.76 0.01-1.08 0.1-0.23 0.27-0.44 0.49-0.6-0.04-0.16-0.08-0.32-0.13-0.47-0.06-0.19-0.11-0.36-0.17-0.52l-2.47-7.01c-0.04-0.09-0.09-0.17-0.17-0.23-0.08-0.06-0.18-0.09-0.3-0.09zm7.63 0c-0.12 0-0.22 0.03-0.3 0.1-0.08 0.07-0.14 0.14-0.17 0.23l-2.47 7c-0.06 0.16-0.12 0.33-0.18 0.52-0.04 0.13-0.07 0.27-0.1 0.41 0.25-0.17 0.55-0.27 0.86-0.26a1 1 0 0 1 0.01 0c0.15 0 0.29 0.04 0.42 0.08l3.03-8.08z" fill="#3a3a38"/><path d="m3.48 9c-0.13 0-0.25 0.06-0.34 0.15l-2.92 2.91c-0.17 0.16-0.22 0.27-0.22 0.44 0 0.17 0.05 0.27 0.22 0.44l2.92 2.91c0.09 0.09 0.21 0.15 0.34 0.15 0.45 0.01 0.69-0.54 0.36-0.86l-2.15-2.14h12.61l-2.15 2.14c-0.33 0.32-0.09 0.87 0.36 0.86 0.13 0 0.25-0.06 0.34-0.15l2.92-2.91c0.17-0.16 0.22-0.27 0.22-0.44 0-0.17-0.05-0.27-0.22-0.44l-2.92-2.91c-0.09-0.09-0.21-0.15-0.34-0.15-0.45-0.01-0.69 0.54-0.36 0.86l2.15 2.14h-12.61l2.15-2.14c0.33-0.32 0.09-0.87-0.36-0.86z" fill="#1e8bcd" fill-rule="evenodd"/></svg></span>
         <label for="bkl-buchstaben">Buchstabenabstand</label>
         <input type="range" id="bkl-buchstaben" min="0" max="4" step="0.1" data-tooltip="Buchstabenabstand in Pixel" aria-label="Buchstabenabstand in Pixel"><span class="bkl-wert" id="bkl-buchstaben-w"></span>
       </div>
-      <div class="bkl-zeile">
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m1 8c-0.55 0-1 0.45-1 1v6c0 0.55 0.45 1 1 1h1.48a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h0.25v-0.87c-0.11 0.01-0.21 0.02-0.33 0-0.14-0.03-0.29-0.07-0.43-0.15a1 1 0 0 1-0.08-0.05c-0.1-0.07-0.2-0.15-0.3-0.27a1 1 0 0 1-0.01-0.01l-0.37-0.47a1 1 0 0 1 0.16-1.4l1.94-1.56a1 1 0 0 1 0.63-0.22zm4 0a1 1 0 0 1 1 1v4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h4a1 1 0 0 1-1-1v-0.36c0-0.21 0.04-0.39 0.1-0.54a1 1 0 0 1 0.01-0.02c0.08-0.23 0.22-0.44 0.39-0.6l1.69-1.74 0 0c-0.25 0.06-0.5 0.12-0.7 0.09a1 1 0 0 1 0 0l-0.57-0.1a1 1 0 0 1-0.82-1.14c0.06-0.38 0.17-0.74 0.35-1.07 0 0 0 0 0 0v0c0.17-0.32 0.39-0.6 0.67-0.84 0.27-0.23 0.59-0.4 0.93-0.51 0 0 0 0 0 0 0.33-0.11 0.68-0.16 1.04-0.16zm7.09 0c0.37 0 0.74 0.06 1.09 0.19 0.33 0.12 0.65 0.3 0.91 0.55 0.27 0.25 0.47 0.56 0.61 0.89 0.15 0.34 0.21 0.71 0.21 1.08 0 0.31-0.05 0.63-0.14 0.92a1 1 0 0 1 0 0.01c-0.09 0.25-0.2 0.5-0.34 0.73a1 1 0 0 1 0 0.01c-0.14 0.22-0.29 0.42-0.46 0.62a1 1 0 0 1-0.01 0.01c-0.03 0.03-0.06 0.07-0.09 0.1 0.25 0.04 0.51 0.09 0.71 0.28 0.27 0.25 0.42 0.66 0.42 0.98v0.64a1 1 0 0 1-1 1h1c0.55 0 1-0.45 1-1v-6c0-0.55-0.45-1-1-1zm-1.84 2.2c0 0-0.01 0.01-0.01 0.01l-0.01 0.04c0.01-0.02 0.02-0.03 0.02-0.05zm1.2 1.49c0 0 0 0.01-0.01 0.01l0.01-0.01c0 0 0 0-0.01 0z" fill="#fafafa"/><path d="m2.48 14h1.25v-3.17c0-0.14 0-0.28 0.01-0.43l-0.84 0.67c-0.06 0.04-0.11 0.07-0.17 0.08-0.06 0.01-0.11 0.01-0.16 0-0.05-0.01-0.09-0.02-0.13-0.05-0.04-0.02-0.06-0.05-0.08-0.07l-0.37-0.47 1.94-1.56h1.06v5h1v1h-3.52z" fill="#1e8bcd"/><path d="m12.09 9q0.41 0 0.74 0.13 0.34 0.12 0.57 0.34 0.24 0.22 0.37 0.54 0.13 0.31 0.13 0.69 0 0.33-0.09 0.61-0.09 0.28-0.25 0.53-0.16 0.25-0.37 0.49-0.21 0.24-0.44 0.48l-1.26 1.32q0.2-0.06 0.4-0.09 0.2-0.04 0.37-0.04h1.34q0.17 0 0.27 0.1 0.11 0.1 0.11 0.26v0.64h-4v-0.36q0-0.1 0.04-0.22 0.04-0.12 0.15-0.22l1.72-1.77q0.22-0.23 0.38-0.43 0.17-0.21 0.28-0.41 0.12-0.21 0.17-0.41 0.06-0.21 0.06-0.44 0-0.41-0.2-0.62-0.2-0.21-0.58-0.21-0.16 0-0.29 0.05-0.13 0.05-0.24 0.13-0.11 0.08-0.18 0.2-0.08 0.12-0.12 0.25-0.07 0.21-0.2 0.27-0.12 0.06-0.33 0.03l-0.57-0.1q0.07-0.43 0.24-0.76 0.17-0.33 0.43-0.54 0.26-0.22 0.6-0.33 0.34-0.11 0.73-0.11z" fill="#1e8bcd"/><g fill="#3a3a38"><path d="m0 8v8h16v-8zm1 1h14v6h-14z"/><g fill="#3a3a38" transform="translate(.074131 -2)"><path d="m5.59 9.59q-0.18 0-0.27-0.05-0.09-0.05-0.13-0.22l-0.15-0.61q-0.26 0.24-0.51 0.42-0.24 0.18-0.51 0.31-0.27 0.13-0.58 0.19-0.31 0.07-0.68 0.07-0.38 0-0.72-0.1-0.33-0.11-0.59-0.32-0.25-0.22-0.4-0.55-0.14-0.33-0.14-0.78 0-0.39 0.21-0.75 0.22-0.36 0.69-0.65 0.48-0.28 1.25-0.46 0.77-0.18 1.89-0.21v-0.51q0-0.77-0.33-1.15-0.32-0.39-0.95-0.39-0.42 0-0.71 0.11-0.28 0.11-0.49 0.24-0.21 0.13-0.36 0.24-0.15 0.11-0.3 0.11-0.12 0-0.21-0.06-0.09-0.06-0.14-0.16l-0.22-0.38q0.55-0.53 1.17-0.78 0.63-0.26 1.4-0.26 0.55 0 0.98 0.18 0.43 0.18 0.72 0.51 0.29 0.33 0.44 0.79 0.16 0.46 0.16 1.02v4.22zm-2.47-0.73q0.3 0 0.55-0.06 0.25-0.06 0.47-0.17 0.22-0.11 0.42-0.28 0.2-0.17 0.4-0.37v-1.36q-0.79 0.03-1.34 0.13-0.55 0.09-0.9 0.26-0.34 0.16-0.5 0.38-0.16 0.22-0.16 0.49 0 0.26 0.08 0.45 0.09 0.18 0.23 0.3 0.14 0.11 0.34 0.18 0.2 0.05 0.42 0.05z"/><path d="m7.93 9.59v-7.59h1.19v1.93c0.27-0.32 0.58-0.57 0.92-0.76 0.35-0.19 0.74-0.28 1.19-0.28 0.38 0 0.73 0.07 1.03 0.22 0.31 0.15 0.57 0.36 0.78 0.64 0.22 0.28 0.38 0.62 0.49 1.02 0.12 0.4 0.18 0.85 0.18 1.35 0 0.54-0.07 1.02-0.2 1.46-0.13 0.44-0.32 0.81-0.56 1.13-0.24 0.31-0.54 0.55-0.88 0.72-0.35 0.17-0.74 0.26-1.17 0.26s-0.79-0.08-1.09-0.24c-0.29-0.17-0.54-0.4-0.77-0.69l-0.07 0.59c-0.02 0.17-0.11 0.25-0.29 0.25zm2.91-5.76c-0.36 0-0.69 0.09-0.96 0.26-0.27 0.17-0.53 0.41-0.76 0.73v3.18c0.21 0.28 0.43 0.48 0.68 0.6 0.25 0.11 0.52 0.17 0.82 0.17 0.61 0 1.07-0.22 1.4-0.65 0.32-0.44 0.49-1.09 0.49-1.95 0-0.8-0.14-1.39-0.43-1.77-0.29-0.38-0.7-0.57-1.23-0.57z"/></g></g></svg></span>
         <label for="bkl-worte">Wortabstand</label>
         <input type="range" id="bkl-worte" min="0" max="10" step="0.1" data-tooltip="Wortabstand in Pixel" aria-label="Wortabstand in Pixel"><span class="bkl-wert" id="bkl-worte-w"></span>
       </div>
-      <div class="bkl-zeile">
+      <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38" transform="scale(-1 1)"><rect height="1" ry="0.46" width="3" x="-4" y="5"/><rect height="1" ry="0.5" width="14" x="-15" y="2"/><rect height="1" ry="0.5" width="14" x="-15" y="13"/></g><path d="m15.5 8.51-3 2.99-3-2.99" fill="none" stroke="#1e8bcd" stroke-linecap="round" stroke-linejoin="round"/><path d="m5.5 5.01c-0.28 0-0.5 0.22-0.5 0.5s0.22 0.5 0.5 0.5h4c1.38 0 2.5 1.12 2.5 2.5h0.01v0.42 2.07h1v-2.07-0.5c-0.01-2.15-1.88-3.37-3.51-3.42z" fill="#1e8bcd" fill-rule="evenodd"/></svg></span>
         <label for="bkl-laenge">Zeilenlänge</label>
         <input type="range" id="bkl-laenge" min="0" max="120" step="10" data-tooltip="Zeilenlänge begrenzen (Zeichen, 0 = aus)" aria-label="Zeilenlänge begrenzen (Zeichen, 0 = aus)"><span class="bkl-wert" id="bkl-laenge-w"></span>
@@ -133,11 +140,12 @@
         </select>
       </div>
       <div class="bkl-knopfreihe">
-        <button class="bkl-aktion" id="bkl-reset" data-tooltip="Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 625 px, Hintergrund Weiss, Klammern „einfach" ein" aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
+        <button class="bkl-aktion" id="bkl-reset" data-tooltip="Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Sprache und dunkle Oberfläche bleiben." aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
       </div>
     </section>
   </main>
   <div id="bkl-tooltip" role="tooltip" hidden></div>
+  <script src="sprachen.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

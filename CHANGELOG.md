@@ -13,6 +13,51 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.10.0 — 2026-09-19
+
+- Neu: **Sprache der Bedienoberfläche** – Deutsch, English, Français,
+  Italiano, wählbar in der Kopfzeile von Panel und Pop-up-Fenster (jede
+  Sprache in ihrem eigenen Namen). Beschriftungen, Auswahltexte,
+  Tooltips, Vorlesetexte (`aria-label`), die Wertanzeige „aus" und der Titel
+  des Klammer-Pfeils im Entscheidtext folgen der Wahl. Die Sprache wird mit
+  den übrigen Einstellungen gespeichert und zwischen Panel und Pop-up
+  abgeglichen; Zurücksetzen behält sie. Standardsprache ist Italienisch
+  (Vorgabe der Autorin). Bewusst keine Automatik nach Browser- oder
+  Seitensprache: die Erweiterung fragt nichts über Browser oder Umgebung ab
+  (Datenschutz). Neben der Sprachwahl steht die Flagge der gewählten Sprache
+  (Schweiz für Deutsch, Grossbritannien, Frankreich, Italien) als Inline-SVG.
+  Texte in `extension/sprachen.js`, einer Datei für Panel und Pop-up (das
+  Manifest lädt sie vor `content.js`, `popup.html` vor `popup.js`); das
+  Markup bleibt deutsch, die anderen Sprachen werden nach Element-ID
+  hineingeschrieben, ohne Neuaufbau.
+- Gestaltung von Panel und Pop-up überarbeitet („Klar", Variante A, von der
+  Autorin aus drei UX-Entwürfen gewählt): ruhige Fläche in zartem Rosé,
+  dunkles Schema fast schwarz, Schrift durchgehend Atkinson Hyperlegible Next
+  (liegt bereits im Paket, nichts Neues wird geladen), Wortmarke fett in
+  Gross-/Kleinschreibung, Beschriftungen normal, Pink nur als Akzent: Neon-Rand
+  an Panel, Auswahllisten, Schaltern und Knöpfen, Regler mit pinkem Herz als
+  Knopf, Schalter mit Verlauf Rosé-Violett und Herz im Knopf, flacher Knopf
+  „erweitert" mit pinkem Pfeil. Die Colibre-Icons bleiben unverändert; ihre
+  Blau-Akzente werden per CSS auf Rosé umgelenkt. Regler-Zeilen im Panel
+  zweizeilig (Beschriftung und Wert oben, Regler in voller Breite – Platz für
+  lange französische und italienische Beschriftungen). Kontraste: Text 16.4:1
+  hell und 15.7:1 dunkel, Sekundärtext 7.8:1 und 8.6:1, Neon-Rand 3.6:1 und
+  6.0:1, Fokusrahmen 6.7:1 und 11:1. Pop-up-Fenster 660 x 960 Pixel.
+- Neu: **Schalter „Oberfläche dunkel"** in Panel und Pop-up (Colibre-Icon
+  Kontrast): Bedienoberfläche hell oder dunkel nach eigener Wahl, unabhängig
+  vom Hintergrund des Entscheids und nie nach dem System (keine Abfrage von
+  prefers-color-scheme). Standard hell; Zurücksetzen behält die Wahl wie die
+  Sprache.
+- Beschriftungen gekürzt (Vorgabe der Autorin): „Breite", „Zeilen", „Absatz"
+  statt Textbreite, Zeilenabstand, Absatzabstand; die Tooltips nennen weiter
+  die vollen Begriffe. Standard der Breite neu 800 px statt der 625 px der
+  Seite; Zurücksetzen stellt 800 px ein.
+- Tests: `sprachen.js` im Harness; neue Prüfungen für vollständige
+  Wörterbücher (gleiche Schlüssel in allen vier Sprachen), Umschalten in
+  Panel und Pop-up, Sprache per Live-Sync, Zurücksetzen behält die Sprache,
+  Schalter „Oberfläche dunkel", Design-Tokens und Flaggen in Panel und Pop-up
+  identisch, Start auf Italienisch.
+
 ## 0.9.2 — 2026-09-19
 
 - Test-Suite, Testseiten und Screenshot-Werkzeuge auf inhaltlich harmlose

@@ -22,13 +22,18 @@
     buchstabenabstand: 0,       // px
     wortabstand: 0,             // px
     zeilenlaenge: 0,            // 0 = unbegrenzt, sonst Zeichen (ch)
-    spaltenbreite: 625,         // px – Breite der Haarlinien-Textspalte (Seiten-Standard: 625)
+    spaltenbreite: 800,         // px – Breite der Textspalte im Lesemodus (Vorgabe der Autorin; die Seite selbst hat 625)
     silbentrennung: false,
     farbschema: 'hell',         // hell | sepia | dunkel | kontrast | nacht
     klammern: true,             // „einfach": Klammern nach festem Regelsatz einklappen
     ausrichtung: 'links',       // links | mittig | rechts | blocksatz
     spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
-    absatzabstand: 0            // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
+    absatzabstand: 0,           // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
+    oberflaecheDunkel: false,   // Bedienoberfläche (Panel und Pop-up) dunkel – eigene Wahl per Schalter, unabhängig
+                                // vom Hintergrund des Entscheids und nie nach dem System (kein prefers-color-scheme).
+    sprache: 'it'               // Sprache der Bedienoberfläche: it | de | en | fr (Texte in sprachen.js).
+                                // Standard Italienisch nach Vorgabe der Autorin; bewusst KEINE Automatik nach
+                                // Browser- oder Seitensprache – die Erweiterung fragt nichts ab (Datenschutz).
   };
 
   /* Speicher-Strategie wie in content.js: Extension-Speicher wenn vorhanden,
@@ -105,6 +110,40 @@
 
   function $(id) { return document.getElementById(id); }
 
+  /* ---------- Sprache der Bedienoberfläche ----------
+     Texte aus sprachen.js (popup.html lädt die Datei vor diesem Skript).
+     Übersetzt wird in die bestehenden Elemente nach ID; popup.html bleibt
+     deutsch. Gleiche Logik wie sprachAnwenden() in content.js. */
+  const Sprachen = window.BGerReaderSprachen || {
+    TEXTE: {},
+    texte: function () { return { allgemein: { aus: 'aus' }, felder: {} }; },
+    uebersetze: function () { return this.texte(); }
+  };
+  let sprachTexte = Sprachen.texte('de');
+  let angezeigteSprache = null;
+
+  function sprachAnwenden() {
+    const code = Sprachen.TEXTE[einstellungen.sprache] ? einstellungen.sprache : STANDARDS.sprache;
+    einstellungen.sprache = code;
+    sprachTexte = Sprachen.uebersetze(document, code);
+    angezeigteSprache = code;
+  }
+
+  /* Das Fenster folgt allein dem eigenen Schalter „Oberfläche dunkel" (dunkle
+     Tokens in popup.css) – unabhängig vom Hintergrund des Entscheids und nie
+     dem System (kein prefers-color-scheme). */
+  function schemaAnzeigen() {
+    document.body.setAttribute('data-schema', einstellungen.oberflaecheDunkel ? 'dunkel' : 'hell');
+  }
+
+  /* Füllung der Regler-Spur bis zum Wert (CSS-Variable --bkl-p, siehe popup.css). */
+  function reglerFuellung(el) {
+    if (!el || el.type !== 'range') return;
+    const min = +el.min || 0, max = +el.max || 100, wert = +el.value;
+    const p = max > min ? Math.max(0, Math.min(100, (wert - min) / (max - min) * 100)) : 0;
+    el.style.setProperty('--bkl-p', p.toFixed(1) + '%');
+  }
+
   /* Wertanzeige neben den Reglern (Schriftgrösse bewusst ohne Einheit);
      bei den Dropdowns Schriftart/Hintergrund stattdessen data-wert für die
      Vorschau im geschlossenen Dropdown (popup.css). Gleiche Formate wie
@@ -112,10 +151,10 @@
   const WERTANZEIGE = {
     'bkl-groesse':       function (e) { return String(e.schriftgroesse); },
     'bkl-zeilenabstand': function (e) { return String(e.zeilenabstand); },
-    'bkl-absatz':        function (e) { return e.absatzabstand === 0 ? 'aus' : String(e.absatzabstand); },
+    'bkl-absatz':        function (e) { return e.absatzabstand === 0 ? sprachTexte.allgemein.aus : String(e.absatzabstand); },
     'bkl-buchstaben':    function (e) { return (+e.buchstabenabstand).toFixed(1) + 'px'; },
     'bkl-worte':         function (e) { return (+e.wortabstand).toFixed(1) + 'px'; },
-    'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? 'aus' : String(e.zeilenlaenge); },
+    'bkl-laenge':        function (e) { return e.zeilenlaenge === 0 ? sprachTexte.allgemein.aus : String(e.zeilenlaenge); },
     'bkl-spalte':        function (e) { return e.spaltenbreite + 'px'; },
     'bkl-art':           null,
     'bkl-farbe':         null
@@ -131,10 +170,14 @@
     }
     const el = $(id + '-w');
     if (el) el.textContent = f(einstellungen);
+    reglerFuellung($(id));
   }
 
   function aktualisiereAnzeige() {
     const e = einstellungen;
+    if (e.sprache !== angezeigteSprache) sprachAnwenden();
+    schemaAnzeigen();
+    $('bkl-sprache').value = e.sprache;
     $('bkl-aktiv').checked = e.aktiv;
     $('bkl-groesse').value = e.schriftgroesse;
     $('bkl-art').value = e.schriftart;
@@ -147,6 +190,7 @@
     $('bkl-spalte').value = e.spaltenbreite;
     $('bkl-silben').checked = e.silbentrennung;
     $('bkl-farbe').value = e.farbschema;
+    $('bkl-dunkel').checked = e.oberflaecheDunkel;
     $('bkl-klammern').checked = e.klammern;
     $('bkl-ausrichtung').value = e.ausrichtung;
     $('bkl-spalten').value = String(e.spalten);
@@ -159,6 +203,7 @@
 
   function geaendert(id) {
     wertAnzeigen(id);
+    schemaAnzeigen();
     speichereEinstellungen();
   }
 
@@ -181,11 +226,14 @@
   bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; geaendert('bkl-spalte'); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; geaendert('bkl-silben'); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; geaendert('bkl-farbe'); });
+  bei('bkl-dunkel', 'change', function (e) { einstellungen.oberflaecheDunkel = e.target.checked; geaendert('bkl-dunkel'); });
   bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; geaendert('bkl-klammern'); });
   bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; geaendert('bkl-ausrichtung'); });
   bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; geaendert('bkl-spalten'); });
+  bei('bkl-sprache', 'change', function (e) { einstellungen.sprache = e.target.value; sprachAnwenden(); aktualisiereAnzeige(); speichereEinstellungen(); });
   bei('bkl-reset', 'click', function () {
-    einstellungen = Object.assign({}, STANDARDS);
+    // Alles auf Standard; Sprache und dunkle Oberfläche bleiben (wie im Seiten-Panel).
+    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache, oberflaecheDunkel: einstellungen.oberflaecheDunkel });
     aktualisiereAnzeige();
     speichereEinstellungen();
   });
