@@ -8,7 +8,7 @@ Markup); die anderen drei Spalten sind zu prüfen und zu korrigieren.
 **So korrigieren:** nur die Spalten English, Français und Italiano (oder
 einen deutschen Text) ändern – direkt hier in der Datei. Die Spalte
 „Schlüssel" und die Zeilen bleiben, wie sie sind; ein senkrechter Strich im
-Text wird als `\|` geschrieben. Danach schreibt
+Text wird als `\|` geschrieben, ein Backslash als `\\`. Danach schreibt
 `node tools/sprachen-tabelle.js uebernehmen` die Tabelle in den Code zurück
 (macht die nächste Session mit Claude); `bash tools/release.sh` prüft, dass
 Tabelle und Code übereinstimmen. Schriftnamen (Atkinson Hyperlegible …) und

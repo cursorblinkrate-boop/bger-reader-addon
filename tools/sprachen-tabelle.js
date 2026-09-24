@@ -16,7 +16,7 @@
  * Regeln für die Tabelle: nur die vier Sprachspalten ändern; die Spalte
  * „Schlüssel" und die Zeilen selbst bleiben (kein Löschen, kein Hinzufügen –
  * neue Texte kommen über den Code). Ein senkrechter Strich im Text wird als
- * \| geschrieben. Leere Zellen sind ein Fehler. Schriftnamen und die Namen der
+ * \| geschrieben, ein Backslash als \\. Leere Zellen sind ein Fehler. Schriftnamen und die Namen der
  * Sprachen in der Sprachwahl sind bewusst nicht in der Tabelle (unübersetzt).
  *
  * Beim Zurückschreiben wird der Block TEXTE in sprachen.js in fester Form neu
@@ -108,8 +108,11 @@ function lies(TEXTE, sprache, schluessel) {
 
 /* ---------- Tabelle schreiben ---------- */
 
+/* Zelleninhalt: Backslash als \\ und senkrechter Strich als \| maskiert
+   (Backslash zuerst, sonst wäre \| im Text nicht von einer Maskierung zu
+   unterscheiden); tabelleLesen() macht beides rückgängig. */
 function zelle(s) {
-  return String(s).replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+  return String(s).replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 }
 
 function tabelleErzeugen(TEXTE) {
@@ -124,7 +127,7 @@ function tabelleErzeugen(TEXTE) {
     '**So korrigieren:** nur die Spalten English, Français und Italiano (oder',
     'einen deutschen Text) ändern – direkt hier in der Datei. Die Spalte',
     '„Schlüssel" und die Zeilen bleiben, wie sie sind; ein senkrechter Strich im',
-    'Text wird als `\\|` geschrieben. Danach schreibt',
+    'Text wird als `\\|` geschrieben, ein Backslash als `\\\\`. Danach schreibt',
     '`node tools/sprachen-tabelle.js uebernehmen` die Tabelle in den Code zurück',
     '(macht die nächste Session mit Claude); `bash tools/release.sh` prüft, dass',
     'Tabelle und Code übereinstimmen. Schriftnamen (Atkinson Hyperlegible …) und',
@@ -166,8 +169,9 @@ function tabelleLesen(md) {
   md.split('\n').forEach(function (zeile, nr) {
     const m = /^\|\s*`([a-z0-9-]+(?:\.[A-Za-z0-9-]+)+)`\s*\|/.exec(zeile);
     if (!m) return;
-    // Zellen trennen, \| bleibt Text
-    const zellen = zeile.replace(/\\\|/g, '\u0000').split('|').map(function (z) { return z.replace(/\u0000/g, '|').trim(); });
+    // Zellen trennen; maskierte Zeichen (\\ und \|) bleiben Text
+    const zellen = zeile.replace(/\\\\/g, '\u0001').replace(/\\\|/g, '\u0000').split('|')
+      .map(function (z) { return z.replace(/\u0000/g, '|').replace(/\u0001/g, '\\').trim(); });
     // zellen[0] ist leer (vor dem ersten |), [1] Schlüssel, [2] Art, [3..6] Sprachen
     if (zellen.length < 3 + SPRACHEN.length + 1) throw new Error('SPRACHEN.md Zeile ' + (nr + 1) + ': zu wenige Spalten');
     const eintrag = {};

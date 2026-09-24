@@ -694,7 +694,12 @@ console.log('\n[4] Panel und Stile');
   const neuQuelle = ST.quelleMitBlock(SPRACHEN_SRC, ST.textBlock(korrigiert));
   let kaputt = null;
   try { ST.anwenden(texteJetzt, ST.tabelleLesen(tabelle.replace('| off |', '|  |'))); } catch (e) { kaputt = e.message; }
-  pruefe('SPRACHEN.md: Tabelle mit allen Texten (>= 80) in vier Sprachen, Rundlauf Tabelle -> Code identisch, Korrektur landet im Code (nur en), leere Zelle wird abgewiesen, Werkzeug schreibt ladbares sprachen.js',
+  // Sonderzeichen: senkrechter Strich und Backslash im Text überleben den Rundlauf (CodeQL: beide maskieren)
+  const sonder = JSON.parse(JSON.stringify(texteJetzt));
+  sonder.fr.allgemein.aus = 'a | b \\ c \\| d';
+  const sonderZurueck = ST.anwenden(sonder, ST.tabelleLesen(ST.tabelleErzeugen(sonder)));
+  pruefe('SPRACHEN.md: Tabelle mit allen Texten (>= 80) in vier Sprachen, Rundlauf Tabelle -> Code identisch (auch mit | und \\ im Text), Korrektur landet im Code (nur en), leere Zelle wird abgewiesen, Werkzeug schreibt ladbares sprachen.js',
+    sonderZurueck.fr.allgemein.aus === 'a | b \\ c \\| d' && ST.texteLaden(ST.quelleMitBlock(SPRACHEN_SRC, ST.textBlock(sonder))).fr.allgemein.aus === 'a | b \\ c \\| d' &&
     ST.stellen(texteJetzt).length >= 80 && (tabelle.match(/^\| `/gm) || []).length === ST.stellen(texteJetzt).length &&
     JSON.stringify(zurueck) === JSON.stringify(texteJetzt) &&
     ST.texteLaden(neuQuelle).en.allgemein.aus === 'switched off' && ST.texteLaden(neuQuelle).de.allgemein.aus === 'aus' &&
