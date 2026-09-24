@@ -45,6 +45,16 @@ extension/sprachen.js     Texte der Bedienoberfläche in vier Sprachen (de/en/
                           lädt die Datei vor content.js, popup.html vor
                           popup.js. Neue Beschriftung = Eintrag in ALLEN vier
                           Sprachen (Block [4] prüft gleiche Schlüssel)
+SPRACHEN.md               Übersetzungstabelle: alle Texte der Bedienoberfläche
+                          in de/en/fr/it, erzeugt aus sprachen.js. HIER
+                          korrigiert die Autorin Übersetzungen (nur die
+                          Sprachspalten ändern). Zurück in den Code:
+                          node tools/sprachen-tabelle.js uebernehmen;
+                          release.sh bricht ab, wenn Tabelle und Code
+                          auseinanderlaufen (pruefen)
+tools/sprachen-tabelle.js erzeugt SPRACHEN.md aus sprachen.js (ohne Argument),
+                          schreibt sie zurück (uebernehmen), prüft (pruefen);
+                          Block [4] prüft den Rundlauf
 extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
                           nie von Hand ändern (siehe tools/version.js)
 extension/background.js   Service Worker/Event-Seite: Icon-Klick schickt dem
@@ -141,6 +151,7 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Playwright, Selenium): neue Versionen bewusst
                           hochsetzen, im Workflow und im Setup unten.
 Kein Wiki, keine weitere Doku ausser README und CHANGELOG – bewusst.
+(SPRACHEN.md ist keine Doku, sondern die Arbeitstabelle der Übersetzungen.)
 
 == SETUP AUF FRISCHEM KLON ==
   git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git
@@ -174,6 +185,10 @@ alle zusammen installieren.
    TODO-Zeile vor dem Push ausgefüllt werden muss (Block [6] prüft das).
    Reine Test-/Tool-Commits ohne Bump.
    Paket bauen: `bash tools/release.sh` -> dist/bger-reader-<version>.zip
+   Neue oder geänderte Texte der Bedienoberfläche: in sprachen.js (alle vier
+   Sprachen), dann `node tools/sprachen-tabelle.js` für SPRACHEN.md. Hat die
+   Autorin SPRACHEN.md korrigiert: `node tools/sprachen-tabelle.js uebernehmen`,
+   dann Suite. release.sh prüft, dass beide übereinstimmen.
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
    mit Begründung und Verifikationshinweis (siehe git log).
 4. Push: git push origin main — direkt auf main, keine Feature-Branches,

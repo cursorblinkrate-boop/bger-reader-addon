@@ -34,8 +34,11 @@ fi
 tail -1 /tmp/bger-release-tests.log | sed 's/^/        /'
 
 # 2. Syntaxprüfung des ausgelieferten Skripts.
-echo "  [2/4] Syntaxprüfung der ausgelieferten Skripte"
+echo "  [2/4] Syntaxprüfung der ausgelieferten Skripte, Übersetzungstabelle"
 for f in extension/sprachen.js extension/content.js extension/popup.js extension/background.js; do node --check "$f"; done
+# SPRACHEN.md (Korrekturen der Autorin) muss in sprachen.js übernommen sein:
+# node tools/sprachen-tabelle.js uebernehmen
+node tools/sprachen-tabelle.js pruefen | sed 's/^/        /'
 echo "        in Ordnung"
 
 # 3. Paket bauen – ausschliesslich aus extension/.

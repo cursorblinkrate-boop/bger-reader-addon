@@ -1255,7 +1255,7 @@
       left: 50%;
       right: auto;
       transform: translate(-50%, -50%);
-      width: 660px;
+      width: 700px; /* wie POPUP_BREITE in background.js (700 statt 660, Wunsch der Autorin) */
       max-width: calc(100vw - 32px);
       max-height: calc(100vh - 32px);
       font-size: 16px;

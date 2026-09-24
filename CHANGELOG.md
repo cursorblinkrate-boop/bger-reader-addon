@@ -26,8 +26,8 @@ hinten bei Korrekturen.
   Bezeichner. Der Browser-Smoke-Test prüft die Beschriftung im echten Browser
   (schlug in Firefox fehl, jetzt grün).
 - Neu: **Klick auf das Extension-Symbol öffnet die Einstellungen mittig über
-  dem Entscheid** – dasselbe Panel, gross (660 px, Masse des
-  Einstellungsfensters) in der Mitte des Fensters, der Entscheid bleibt
+  dem Entscheid** – dasselbe Panel, gross (700 px, Masse des
+  Einstellungsfensters, das ebenfalls von 660 auf 700 px geht) in der Mitte des Fensters, der Entscheid bleibt
   sichtbar und bedienbar, jede Änderung ist sofort im Text zu sehen; ein
   zweiter Klick, das X oder Escape schliessen. Technik: `background.js`
   schickt dem aktiven Tab eine Nachricht (`tabs.sendMessage`, kein
@@ -70,9 +70,16 @@ hinten bei Korrekturen.
   PDF `druck.pdf` aus jedem Browser (Firefox über den WebDriver-Druck).
   `tools/screenshots.js`: neue Szene 06 (mittiger Dialog), Szene 05 ohne
   Schalter, Szene 70 Druck mit Nacht und 1400 px.
-- Doku: README (Bedienung, Drucken, Galerie mit dunklem Panel und Dialog),
-  STARTPROMPT (Fallstricke Firefox-Sandbox, Druck, Dialog),
-  `icons/LICENSES.md`.
+- Neu: **Übersetzungstabelle `SPRACHEN.md`** im Repo-Wurzelverzeichnis –
+  alle 82 Texte der Bedienoberfläche in Deutsch, English, Français,
+  Italiano, erzeugt aus `sprachen.js` mit `tools/sprachen-tabelle.js`. Die
+  Autorin korrigiert Übersetzungen direkt in der Tabelle;
+  `node tools/sprachen-tabelle.js uebernehmen` schreibt sie in den Code
+  zurück, `tools/release.sh` bricht ab, wenn Tabelle und Code
+  auseinanderlaufen. Block [4] prüft den Rundlauf.
+- Doku: README (Bedienung, Drucken, Galerie mit dunklem Panel und Dialog,
+  Übersetzungstabelle), STARTPROMPT (Fallstricke Firefox-Sandbox, Druck,
+  Dialog; Regel für Texte), `icons/LICENSES.md`.
 
 ## 0.10.0 — 2026-09-19
 

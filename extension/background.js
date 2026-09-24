@@ -29,7 +29,7 @@
 
   const FENSTER_SCHLUESSEL = 'bger-reader-popup-fenster';
   const NACHRICHT_DIALOG = 'bger-reader-einstellungen'; // gleicher Wert in content.js
-  const POPUP_BREITE = 660;
+  const POPUP_BREITE = 700; // 700 statt 660 (Wunsch der Autorin), gleiche Breite wie der mittige Dialog (content.js)
   const POPUP_HOEHE = 960;
 
   /* Mittige Position relativ zum übergebenen Browser-Fenster. Rein funktional,
