@@ -191,7 +191,7 @@ async function einstellen(seite, e) {
           const popup = await b.popupSeite();
           if (!popup) { warnungen.push(sz.datei + ': Pop-up-Seite in diesem Browser nicht automatisierbar'); continue; }
           await U.warteBis(popup, `function () { return document.body.hasAttribute('data-bereit'); }`, null, 10000);
-          await popup.groesse(660, 860);
+          await popup.groesse(700, 860);
           await popup.js(`function () { if (document.activeElement) document.activeElement.blur(); }`);
           await popup.screenshot(ziel);
           await popup.schliessen();

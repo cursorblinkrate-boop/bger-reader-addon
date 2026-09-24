@@ -106,7 +106,7 @@ bash tools/fetch-fixtures.sh
 cd test && npm install --no-save jsdom@30.1.0 && node test-runner.js
 ```
 
-Erwartet wird «0 fehlgeschlagen». Die Versionsnummer steht nur in `extension/manifest.json` und wird mit `node tools/version.js patch|minor|major` erhöht; `bash tools/release.sh` baut das Paket `dist/bger-reader-<Version>.zip`. Bei jedem Push auf `main` mit grünen Tests entsteht daraus automatisch ein GitHub-Release. Der [Änderungsverlauf](CHANGELOG.md) beschreibt, was sich von Version zu Version geändert hat; die Arbeitsregeln für Sessions mit Claude Code stehen in `STARTPROMPT.md`.
+Erwartet wird «0 fehlgeschlagen». Die Texte der Bedienoberfläche in allen vier Sprachen stehen zum Prüfen und Korrigieren in [SPRACHEN.md](SPRACHEN.md); `node tools/sprachen-tabelle.js uebernehmen` schreibt Korrekturen in den Code zurück. Die Versionsnummer steht nur in `extension/manifest.json` und wird mit `node tools/version.js patch|minor|major` erhöht; `bash tools/release.sh` baut das Paket `dist/bger-reader-<Version>.zip`. Bei jedem Push auf `main` mit grünen Tests entsteht daraus automatisch ein GitHub-Release. Der [Änderungsverlauf](CHANGELOG.md) beschreibt, was sich von Version zu Version geändert hat; die Arbeitsregeln für Sessions mit Claude Code stehen in `STARTPROMPT.md`.
 
 ## Lizenz
 

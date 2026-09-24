@@ -683,6 +683,29 @@ console.log('\n[4] Panel und Stile');
     /\(typeof BGerReaderSprachen !== 'undefined' && BGerReaderSprachen\) \|\| window\.BGerReaderSprachen \|\|/.test(SCRIPT) &&
     /\(typeof BGerReaderSprachen !== 'undefined' && BGerReaderSprachen\) \|\| window\.BGerReaderSprachen \|\|/.test(popupJsQuelle));
 
+  // Übersetzungstabelle SPRACHEN.md (tools/sprachen-tabelle.js): aus dem Code
+  // erzeugt, zurückgeschrieben identisch; eine Korrektur in der Tabelle landet
+  // im Code. Ob die Datei im Repo aktuell ist, prüft release.sh (pruefen).
+  const ST = require(path.join(WURZEL, 'tools', 'sprachen-tabelle.js'));
+  const texteJetzt = ST.texteLaden(SPRACHEN_SRC);
+  const tabelle = ST.tabelleErzeugen(texteJetzt);
+  const zurueck = ST.anwenden(texteJetzt, ST.tabelleLesen(tabelle));
+  const korrigiert = ST.anwenden(texteJetzt, ST.tabelleLesen(tabelle.replace('| off |', '| switched off |')));
+  const neuQuelle = ST.quelleMitBlock(SPRACHEN_SRC, ST.textBlock(korrigiert));
+  let kaputt = null;
+  try { ST.anwenden(texteJetzt, ST.tabelleLesen(tabelle.replace('| off |', '|  |'))); } catch (e) { kaputt = e.message; }
+  // Sonderzeichen: senkrechter Strich und Backslash im Text überleben den Rundlauf (CodeQL: beide maskieren)
+  const sonder = JSON.parse(JSON.stringify(texteJetzt));
+  sonder.fr.allgemein.aus = 'a | b \\ c \\| d';
+  const sonderZurueck = ST.anwenden(sonder, ST.tabelleLesen(ST.tabelleErzeugen(sonder)));
+  pruefe('SPRACHEN.md: Tabelle mit allen Texten (>= 80) in vier Sprachen, Rundlauf Tabelle -> Code identisch (auch mit | und \\ im Text), Korrektur landet im Code (nur en), leere Zelle wird abgewiesen, Werkzeug schreibt ladbares sprachen.js',
+    sonderZurueck.fr.allgemein.aus === 'a | b \\ c \\| d' && ST.texteLaden(ST.quelleMitBlock(SPRACHEN_SRC, ST.textBlock(sonder))).fr.allgemein.aus === 'a | b \\ c \\| d' &&
+    ST.stellen(texteJetzt).length >= 80 && (tabelle.match(/^\| `/gm) || []).length === ST.stellen(texteJetzt).length &&
+    JSON.stringify(zurueck) === JSON.stringify(texteJetzt) &&
+    ST.texteLaden(neuQuelle).en.allgemein.aus === 'switched off' && ST.texteLaden(neuQuelle).de.allgemein.aus === 'aus' &&
+    ST.texteLaden(neuQuelle).fr.felder['bkl-reset'].tip === texteJetzt.fr.felder['bkl-reset'].tip &&
+    /leere Zelle/.test(kaputt || ''), kaputt);
+
   // Tooltips: erst nach 3 s (Timer abfangen), weg bei Verlassen/Escape
   const tip = shadow.getElementById('bkl-tooltip');
   const timeouts = [];
@@ -941,8 +964,8 @@ console.log('\n[7] Pop-up-Fenster');
     dom.window.eval(bgQuelle);
     const P = dom.window.BGerReaderPopup;
     pruefe('zentriert(): Mitte relativ zum Browser-Fenster, nie negativ',
-      P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, 660, 860).left === 390 &&
-      P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, 660, 860).top === 0);
+      P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, 700, 860).left === 370 &&
+      P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, 700, 860).top === 0);
     async function klicke(tab) {
       klickHandler[0](tab);
       for (let i = 0; i < 4; i++) await new Promise(function (r) { setTimeout(r, 0); });
@@ -954,7 +977,7 @@ console.log('\n[7] Pop-up-Fenster');
     await klicke(undefined);
     pruefe('Icon-Klick: Entscheidseite im Tab -> Nachricht an das Content-Skript (mittiger Dialog), kein Fenster; ohne Antwort -> popup.html mittig als eigenes Fenster; weitere Klicks fokussieren statt zu duplizieren (auch ohne Tab)',
       klickHandler.length === 1 && dialog && gesendet.length === 3 && erstellt.length === 1 && /popup\.html$/.test(erstellt[0].url) &&
-      erstellt[0].type === 'popup' && erstellt[0].left === 490 && erstellt[0].top === 10 && erstellt[0].height === 960 &&
+      erstellt[0].type === 'popup' && erstellt[0].width === 700 && erstellt[0].left === 470 && erstellt[0].top === 10 && erstellt[0].height === 960 &&
       sitzung['bger-reader-popup-fenster'] === 42 && aktualisiert.length === 2 && aktualisiert[0].daten.focused === true &&
       P.NACHRICHT_DIALOG === 'bger-reader-einstellungen' && SCRIPT.indexOf("NACHRICHT_DIALOG = 'bger-reader-einstellungen'") !== -1,
       JSON.stringify({ gesendet: gesendet.length, erstellt: erstellt.length, aktualisiert: aktualisiert.length }));
@@ -1019,8 +1042,9 @@ console.log('\n[7] Pop-up-Fenster');
       /\n\s*label\s*\{[^}]*font-weight:\s*400/.test(SCRIPT) && /\nlabel\s*\{[^}]*font-weight:\s*400/.test(popupCss),
       String(panelTokens.length));
     // Mittiger Dialog (Icon-Klick): dasselbe Panel mit den Massen des Pop-up-Fensters
-    pruefe('Mittiger Dialog (bkl-mittig) im Panel-CSS: 660px breit, zentriert, Schrift 16px wie popup.css; Schalter 46x26, Regler 240px, Auswahllisten 240px wie im Pop-up',
-      /#bkl-panel\.bkl-mittig\s*\{[^}]*top:\s*50%;[^}]*left:\s*50%;[^}]*transform:\s*translate\(-50%, -50%\);[^}]*width:\s*660px;[^}]*font-size:\s*16px/.test(SCRIPT) &&
+    pruefe('Mittiger Dialog (bkl-mittig) im Panel-CSS: 700px breit wie POPUP_BREITE (nicht 660, Wunsch der Autorin), zentriert, Schrift 16px wie popup.css; Schalter 46x26, Regler 240px, Auswahllisten 240px wie im Pop-up',
+      /#bkl-panel\.bkl-mittig\s*\{[^}]*top:\s*50%;[^}]*left:\s*50%;[^}]*transform:\s*translate\(-50%, -50%\);[^}]*width:\s*700px;[^}]*font-size:\s*16px/.test(SCRIPT) &&
+      /POPUP_BREITE = 700;/.test(bgQuelle) && !/\b66\d\s*px/.test(SCRIPT + popupCss) &&
       /\.bkl-mittig input\[type="checkbox"\]\s*\{\s*width:\s*46px;\s*height:\s*26px/.test(SCRIPT) &&
       /input\[type="checkbox"\]\s*\{[^}]*width:\s*46px;\s*height:\s*26px/.test(popupCss) &&
       /\.bkl-mittig \.bkl-regler input\[type="range"\]\s*\{\s*width:\s*240px/.test(SCRIPT) && /\.bkl-regler input\[type="range"\]\s*\{\s*width:\s*240px/.test(popupCss) &&

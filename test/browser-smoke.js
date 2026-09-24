@@ -176,7 +176,7 @@ const T = {
         geladen && ps.aktiv && ps.groesse === '18' && ps.elemente >= 18, JSON.stringify(ps));
       await popup.js(T.popupWert, { id: 'bkl-groesse', wert: '30', ereignis: 'input' });
       pruefe('Regler im Pop-up: Entscheidseite folgt live (30px)', await U.warteBis(s, T.size30, null, 10000));
-      await popup.groesse(660, 860);
+      await popup.groesse(700, 860);
       await popup.screenshot(path.join(BILDER, 'popup.png'));
       await popup.js(T.popupKlick, 'bkl-reset');
       pruefe('Zurücksetzen im Pop-up: Seite Lesemodus aus, Folds weg', await U.warteBis(s, T.zurueckgesetzt, null, 10000));

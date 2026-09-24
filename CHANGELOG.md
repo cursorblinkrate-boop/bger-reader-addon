@@ -13,6 +13,20 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.11.1 — 2026-09-24
+
+- Mittiger Dialog und Einstellungsfenster **700 px breit statt 660**
+  (Wunsch der Autorin); Galerie-Bilder 06 und 50 neu.
+- Neu: **Übersetzungstabelle `SPRACHEN.md`** im Repo-Wurzelverzeichnis –
+  alle 82 Texte der Bedienoberfläche in Deutsch, English, Français,
+  Italiano, erzeugt aus `sprachen.js` mit `tools/sprachen-tabelle.js`. Die
+  Autorin korrigiert Übersetzungen direkt in der Tabelle;
+  `node tools/sprachen-tabelle.js uebernehmen` schreibt sie in den Code
+  zurück, `tools/release.sh` bricht ab, wenn Tabelle und Code
+  auseinanderlaufen. Block [4] prüft den Rundlauf.
+- Doku: README (Übersetzungstabelle), STARTPROMPT (Struktur, Regel für
+  Texte der Bedienoberfläche).
+
 ## 0.11.0 — 2026-09-24
 
 - Korrektur (Firefox): die **Sprachwahl im Panel wirkte nicht** – das Panel
