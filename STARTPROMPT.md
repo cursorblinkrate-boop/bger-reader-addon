@@ -31,8 +31,12 @@ extension/content.js      ALLES in einer Datei: Einklapp-Logik (Politik als
                           Pink-Button ICON_BUCH_SMILE (weisser Strich),
                           eigene Tooltips nach 3 s (data-tooltip, kein title),
                           Sprachwahl im Panel-Kopf (sprachAnwenden), Panel-CSS
-                          mit Design-Tokens „Klar" (hell/dunkel nach dem Schalter
-                          „Oberfläche dunkel", Einstellung oberflaecheDunkel),
+                          mit Design-Tokens „Klar" (nur dunkel, seit 0.11.0
+                          ohne Schalter), mittiger Dialog = dasselbe Panel mit
+                          Klasse bkl-mittig (Icon-Klick: Nachricht von
+                          background.js über runtime.onMessage, dialogUmschalten),
+                          Druck-Stylesheet (@media print in seitenCss: schwarz
+                          auf weiss, Papierbreite, Klammern wie am Bildschirm),
                           chrome.storage.local-Persistenz
 extension/sprachen.js     Texte der Bedienoberfläche in vier Sprachen (de/en/
                           fr/it) für Panel UND Pop-up: je Element-ID label,
@@ -43,16 +47,21 @@ extension/sprachen.js     Texte der Bedienoberfläche in vier Sprachen (de/en/
                           Sprachen (Block [4] prüft gleiche Schlüssel)
 extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
                           nie von Hand ändern (siehe tools/version.js)
-extension/background.js   Service Worker/Event-Seite: Icon-Klick oeffnet
-                          popup.html als mittiges Fenster (windows.create,
+extension/background.js   Service Worker/Event-Seite: Icon-Klick schickt dem
+                          aktiven Tab eine Nachricht (tabs.sendMessage, kein
+                          Recht nötig) -> content.js öffnet den mittigen
+                          Dialog; antwortet niemand (kein Entscheid im Tab),
+                          öffnet er popup.html als Fenster (windows.create,
                           Fenster-ID in storage.session, Fokus statt Duplikat)
-extension/popup.html/.css/.js  Einstellungen im mittigen Fenster: gleiche
-                          Bedienelemente wie das Seiten-Panel, Sync mit der
-                          Seite ueber storage.onChanged (keine neuen Rechte)
+extension/popup.html/.css/.js  Einstellungsfenster (Ersatz ohne Entscheid im
+                          Tab): gleiche Bedienelemente wie das Seiten-Panel,
+                          Sync mit der Seite ueber storage.onChanged (keine
+                          neuen Rechte); popup.css gibt dem mittigen Dialog
+                          seine Masse vor (bkl-mittig in content.js)
 extension/fonts/          gebündelte WOFF2-Fonts (Atkinson Hyperlegible u.a.)
 extension/icons/          icon16/48/128.png (pinkes Buch-Icon), LICENSES.md
-bilder/                   Bilder für die README-Galerie (Panel, Pop-up, alle
-                          Schriftarten, Nacht, Klammern), Kopien aus
+bilder/                   Bilder für die README-Galerie (Panel, mittiger
+                          Dialog, Pop-up, alle Schriftarten, Nacht, Klammern), Kopien aus
                           tools/screenshots.js (Chromium); bei sichtbaren
                           Änderungen an Panel oder Pop-up neu erzeugen
 test/test-runner.js       Suite ohne Framework, 8 nummerierte Blöcke, bewusst
@@ -66,9 +75,11 @@ test/browser-umgebung.js  gemeinsame Basis für Smoke-Test und Screenshots:
                           (Playwright) sowie Firefox (Selenium)
 test/browser-smoke.js     Browser-Smoke-Test: die fertige Extension in echtem
                           Chromium, Edge und Firefox – was jsdom nicht kann:
-                          Injektion über das Manifest, Site-CSS-Kaskade,
+                          Injektion über das Manifest, Sprache des Panels im
+                          echten Skript-Kontext, Site-CSS-Kaskade,
                           gebündelte Fonts, Speichern über Neuladen, Pop-up
-                          mit Live-Sync, Druckansicht. Nur bvger.weblaw.ch
+                          mit Live-Sync, mittiger Dialog per Nachricht,
+                          Druckmedium und echtes PDF (druck.pdf). Nur bvger.weblaw.ch
                           läuft live und ist nur ein Hinweis. Ergebnisbilder
                           nach test/smoke/<browser>/, 1280 x 2000 und zu den
                           Erwägungen gescrollt (Regel 10)
@@ -218,12 +229,28 @@ alle zusammen installieren.
   im Markup; en/fr/it stehen in sprachen.js. Standardsprache ist Italienisch
   (Vorgabe der Autorin). NIE automatisch nach navigator.language oder der
   Seitensprache wählen, und nie prefers-color-scheme lesen: die Erweiterung
-  fragt nichts über Browser oder System ab (Datenschutz). Dunkles Panel und
-  Pop-up folgen allein dem eigenen Schalter „Oberfläche dunkel" (Einstellung
-  oberflaecheDunkel, Standard hell), nicht dem Hintergrund des Entscheids;
-  Zurücksetzen behält ihn wie die Sprache.
+  fragt nichts über Browser oder System ab (Datenschutz). Panel, mittiger
+  Dialog und Pop-up sind immer dunkel (Entscheid der Autorin, 0.11.0; kein
+  heller Token-Satz, kein Schalter), unabhängig vom Hintergrund des
+  Entscheids. Zurücksetzen behält nur die Sprache.
+- Firefox-Content-Skripte: globalThis (die Sandbox des Skripts) ist NICHT
+  window. Was sprachen.js an globalThis registriert, ist über
+  window.BGerReaderSprachen unsichtbar – deshalb den nackten Bezeichner
+  lesen (typeof BGerReaderSprachen). Bis 0.10.0 blieb das Panel in Firefox
+  deutsch, während die Sprachwahl „Italiano" zeigte; der Smoke-Test prüft
+  die Beschriftung im echten Browser.
+- Icon-Klick: nie wieder pauschal windows.create – auf macOS-Firefox lag das
+  Fenster neben dem Browser auf dem Schreibtisch. Erst tabs.sendMessage an
+  den aktiven Tab (content.js zeigt den mittigen Dialog), das Fenster nur
+  als Ersatz ohne Antwort. Der Dialog ist dasselbe Panel-Element (Klasse
+  bkl-mittig), bewusst ohne Schleier: die Seite bleibt bedienbar.
+- Drucken/PDF: Schemafarben nie drucken (heller Text auf weissem Papier),
+  Pixelbreiten nie drucken (Firefox verkleinert die Seite und schneidet
+  rechts ab); Klammern im Druck wie am Bildschirm lassen – eingeklappt
+  bleibt eingeklappt (Vorgabe der Autorin, 0.11.0), kein Zwangs-Aufklappen.
+  Prüfen mit dem Smoke-Test: druck.pdf aus Chromium und Firefox ansehen.
 - Textbreite: Standard 800 px (Vorgabe der Autorin), die Seite selbst hat
-  625 px; Zurücksetzen stellt 800 ein.
+  625 px, Regler bis 4000 px (Widescreen); Zurücksetzen stellt 800 ein.
 - Pop-up und Panel duplizieren Markup/Icons und die Design-Tokens bewusst
   (kein Build-Schritt); Block [7] prüft, dass beide identisch bleiben.
 - Colibre-Icons nie umfärben: ihre festen Farben (#3a3a38, #1e8bcd, #0063b1,

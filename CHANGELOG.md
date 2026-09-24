@@ -13,6 +13,67 @@ hinten bei Korrekturen.
 
 ---
 
+## 0.11.0 — 2026-09-24
+
+- Korrektur (Firefox): die **Sprachwahl im Panel wirkte nicht** – das Panel
+  blieb deutsch, die Auswahl zeigte „Italiano", die Flagge fehlte; im
+  Einstellungsfenster funktionierte alles. Ursache: in Firefox-Content-
+  Skripten ist der Skript-Kontext (`globalThis`, eine Sandbox) nicht das
+  Fenster der Seite. `sprachen.js` registrierte sich am Skript-Kontext,
+  `content.js` las `window.BGerReaderSprachen` – in Firefox leer, also lief
+  die Übersetzung nie; Chrome kennt den Unterschied nicht. Jetzt registriert
+  `sprachen.js` sich an beiden, `content.js` und `popup.js` lesen den nackten
+  Bezeichner. Der Browser-Smoke-Test prüft die Beschriftung im echten Browser
+  (schlug in Firefox fehl, jetzt grün).
+- Neu: **Klick auf das Extension-Symbol öffnet die Einstellungen mittig über
+  dem Entscheid** – dasselbe Panel, gross (660 px, Masse des
+  Einstellungsfensters) in der Mitte des Fensters, der Entscheid bleibt
+  sichtbar und bedienbar, jede Änderung ist sofort im Text zu sehen; ein
+  zweiter Klick, das X oder Escape schliessen. Technik: `background.js`
+  schickt dem aktiven Tab eine Nachricht (`tabs.sendMessage`, kein
+  zusätzliches Recht), `content.js` antwortet und zeigt den Dialog (Klasse
+  `bkl-mittig`). Nur wenn kein Entscheid im aktiven Tab liegt, öffnet sich
+  wie bisher das Einstellungsfenster (`popup.html`). Grund: bis 0.10.0
+  öffnete jeder Klick ein eigenes Browserfenster; auf macOS-Firefox lag es
+  neben dem Browser auf dem Schreibtisch, der Entscheid war nicht mehr zu
+  sehen, und Änderungen liessen sich nicht live verfolgen.
+- **Oberfläche nur noch dunkel** (Entscheid der Autorin): der Schalter
+  „Oberfläche dunkel" und der helle Token-Satz sind entfernt; Panel,
+  mittiger Dialog und Einstellungsfenster tragen die dunkle Gestaltung
+  „Klar" fest, unabhängig vom Hintergrund des Entscheids und nie nach dem
+  System. Eine gespeicherte Einstellung `oberflaecheDunkel` aus 0.10.0 wird
+  beim Laden verworfen. 15 statt 16 Colibre-Icons.
+- **Breite bis 4000 px** statt 1400 (Regler „Breite", Schritt 25): auf
+  Widescreen-Displays reichte 1400 nicht.
+- **Drucken und „Als PDF sichern"** (PDF-Rückmeldung der Autorin aus
+  Firefox: Text blass, verkleinert, rechts abgeschnitten, pinker Knopf auf
+  der Seite): neues Druck-Stylesheet im Lesemodus. Schwarz auf weiss statt
+  der Schemafarben (Dunkel, Kontrast und Nacht druckten hellen Text auf
+  weisses Papier), Papierbreite statt Pixelbreite (Seitenrahmen und Text-
+  spalte ohne feste Breite – Firefox verkleinerte sonst die ganze Seite und
+  schnitt sie ab), Schrift, Grösse, Abstände, Zeilenlänge, Ausrichtung und
+  Spalten wie am Bildschirm – der Entscheid lässt sich in OpenDyslexic oder
+  jeder anderen Schrift drucken. **Klammern bleiben, wie sie sind:**
+  eingeklappt bleibt eingeklappt (der Pfeil markiert die Stelle),
+  aufgeklappt bleibt offen; bis 0.10.0 öffnete der Druck alle Klammern.
+  Panel, Pink-Knopf und Tooltip werden nicht gedruckt.
+- Manifest: `gecko_android.strict_min_version` 142 (dort versteht erst
+  Firefox 142 `data_collection_permissions`; Hinweis von `web-ext lint`,
+  das die Store-Prüfung von Mozilla vorwegnimmt: 0 Fehler), Titel des
+  Symbols angepasst. Rechte unverändert: nur `storage`.
+- Tests: Suite mit Sandbox-Test für `sprachen.js` (fremdes `window` wie in
+  Firefox), Nachricht/Dialog im Panel, Hintergrundskript mit
+  `tabs.sendMessage` und Fenster-Ersatz, Druck-CSS, Tokens (18, dunkel),
+  19 Bedienelemente, 15 Icons, Breite 4000, Rechte nur `storage`. Browser-
+  Smoke-Test: Panel-Sprache im echten Browser, mittiger Dialog per Nachricht
+  (Bild `dialog-mittig.png`), Druckmedium (Chromium/Edge) und ein echtes
+  PDF `druck.pdf` aus jedem Browser (Firefox über den WebDriver-Druck).
+  `tools/screenshots.js`: neue Szene 06 (mittiger Dialog), Szene 05 ohne
+  Schalter, Szene 70 Druck mit Nacht und 1400 px.
+- Doku: README (Bedienung, Drucken, Galerie mit dunklem Panel und Dialog),
+  STARTPROMPT (Fallstricke Firefox-Sandbox, Druck, Dialog),
+  `icons/LICENSES.md`.
+
 ## 0.10.0 — 2026-09-19
 
 - Neu: **Sprache der Bedienoberfläche** – Deutsch, English, Français,

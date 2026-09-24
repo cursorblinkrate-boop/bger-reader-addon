@@ -437,8 +437,6 @@
     ausrichtung: 'links',       // links | mittig | rechts | blocksatz
     spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
     absatzabstand: 0,           // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
-    oberflaecheDunkel: false,   // Bedienoberfläche (Panel und Pop-up) dunkel – eigene Wahl per Schalter, unabhängig
-                                // vom Hintergrund des Entscheids und nie nach dem System (kein prefers-color-scheme).
     sprache: 'it'               // Sprache der Bedienoberfläche: it | de | en | fr (Texte in sprachen.js).
                                 // Standard Italienisch nach Vorgabe der Autorin; bewusst KEINE Automatik nach
                                 // Browser- oder Seitensprache – die Erweiterung fragt nichts ab (Datenschutz).
@@ -458,7 +456,8 @@
   let einstellungen = Object.assign({}, STANDARDS);
 
   // Entfernt veraltete Schlüssel aus gespeicherten Einstellungen
-  // (z. B. klammerModus/klammerMindestlaenge aus Versionen < 0.4.0).
+  // (z. B. klammerModus/klammerMindestlaenge aus Versionen < 0.4.0,
+  // oberflaecheDunkel aus 0.10.0 – die Oberfläche ist seit 0.11.0 immer dunkel).
   function bereinige(e) {
     Object.keys(e).forEach(function (k) {
       if (!(k in STANDARDS)) delete e[k];
@@ -726,10 +725,65 @@
     button.bkl-toggle:hover { background: #ddd; }
     button.bkl-toggle:focus-visible { outline: 2px solid var(--bkl-link, #1a56cc); outline-offset: 1px; }
 
-    /* Beim Drucken immer den vollständigen Text zeigen */
+    /* ---- Drucken (auch „Als PDF sichern") ----
+       Papier ist weiss: die Schemafarben werden nicht gedruckt – sonst stünde
+       heller Text (Dunkel, Kontrast, Nacht) blass oder unsichtbar auf weissem
+       Grund. Die Textbreite in Pixel passt nicht auf eine Seite: Firefox
+       verkleinerte die ganze Seite auf Papierbreite und schnitt den Text
+       rechts ab (PDF der Autorin, 0.10.0). Im Druck gilt deshalb die
+       Papierbreite: Seitenrahmen (bger.ch: .main/.top/.bottom 905px, .middle
+       625px bzw. --bkl-spalte, Spalten .left/.right; bvger: Spaltenrahmen)
+       ohne feste Breite. Schrift, Grösse, Abstände, Zeilenlänge, Ausrichtung
+       und Spalten bleiben wie am Bildschirm – der Entscheid lässt sich so in
+       OpenDyslexic oder jeder anderen Schrift drucken. Klammern bleiben, wie
+       sie sind: eingeklappt bleibt eingeklappt (der Pfeil markiert die
+       Stelle), aufgeklappt bleibt offen; bis 0.10.0 öffnete der Druck alle
+       Klammern. Panel und Pink-Knopf sind im Druck ausgeblendet (panelCss). */
     @media print {
-      span.bkl-fold-content { display: inline !important; }
-      button.bkl-toggle { display: none !important; }
+      html.bkl-aktiv,
+      html.bkl-aktiv body,
+      html.bkl-aktiv div.eit,
+      html.bkl-aktiv div.eit .box,
+      html.bkl-aktiv div.eit .box .content,
+      html.bkl-aktiv div.eit .box h3,
+      html.bkl-aktiv div.eit .box p,
+      html.bkl-aktiv .bkl-text,
+      html.bkl-aktiv .bkl-text p,
+      html.bkl-aktiv div.paraatf,
+      html.bkl-aktiv div.para,
+      html.bkl-aktiv .ui.segment,
+      html.bkl-aktiv .ui.header,
+      html.bkl-aktiv .titleLabel {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+      }
+      html.bkl-aktiv body a,
+      html.bkl-aktiv div.eit a { color: #000000 !important; }
+      html.bkl-aktiv hr,
+      html.bkl-aktiv div.eit .box .content,
+      html.bkl-aktiv .ui.divider { border-color: #999999 !important; }
+      html.bkl-aktiv .bkl-spalten-container { column-rule-color: #999999 !important; }
+      html.bkl-aktiv div.eit .main,
+      html.bkl-aktiv div.eit .top,
+      html.bkl-aktiv div.eit .bottom,
+      html.bkl-aktiv .bkl-text-spalte {
+        width: auto !important;
+        max-width: 100% !important;
+      }
+      html.bkl-aktiv div.eit .middle {
+        float: none !important;
+        width: auto !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+      }
+      html.bkl-aktiv div.eit .left,
+      html.bkl-aktiv div.eit .right { display: none !important; }
+      /* Pfeil eingeklappter Klammern: schlicht, ohne Farbfläche */
+      button.bkl-toggle {
+        background: none !important;
+        border: 1px solid #999999 !important;
+        color: #000000 !important;
+      }
     }
   `;
 
@@ -872,10 +926,8 @@
     html.style.setProperty('--bkl-border', farben.border);
     html.style.setProperty('--bkl-toggle-bg', farben.tbg);
     html.style.setProperty('--bkl-toggle-fg', farben.tfg);
-    // Panel (und Pop-up, popup.js): dunkle Tokens (panelCss) allein nach dem
-    // eigenen Schalter „Oberfläche dunkel" – unabhängig vom Hintergrund des
-    // Entscheids und nie nach dem System (kein prefers-color-scheme).
-    host.setAttribute('data-schema', e.oberflaecheDunkel ? 'dunkel' : 'hell');
+    // Panel und Pop-up sind immer dunkel (Tokens in panelCss bzw. popup.css),
+    // unabhängig vom Hintergrund des Entscheids und nie nach dem System.
   }
 
   /* ================================================================== */
@@ -1019,8 +1071,7 @@
     silben:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7.93 0v9.59h0.35l0.77-0.77 0.01-0.07c0.01 0.01 0.02 0.02 0.03 0.03l0.36-0.36c0.01-0.01 0.03-0.02 0.04-0.04-0.13-0.11-0.25-0.23-0.37-0.39v-3.18c0.23-0.31 0.48-0.56 0.76-0.73 0.28-0.17 0.6-0.26 0.96-0.26 0.53 0 0.94 0.19 1.23 0.57 0.29 0.38 0.43 0.97 0.43 1.77 0 0.86-0.16 1.51-0.49 1.95-0.11 0.15-0.25 0.27-0.39 0.37 0.12 0.13 0.22 0.26 0.28 0.41 0.07 0.17 0.1 0.37 0.1 0.57 0.03-0.01 0.06-0.02 0.08-0.03 0.35-0.17 0.64-0.41 0.88-0.72 0.24-0.31 0.43-0.69 0.56-1.13 0.13-0.44 0.2-0.92 0.2-1.46 0-0.5-0.06-0.95-0.18-1.35-0.11-0.4-0.28-0.74-0.49-1.02-0.22-0.28-0.48-0.49-0.78-0.64-0.31-0.15-0.65-0.22-1.03-0.22-0.45 0-0.85 0.09-1.19 0.28-0.35 0.18-0.65 0.43-0.92 0.75v-3.93zm-4.12 2.88c-0.51 0-0.98 0.09-1.4 0.26-0.42 0.17-0.81 0.43-1.17 0.78l0.22 0.38c0.04 0.06 0.08 0.12 0.14 0.16 0.06 0.04 0.13 0.06 0.21 0.06 0.1 0 0.21-0.04 0.3-0.11 0.1-0.07 0.22-0.15 0.36-0.24 0.14-0.09 0.3-0.16 0.49-0.24 0.19-0.07 0.43-0.11 0.71-0.11 0.42 0 0.74 0.13 0.95 0.39 0.22 0.26 0.33 0.64 0.33 1.15v0.51c-0.75 0.02-1.38 0.09-1.89 0.21-0.51 0.12-0.93 0.27-1.25 0.46-0.32 0.19-0.55 0.41-0.7 0.65-0.14 0.24-0.21 0.49-0.21 0.75 0 0.3 0.05 0.56 0.14 0.78 0.1 0.22 0.23 0.4 0.4 0.54 0.17 0.14 0.37 0.25 0.59 0.32 0.13 0.04 0.28 0.06 0.42 0.08-0.25 0.15-0.47 0.32-0.65 0.54-0.25 0.3-0.43 0.66-0.56 1.07-0.13 0.41-0.19 0.86-0.19 1.35 0 0.54 0.07 1.01 0.21 1.43 0.14 0.41 0.34 0.77 0.58 1.06 0.25 0.29 0.54 0.5 0.88 0.66 0.33 0.15 0.69 0.23 1.08 0.23 0.22 0 0.44-0.02 0.66-0.06 0.22-0.04 0.43-0.1 0.63-0.18 0.2-0.08 0.39-0.19 0.56-0.31 0.17-0.13 0.33-0.28 0.47-0.46l-0.34-0.43c-0.05-0.08-0.12-0.12-0.21-0.12-0.08 0-0.16 0.03-0.23 0.1-0.07 0.07-0.16 0.14-0.28 0.22-0.11 0.08-0.25 0.15-0.41 0.22-0.17 0.07-0.38 0.1-0.63 0.1-0.27 0-0.51-0.05-0.72-0.16-0.21-0.11-0.4-0.27-0.55-0.48-0.15-0.21-0.27-0.47-0.36-0.77-0.08-0.31-0.12-0.66-0.12-1.05 0-0.38 0.04-0.72 0.11-1.02 0.08-0.3 0.19-0.56 0.34-0.77 0.15-0.21 0.34-0.38 0.56-0.49 0.23-0.12 0.49-0.17 0.78-0.17 0.22 0 0.41 0.03 0.56 0.08 0.16 0.05 0.29 0.11 0.39 0.18 0.11 0.06 0.2 0.12 0.27 0.17 0.07 0.05 0.14 0.08 0.21 0.08 0.06 0 0.11-0.01 0.14-0.03 0.04-0.03 0.07-0.06 0.11-0.11l0.31-0.43c-0.26-0.27-0.55-0.48-0.89-0.62-0.26-0.12-0.56-0.17-0.88-0.2 0.09-0.05 0.18-0.1 0.27-0.16 0.17-0.13 0.33-0.27 0.51-0.43l0.15 0.61c0.02 0.11 0.06 0.19 0.13 0.22 0.06 0.04 0.15 0.05 0.27 0.05h0.53v-4.21c0-0.37-0.05-0.71-0.15-1.02-0.1-0.31-0.25-0.57-0.44-0.79-0.19-0.22-0.43-0.39-0.72-0.51-0.29-0.12-0.62-0.18-0.99-0.18zm1.14 3.74v1.36c-0.13 0.13-0.26 0.26-0.4 0.37-0.13 0.11-0.27 0.2-0.42 0.28-0.15 0.07-0.31 0.13-0.47 0.17-0.17 0.04-0.35 0.06-0.54 0.06-0.15 0-0.29-0.02-0.42-0.05-0.13-0.04-0.24-0.1-0.34-0.17-0.09-0.08-0.17-0.18-0.23-0.3-0.05-0.13-0.08-0.27-0.08-0.45 0-0.18 0.05-0.34 0.15-0.48 0.1-0.15 0.27-0.28 0.5-0.38 0.23-0.11 0.54-0.19 0.9-0.26 0.37-0.07 0.82-0.11 1.34-0.14z" fill="#3a3a38"/><path d="m15 8v2c0 1.1-0.9 2-2 2l-4.29-0.02 2.15-2.15c0.33-0.32 0.09-0.87-0.36-0.86-0.13 0-0.25 0.06-0.34 0.15l-2.96 2.96c-0.26 0.2-0.26 0.59 0 0.79l0.01 0 2.95 2.95c0.47 0.49 1.2-0.24 0.71-0.71l-2.15-2.15 4.29 0.02c1.66 0 3-1.34 3-3v-2z" fill="#1e8bcd" fill-rule="evenodd"/></svg>',
     ausrichtung:'<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.5" width="14" x="1" y="2"/><rect height="1" ry="0.48" width="14" x="1" y="12"/><rect height="1" ry="0.5" width="14" x="1" y="14"/><rect height="1" ry="0.48" width="14" x="1" y="4"/><rect height="1" ry="0.48" width="14" x="1" y="9"/><rect height="1" ry="0.48" width="14" x="1" y="7"/></g></svg>',
     spalten:    '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m3 0c-0.55 0-1 0.45-1 1v14c0 0.55 0.45 1 1 1h11c0.55 0 1-0.45 1-1v-14c0-0.55-0.45-1-1-1zm0 1h11v14h-11z" fill="#3a3a38"/><path d="m3 1h11v14h-11z" fill="#fafafa"/><rect fill="#1e8bcd" height="1" ry="0.5" width="4" x="4" y="3"/><g fill="#3a3a38"><rect height="1" ry="0.5" width="4" x="4" y="7"/><rect height="1" ry="0.5" width="4" x="4" y="13"/><rect height="1" ry="0.5" width="4" x="4" y="10"/></g><rect fill="#1e8bcd" height="1" ry="0.5" width="4" x="9" y="3"/><g fill="#3a3a38"><rect height="1" ry="0.5" width="4" x="9" y="7"/><rect height="1" ry="0.5" width="4" x="9" y="13"/><rect height="1" ry="0.5" width="4" x="9" y="10"/></g></svg>',
-    absatz:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="1" y="2"/><rect height="1" ry="0.44" width="7" x="1" y="12"/><rect height="1" ry="0.5" width="8" x="1" y="14"/><rect height="1" ry="0.48" width="8" x="1" y="4"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m9 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m9 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg>',
-    dunkel:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m8 1a7 7 0 0 0 -7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7 7 7 0 0 0 -7-7z" fill="#fafafa"/><path d="m8 0c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 1c3.87 0 7 3.13 7 7 0 3.87-3.13 7-7 7z" fill="#3a3a38"/></svg>'
+    absatz:     '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><g fill="#3a3a38"><rect height="1" ry="0.38" width="7" x="1" y="2"/><rect height="1" ry="0.44" width="7" x="1" y="12"/><rect height="1" ry="0.5" width="8" x="1" y="14"/><rect height="1" ry="0.48" width="8" x="1" y="4"/></g><g fill="#1e8bcd" fill-rule="evenodd"><path d="m9 3.48c-0.01 0.45 0.54 0.69 0.86 0.36l2.14-2.15 0 4.78c-0.02 0.35 0.24 0.53 0.5 0.53s0.52-0.18 0.5-0.53l0-4.78 2.14 2.15c0.32 0.33 0.87 0.09 0.86-0.36 0-0.13-0.06-0.25-0.15-0.34l-2.91-2.92c-0.16-0.17-0.27-0.22-0.44-0.22-0.17 0-0.27 0.05-0.44 0.22l-2.91 2.92c-0.09 0.09-0.15 0.21-0.15 0.34z"/><path d="m9 12.52c-0.01-0.45 0.54-0.69 0.86-0.36l2.14 2.15 0-4.78c-0.02-0.35 0.24-0.53 0.5-0.53s0.52 0.18 0.5 0.53l0 4.78 2.14-2.15c0.32-0.33 0.87-0.09 0.86 0.36 0 0.13-0.06 0.25-0.15 0.34l-2.91 2.92c-0.16 0.17-0.27 0.22-0.44 0.22-0.17 0-0.27-0.05-0.44-0.22l-2.91-2.92c-0.09-0.09-0.15-0.21-0.15-0.34z"/></g></svg>'
   };
 
   /* Marken-Icon in der Kopfzeile: das Extension-Icon (icons/icon128.png)
@@ -1053,7 +1104,7 @@
     'Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, ' +
     'Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, ' +
     'Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, ' +
-    'Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Sprache und dunkle Oberfläche bleiben.';
+    'Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt.';
 
   /* Dropdown-Vorschau: jede Schriftart-Option in ihrer Schrift, jede
      Hintergrund-Option in ihren Farben; das Dropdown selbst zeigt den
@@ -1077,8 +1128,13 @@
      Texte aus sprachen.js (BGerReaderSprachen; das Manifest lädt die Datei
      vor diesem Skript in denselben Kontext). Übersetzt wird in die
      bestehenden Elemente nach ID, das Markup unten bleibt deutsch. Fehlt die
-     Datei (Skript allein geladen), bleibt alles deutsch. */
-  const Sprachen = window.BGerReaderSprachen || {
+     Datei (Skript allein geladen), bleibt alles deutsch.
+     Zugriff über den nackten Bezeichner, nicht über window: in
+     Firefox-Content-Skripten ist der Skript-Kontext (globalThis, dort
+     registriert sprachen.js) nicht das Fenster der Seite – über
+     window.BGerReaderSprachen blieb das Panel in Firefox deutsch (Fehler in
+     0.10.0). Chrome kennt den Unterschied nicht, dort ist beides dasselbe. */
+  const Sprachen = (typeof BGerReaderSprachen !== 'undefined' && BGerReaderSprachen) || window.BGerReaderSprachen || {
     TEXTE: {},
     texte: function () { return { allgemein: { aus: 'aus', klammer: 'Klammerbemerkung ein-/ausklappen' }, felder: {} }; },
     uebersetze: function () { return this.texte(); }
@@ -1111,36 +1167,15 @@
   const panelCss = `
     :host {
       all: initial;
-      /* Design-Tokens „Klar" (Variante A, Wahl der Autorin), helles Schema:
-         ruhige Fläche in zartem Rosé, Schrift Atkinson Hyperlegible Next,
-         Pink als Akzent (Neon-Rand an Panel, Auswahllisten, Schaltern und
-         Knöpfen; Herz als Regler-Knopf und im Schalter). Derselbe Satz steht
-         in popup.css (:root); Block [7] der Suite prüft, dass beide gleich
-         sind. Custom Properties sind von all:initial nicht betroffen. */
-      --ui-bg: #fff8fb;
-      --ui-bg-2: #fbeaf2;
-      --ui-feld: #ffffff;
-      --ui-fg: #1f1a1d;
-      --ui-fg-2: #5c4a55;
-      --ui-linie: #f2cfe0;
-      --ui-rahmen: #f0329a;
-      --ui-rose: #d63384;
-      --ui-rose-2: #e64980;
-      --ui-rose-3: #a61e63;
-      --ui-rose-weich: #f3d9e5;
-      --ui-violett: #7c3aed;
-      --ui-aus: #e6d3dc;
-      --ui-icon: #4a3542;
-      --ui-knopf: #ffffff;
-      --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d63384' stroke='%23fff8fb' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
-      --ui-schatten: 0 1px 2px rgba(60, 10, 35, .06), 0 12px 32px rgba(166, 30, 99, .14);
-      --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
-    }
-    /* Dunkles Schema: fast schwarz mit einem Hauch Pflaume, Pink als Akzent.
-       Gilt nach der eigenen Einstellung „Oberfläche dunkel" (Schalter im
-       Panel, siehe wendeStileAn) – unabhängig vom Hintergrund des Entscheids
-       und nie nach dem System (kein prefers-color-scheme, kein Fingerprinting). */
-    :host([data-schema="dunkel"]) {
+      /* Design-Tokens „Klar" (Variante A, Wahl der Autorin), dunkles Schema:
+         fast schwarz mit einem Hauch Pflaume, Schrift Atkinson Hyperlegible
+         Next, Pink als Akzent (Neon-Rand an Panel, Auswahllisten, Schaltern
+         und Knöpfen; Herz als Regler-Knopf und im Schalter). Seit 0.11.0 die
+         einzige Oberfläche (Entscheid der Autorin; kein heller Satz, kein
+         Schalter mehr), unabhängig vom Hintergrund des Entscheids und nie nach
+         dem System (kein prefers-color-scheme, kein Fingerprinting). Derselbe
+         Satz steht in popup.css (:root); Block [7] der Suite prüft, dass beide
+         gleich sind. Custom Properties sind von all:initial nicht betroffen. */
       --ui-bg: #16141a;
       --ui-bg-2: #211d26;
       --ui-feld: #211d26;
@@ -1158,6 +1193,7 @@
       --ui-knopf: #ffffff;
       --ui-herz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6fa5' stroke='%2316141a' stroke-width='1.3' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
       --ui-schatten: 0 1px 2px rgba(0, 0, 0, .5), 0 14px 36px rgba(0, 0, 0, .6);
+      --ui-schrift: "Atkinson Hyperlegible Next", -apple-system, "Segoe UI", Arial, sans-serif;
     }
 
     /* Geschlossener Zustand: runder Pink-Knopf oben rechts */
@@ -1197,16 +1233,65 @@
       line-height: 1.35;
       background: var(--ui-bg);
       color: var(--ui-fg);
-      color-scheme: light;
+      color-scheme: dark;
       border: 2px solid var(--ui-rahmen);
       border-radius: 12px;
       box-shadow: var(--ui-schatten);
       padding: 10px 12px 12px;
       -webkit-font-smoothing: antialiased;
     }
-    :host([data-schema="dunkel"]) #bkl-panel { color-scheme: dark; }
     #bkl-panel[hidden],
     #bkl-button[hidden] { display: none; }
+
+    /* Mittiger Dialog (Klick auf das Extension-Symbol in der Symbolleiste,
+       siehe dialogUmschalten): dasselbe Panel, gross und in der Mitte des
+       Fensters, mit den Massen des Einstellungsfensters (popup.css). Bewusst
+       kein Schleier über der Seite: sie bleibt sichtbar und bedienbar, jede
+       Änderung ist live im Entscheidtext zu sehen. Bis 0.10.0 öffnete der
+       Icon-Klick ein eigenes Browserfenster; das lag auf macOS-Firefox neben
+       dem Browser auf dem Schreibtisch, der Entscheid war nicht mehr zu sehen. */
+    #bkl-panel.bkl-mittig {
+      top: 50%;
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, -50%);
+      width: 660px;
+      max-width: calc(100vw - 32px);
+      max-height: calc(100vh - 32px);
+      font-size: 16px;
+      line-height: 1.4;
+      padding: 18px 24px 24px;
+      border-radius: 14px;
+    }
+    .bkl-mittig #bkl-kopf { gap: 10px; margin-bottom: 10px; padding-bottom: 12px; }
+    .bkl-mittig h2 { font-size: 19px; gap: 10px; }
+    .bkl-mittig h2 svg { width: 26px; height: 26px; }
+    .bkl-mittig .bkl-sprachwahl { gap: 7px; }
+    .bkl-mittig .bkl-flagge, .bkl-mittig .bkl-flagge svg { width: 22px; height: 16px; }
+    .bkl-mittig #bkl-sprache { font-size: 14px; padding: 4px 8px; }
+    .bkl-mittig #bkl-schliessen { width: 36px; height: 36px; }
+    .bkl-mittig .bkl-zeile { gap: 12px; min-height: 44px; }
+    .bkl-mittig .bkl-icon { flex-basis: 22px; }
+    .bkl-mittig .bkl-icon svg { width: 22px; height: 22px; }
+    .bkl-mittig .bkl-wert { font-size: 15px; }
+    /* Regler-Zeilen einzeilig wie im Einstellungsfenster: Regler 240px, Wert rechts */
+    .bkl-mittig .bkl-regler { display: flex; column-gap: 12px; }
+    .bkl-mittig .bkl-regler input[type="range"] { width: 240px; }
+    .bkl-mittig .bkl-regler .bkl-wert { width: 60px; }
+    .bkl-mittig input[type="range"] { height: 28px; }
+    .bkl-mittig input[type="range"]::-webkit-slider-runnable-track { height: 6px; }
+    .bkl-mittig input[type="range"]::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -10px; background-size: 26px 26px; }
+    .bkl-mittig input[type="range"]::-moz-range-track { height: 6px; }
+    .bkl-mittig input[type="range"]::-moz-range-progress { height: 6px; }
+    .bkl-mittig input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; background-size: 24px 24px; }
+    .bkl-mittig input[type="checkbox"] { width: 46px; height: 26px; }
+    .bkl-mittig input[type="checkbox"]::before { width: 18px; height: 18px; }
+    .bkl-mittig input[type="checkbox"]:checked::before { left: 22px; background-size: 12px 12px; }
+    .bkl-mittig select { width: 240px; max-width: 60%; font-size: 15px; border-radius: 10px; padding: 5px 8px; }
+    .bkl-mittig #bkl-details-toggle { gap: 10px; margin-top: 14px; padding: 9px 14px; border-radius: 10px; font-size: 16px; }
+    .bkl-mittig #bkl-details { margin-top: 8px; }
+    .bkl-mittig .bkl-knopfreihe { gap: 8px; margin-top: 14px; }
+    .bkl-mittig button.bkl-aktion { border-radius: 10px; padding: 6px 16px; font-size: 15px; }
 
     /* Kopfzeile: Wortmarke fett in Gross-/Kleinschreibung, rechts Sprachwahl mit Flagge und Schliessen */
     #bkl-kopf {
@@ -1474,7 +1559,7 @@ ${vorschauCss()}
     }
     button.bkl-aktion:hover { background: var(--ui-bg-2); border-color: var(--ui-rose-3); }
 
-    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung (tiefes Rosé, 6.7:1 auf hell, 11:1 auf dunkel) */
+    /* Sichtbarer Fokus-Rahmen für Tastaturbedienung (helles Rosé, 11:1 auf der dunklen Fläche) */
     #bkl-button:focus-visible,
     #bkl-schliessen:focus-visible,
     #bkl-details-toggle:focus-visible,
@@ -1503,6 +1588,12 @@ ${vorschauCss()}
       pointer-events: none;
     }
     #bkl-tooltip[hidden] { display: none; }
+
+    /* Drucken: Panel, Pink-Knopf und Tooltip gehören nicht aufs Papier
+       (position: fixed erschiene sonst auf jeder Seite). */
+    @media print {
+      :host { display: none !important; }
+    }
   `;
 
   shadow.innerHTML = `
@@ -1556,15 +1647,10 @@ ${vorschauCss()}
             <option value="nacht">Nacht (rötlich)</option>
           </select>
         </div>
-        <div class="bkl-zeile">
-          <span class="bkl-icon">${ICONS.dunkel}</span>
-          <label for="bkl-dunkel">Oberfläche dunkel</label>
-          <input type="checkbox" id="bkl-dunkel" data-tooltip="Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System" aria-label="Bedienoberfläche dunkel darstellen">
-        </div>
         <div class="bkl-zeile bkl-regler">
           <span class="bkl-icon">${ICONS.spalte}</span>
           <label for="bkl-spalte">Breite</label>
-          <input type="range" id="bkl-spalte" min="400" max="1400" step="25" data-tooltip="Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+          <input type="range" id="bkl-spalte" min="400" max="4000" step="25" data-tooltip="Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
         </div>
         <div class="bkl-zeile">
           <span class="bkl-icon">${ICONS.klammer}</span>
@@ -1646,11 +1732,14 @@ ${vorschauCss()}
   const panel = shadow.getElementById('bkl-panel');
   const pinkKnopf = shadow.getElementById('bkl-button');
 
-  /* Öffnen/Schliessen: Pink-Button öffnet, X-Knopf oder Escape schliesst.
-     Fokus-Management: beim Öffnen Fokus ins Panel (Schliessen-Knopf),
-     beim Schliessen zurück auf den Pink-Button. */
-  function panelOeffnen() {
+  /* Öffnen/Schliessen: Pink-Button öffnet das Panel oben rechts, das
+     Extension-Symbol in der Symbolleiste denselben Inhalt als mittigen,
+     grossen Dialog (mittig = Klasse bkl-mittig, siehe panelCss). X-Knopf
+     oder Escape schliessen beides. Fokus-Management: beim Öffnen Fokus ins
+     Panel (Schliessen-Knopf), beim Schliessen zurück auf den Pink-Button. */
+  function panelOeffnen(mittig) {
     tooltipVerbergen();
+    panel.classList.toggle('bkl-mittig', !!mittig);
     panel.hidden = false;
     pinkKnopf.hidden = true;
     shadow.getElementById('bkl-schliessen').focus();
@@ -1658,10 +1747,11 @@ ${vorschauCss()}
   function panelSchliessen() {
     tooltipVerbergen();
     panel.hidden = true;
+    panel.classList.remove('bkl-mittig');
     pinkKnopf.hidden = false;
     pinkKnopf.focus();
   }
-  pinkKnopf.addEventListener('click', panelOeffnen);
+  pinkKnopf.addEventListener('click', function () { panelOeffnen(false); });
   shadow.getElementById('bkl-schliessen').addEventListener('click', panelSchliessen);
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
@@ -1669,6 +1759,27 @@ ${vorschauCss()}
       if (!panel.hidden) panelSchliessen();
     }
   });
+
+  /* Klick auf das Extension-Symbol: background.js schickt eine Nachricht an
+     den aktiven Tab (tabs.sendMessage, ohne zusätzliche Rechte). Antwortet
+     diese Seite, öffnet sie den mittigen Dialog – ein zweiter Klick schliesst
+     ihn wieder. Antwortet niemand (kein Entscheid im aktiven Tab), öffnet
+     background.js ersatzweise das Einstellungsfenster (popup.html). */
+  const NACHRICHT_DIALOG = 'bger-reader-einstellungen'; // gleicher Wert in background.js
+  function dialogUmschalten() {
+    if (!panel.hidden && panel.classList.contains('bkl-mittig')) panelSchliessen();
+    else panelOeffnen(true);
+  }
+  if (extensionApi && extensionApi.runtime && extensionApi.runtime.onMessage &&
+      typeof extensionApi.runtime.onMessage.addListener === 'function') {
+    try {
+      extensionApi.runtime.onMessage.addListener(function (nachricht, absender, antworten) {
+        if (!nachricht || nachricht.typ !== NACHRICHT_DIALOG) return; // nicht für uns
+        dialogUmschalten();
+        antworten({ ok: true, offen: !panel.hidden });
+      });
+    } catch (e) { /* ohne Nachrichten bleibt der Pink-Button */ }
+  }
 
   /* ---------- Tooltips mit Verzögerung ----------
      Native title-Tooltips erscheinen nach ca. einer Sekunde und lassen sich
@@ -1745,7 +1856,6 @@ ${vorschauCss()}
     shadow.getElementById('bkl-spalte').value = e.spaltenbreite;
     shadow.getElementById('bkl-silben').checked = e.silbentrennung;
     shadow.getElementById('bkl-farbe').value = e.farbschema;
-    shadow.getElementById('bkl-dunkel').checked = e.oberflaecheDunkel;
     shadow.getElementById('bkl-klammern').checked = e.klammern;
     shadow.getElementById('bkl-ausrichtung').value = e.ausrichtung;
     shadow.getElementById('bkl-spalten').value = String(e.spalten);
@@ -1907,7 +2017,6 @@ ${vorschauCss()}
   bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; stilGeaendert('bkl-spalte', true); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; stilGeaendert('bkl-silben'); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; stilGeaendert('bkl-farbe'); });
-  bei('bkl-dunkel', 'change', function (e) { einstellungen.oberflaecheDunkel = e.target.checked; stilGeaendert('bkl-dunkel'); });
   bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; stilGeaendert('bkl-ausrichtung'); });
   bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; stilGeaendert('bkl-spalten'); });
   bei('bkl-absatz', 'input', function (e) { einstellungen.absatzabstand = +e.target.value; stilGeaendert('bkl-absatz', true); });
@@ -1917,9 +2026,9 @@ ${vorschauCss()}
   ['bkl-groesse', 'bkl-zeilenabstand', 'bkl-buchstaben', 'bkl-worte', 'bkl-laenge', 'bkl-spalte', 'bkl-absatz']
     .forEach(function (id) { bei(id, 'change', nachschreiben); });
   bei('bkl-reset', 'click', function () {
-    // Alles auf Standard; Sprache und dunkle Oberfläche bleiben (wer Französisch
-    // liest, soll nicht Deutsch bekommen, und die Oberfläche soll nicht umspringen).
-    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache, oberflaecheDunkel: einstellungen.oberflaecheDunkel });
+    // Alles auf Standard; die Sprache bleibt (wer Französisch liest, soll
+    // nicht Deutsch bekommen).
+    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache });
     allesAnwenden();
   });
   }
@@ -1928,10 +2037,11 @@ ${vorschauCss()}
   /* LIVE-SYNC MIT DEM POP-UP-FENSTER                                     */
   /* ================================================================== */
 
-  /* Änderungen aus dem mittigen Pop-up-Fenster (background.js öffnet es per
-     Icon-Klick, popup.js schreibt in denselben Speicher) live auf dieser
-     Seite anwenden. Bewusst KEIN erneutes Speichern hier: sonst Ping-Pong
-     über onChanged. */
+  /* Änderungen aus dem Einstellungsfenster (popup.html, das background.js
+     öffnet, wenn kein Entscheid im aktiven Tab ist; popup.js schreibt in
+     denselben Speicher) oder aus einem anderen Tab live auf dieser Seite
+     anwenden. Bewusst KEIN erneutes Speichern hier: sonst Ping-Pong über
+     onChanged. */
   if (extensionApi && extensionApi.storage &&
       extensionApi.storage.onChanged &&
       typeof extensionApi.storage.onChanged.addListener === 'function') {

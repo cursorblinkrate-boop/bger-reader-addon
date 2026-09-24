@@ -1,9 +1,11 @@
 // bger reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung.
 
-/* Einstellungen im mittigen Pop-up-Fenster (per Icon-Klick geöffnet).
+/* Einstellungen im Einstellungsfenster (popup.html). background.js öffnet es
+ * per Icon-Klick, wenn im aktiven Tab kein Entscheid liegt; auf einer
+ * Entscheidseite zeigt content.js denselben Inhalt als mittigen Dialog.
  * Schreibt in denselben lokalen Speicher wie content.js; das Content-Skript
  * auf der Entscheidseite wendet Änderungen live an (storage.onChanged).
- * Keine Nachrichten an Tabs nötig, keine zusätzlichen Rechte.
+ * Keine zusätzlichen Rechte.
  */
 
 (function () {
@@ -29,8 +31,6 @@
     ausrichtung: 'links',       // links | mittig | rechts | blocksatz
     spalten: 1,                 // 1 | 2 | 3 Textspalten (Zeitungssatz)
     absatzabstand: 0,           // em – zusätzlicher Abstand nach jedem Absatz, 0 = Seiten-Standard
-    oberflaecheDunkel: false,   // Bedienoberfläche (Panel und Pop-up) dunkel – eigene Wahl per Schalter, unabhängig
-                                // vom Hintergrund des Entscheids und nie nach dem System (kein prefers-color-scheme).
     sprache: 'it'               // Sprache der Bedienoberfläche: it | de | en | fr (Texte in sprachen.js).
                                 // Standard Italienisch nach Vorgabe der Autorin; bewusst KEINE Automatik nach
                                 // Browser- oder Seitensprache – die Erweiterung fragt nichts ab (Datenschutz).
@@ -45,7 +45,8 @@
 
   let einstellungen = Object.assign({}, STANDARDS);
 
-  // Entfernt veraltete Schlüssel aus gespeicherten Einstellungen.
+  // Entfernt veraltete Schlüssel aus gespeicherten Einstellungen
+  // (z. B. oberflaecheDunkel aus 0.10.0 – die Oberfläche ist immer dunkel).
   function bereinige(e) {
     Object.keys(e).forEach(function (k) {
       if (!(k in STANDARDS)) delete e[k];
@@ -113,8 +114,9 @@
   /* ---------- Sprache der Bedienoberfläche ----------
      Texte aus sprachen.js (popup.html lädt die Datei vor diesem Skript).
      Übersetzt wird in die bestehenden Elemente nach ID; popup.html bleibt
-     deutsch. Gleiche Logik wie sprachAnwenden() in content.js. */
-  const Sprachen = window.BGerReaderSprachen || {
+     deutsch. Gleiche Logik wie sprachAnwenden() in content.js, gleicher
+     Zugriff über den nackten Bezeichner (siehe dort). */
+  const Sprachen = (typeof BGerReaderSprachen !== 'undefined' && BGerReaderSprachen) || window.BGerReaderSprachen || {
     TEXTE: {},
     texte: function () { return { allgemein: { aus: 'aus' }, felder: {} }; },
     uebersetze: function () { return this.texte(); }
@@ -127,13 +129,6 @@
     einstellungen.sprache = code;
     sprachTexte = Sprachen.uebersetze(document, code);
     angezeigteSprache = code;
-  }
-
-  /* Das Fenster folgt allein dem eigenen Schalter „Oberfläche dunkel" (dunkle
-     Tokens in popup.css) – unabhängig vom Hintergrund des Entscheids und nie
-     dem System (kein prefers-color-scheme). */
-  function schemaAnzeigen() {
-    document.body.setAttribute('data-schema', einstellungen.oberflaecheDunkel ? 'dunkel' : 'hell');
   }
 
   /* Füllung der Regler-Spur bis zum Wert (CSS-Variable --bkl-p, siehe popup.css). */
@@ -176,7 +171,6 @@
   function aktualisiereAnzeige() {
     const e = einstellungen;
     if (e.sprache !== angezeigteSprache) sprachAnwenden();
-    schemaAnzeigen();
     $('bkl-sprache').value = e.sprache;
     $('bkl-aktiv').checked = e.aktiv;
     $('bkl-groesse').value = e.schriftgroesse;
@@ -190,7 +184,6 @@
     $('bkl-spalte').value = e.spaltenbreite;
     $('bkl-silben').checked = e.silbentrennung;
     $('bkl-farbe').value = e.farbschema;
-    $('bkl-dunkel').checked = e.oberflaecheDunkel;
     $('bkl-klammern').checked = e.klammern;
     $('bkl-ausrichtung').value = e.ausrichtung;
     $('bkl-spalten').value = String(e.spalten);
@@ -203,7 +196,6 @@
 
   function geaendert(id) {
     wertAnzeigen(id);
-    schemaAnzeigen();
     speichereEinstellungen();
   }
 
@@ -226,14 +218,13 @@
   bei('bkl-spalte', 'input', function (e) { einstellungen.spaltenbreite = +e.target.value; geaendert('bkl-spalte'); });
   bei('bkl-silben', 'change', function (e) { einstellungen.silbentrennung = e.target.checked; geaendert('bkl-silben'); });
   bei('bkl-farbe', 'change', function (e) { einstellungen.farbschema = e.target.value; geaendert('bkl-farbe'); });
-  bei('bkl-dunkel', 'change', function (e) { einstellungen.oberflaecheDunkel = e.target.checked; geaendert('bkl-dunkel'); });
   bei('bkl-klammern', 'change', function (e) { einstellungen.klammern = e.target.checked; geaendert('bkl-klammern'); });
   bei('bkl-ausrichtung', 'change', function (e) { einstellungen.ausrichtung = e.target.value; geaendert('bkl-ausrichtung'); });
   bei('bkl-spalten', 'change', function (e) { einstellungen.spalten = +e.target.value; geaendert('bkl-spalten'); });
   bei('bkl-sprache', 'change', function (e) { einstellungen.sprache = e.target.value; sprachAnwenden(); aktualisiereAnzeige(); speichereEinstellungen(); });
   bei('bkl-reset', 'click', function () {
-    // Alles auf Standard; Sprache und dunkle Oberfläche bleiben (wie im Seiten-Panel).
-    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache, oberflaecheDunkel: einstellungen.oberflaecheDunkel });
+    // Alles auf Standard; die Sprache bleibt (wie im Seiten-Panel).
+    einstellungen = Object.assign({}, STANDARDS, { sprache: einstellungen.sprache });
     aktualisiereAnzeige();
     speichereEinstellungen();
   });

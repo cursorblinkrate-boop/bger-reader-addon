@@ -183,6 +183,8 @@ async function playwrightStarten(kanal, anzeigename) {
       screenshot: function (datei) { return page.screenshot({ path: datei }); },
       groesse: function (b, h) { return page.setViewportSize({ width: b, height: h }); },
       druck: function (an) { return page.emulateMedia({ media: an ? 'print' : null }); },
+      // Echter Druck als PDF (A4, ohne Hintergründe – wie „Als PDF sichern")
+      pdf: function (datei) { return page.pdf({ path: datei, format: 'A4', printBackground: false }); },
       schliessen: function () { return page.close(); }
     };
   }
@@ -266,6 +268,14 @@ async function firefoxStarten() {
         }
       },
       druck: async function () { /* nicht steuerbar über WebDriver */ },
+      // Echter Druck als PDF über den WebDriver-Befehl Print (Firefox rendert
+      // wie beim Drucken der Seite – genau der Weg, auf dem die Autorin ihr
+      // PDF erzeugt).
+      pdf: async function (datei) {
+        await hin();
+        const b64 = await driver.printPage({ background: false });
+        fs.writeFileSync(datei, Buffer.from(b64, 'base64'));
+      },
       schliessen: async function () { await hin(); await driver.close(); await driver.switchTo().window(hauptHandle); }
     };
   }
@@ -316,6 +326,7 @@ const Q = {
       aktiv: html.classList.contains('bkl-aktiv'),
       folds: document.querySelectorAll('.bkl-fold').length,
       panelOffen: !s.getElementById('bkl-panel').hidden,
+      mittig: s.getElementById('bkl-panel').classList.contains('bkl-mittig'),
       detailsOffen: !s.getElementById('bkl-details').hidden,
       font: html.style.getPropertyValue('--bkl-font'),
       size: html.style.getPropertyValue('--bkl-size'),
@@ -325,6 +336,13 @@ const Q = {
     };
   }`,
   panelKlick: `function (id) { document.getElementById('bkl-panel-host').shadowRoot.getElementById(id).click(); }`,
+  // Beschriftung im Panel (Sprache der Bedienoberfläche; Standard Italienisch)
+  panelBeschriftung: `function (id) {
+    const s = document.getElementById('bkl-panel-host').shadowRoot;
+    const l = s.querySelector('label[for="' + id + '"]');
+    return { text: l ? l.textContent.trim() : null, sprache: s.querySelector('.bkl-sprachwahl').getAttribute('data-sprache'),
+             wahl: s.getElementById('bkl-sprache').value };
+  }`,
   panelWert: `function (a) {
     const el = document.getElementById('bkl-panel-host').shadowRoot.getElementById(a.id);
     el.value = a.wert; el.dispatchEvent(new Event(a.ereignis, { bubbles: true }));
