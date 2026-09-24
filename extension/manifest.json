@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BGer Reader",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Lesbarkeit fuer Entscheide des Bundesgerichts (bger.ch) und Bundesverwaltungsgerichts (bvger.weblaw.ch). 100 % offline, keine Daten.",
   "minimum_chrome_version": "121",
   "content_scripts": [
@@ -17,7 +17,7 @@
     }
   ],
   "action": {
-    "default_title": "BGer Reader Einstellungen als mittiges Fenster oeffnen",
+    "default_title": "BGer Reader Einstellungen oeffnen",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -41,6 +41,9 @@
       "data_collection_permissions": {
         "required": ["none"]
       }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
     }
   },
   "web_accessible_resources": [

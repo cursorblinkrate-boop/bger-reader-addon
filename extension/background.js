@@ -4,10 +4,17 @@
  * Mindestversionen stehen im Manifest: Chrome 121 – erst ab da darf neben
  * service_worker auch background.scripts stehen –, Firefox 140 wegen
  * data_collection_permissions):
- * Klick auf das Extension-Symbol öffnet die Einstellungen als mittiges
- * Pop-up-Fenster (eigenes Fenster, grössere Bedienfläche). Ein erneuter Klick
- * holt ein bereits offenes Fenster nach vorne, statt ein zweites zu öffnen.
+ * Klick auf das Extension-Symbol: zuerst eine Nachricht an den aktiven Tab
+ * (tabs.sendMessage, braucht kein zusätzliches Recht). Liegt dort ein
+ * Entscheid, öffnet content.js die Einstellungen als mittigen, grossen
+ * Dialog über der Seite – der Entscheid bleibt sichtbar, jede Änderung ist
+ * live zu sehen; ein zweiter Klick schliesst ihn. Antwortet kein Content-
+ * Skript (anderer Tab), öffnet der Hintergrund ersatzweise popup.html als
+ * eigenes Fenster (grössere Bedienfläche); ein erneuter Klick holt ein
+ * bereits offenes Fenster nach vorne, statt ein zweites zu öffnen.
  * Fenster-IDs liegen in storage.session (flüchtig, passt zur Fenster-Lebensdauer).
+ * Bis 0.10.0 öffnete jeder Klick das Fenster; auf macOS-Firefox lag es neben
+ * dem Browser auf dem Schreibtisch, und der Entscheid war nicht mehr zu sehen.
  *
  * MV3-Regel: Listener synchron auf oberster Ebene registrieren (der Worker
  * wird bei jedem Ereignis neu geweckt, Modul-Variablen überleben das nicht).
@@ -21,6 +28,7 @@
   const verwendetPromises = typeof browser !== 'undefined' && extensionApi === browser;
 
   const FENSTER_SCHLUESSEL = 'bger-reader-popup-fenster';
+  const NACHRICHT_DIALOG = 'bger-reader-einstellungen'; // gleicher Wert in content.js
   const POPUP_BREITE = 660;
   const POPUP_HOEHE = 960;
 
@@ -37,6 +45,7 @@
   if (typeof globalThis !== 'undefined') {
     globalThis.BGerReaderPopup = {
       zentriert: zentriert,
+      NACHRICHT_DIALOG: NACHRICHT_DIALOG,
       POPUP_BREITE: POPUP_BREITE,
       POPUP_HOEHE: POPUP_HOEHE
     };
@@ -101,5 +110,20 @@
       .catch(function () { /* Fenster ist Komfort, kein Abbruchgrund */ });
   }
 
-  extensionApi.action.onClicked.addListener(fensterOeffnen);
+  /* Icon-Klick: erst den aktiven Tab fragen (content.js antwortet mit
+     { ok: true } und schaltet den mittigen Dialog um). Keine Antwort – kein
+     Content-Skript im Tab, also kein Entscheid – heisst Fenster öffnen. */
+  function symbolGeklickt(tab) {
+    const tabId = tab && typeof tab.id === 'number' ? tab.id : null;
+    const gefragt = tabId === null || !extensionApi.tabs
+      ? Promise.reject(new Error('kein Tab'))
+      : rufe(extensionApi.tabs, 'sendMessage', tabId, { typ: NACHRICHT_DIALOG });
+    gefragt
+      .then(function (antwort) {
+        if (!antwort || antwort.ok !== true) throw new Error('keine Antwort');
+      })
+      .catch(fensterOeffnen);
+  }
+
+  extensionApi.action.onClicked.addListener(symbolGeklickt);
 })();

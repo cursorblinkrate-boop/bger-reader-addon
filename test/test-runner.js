@@ -79,6 +79,7 @@ function bvgerDom(inhalt, einstellungen) {
 function domMitChrome(html, speicher, extras, verzoegert) {
   const dom = new JSDOM(html, { url: 'https://search.bger.ch/test', runScripts: 'outside-only', pretendToBeVisual: true });
   const listener = [];
+  const nachrichten = []; // runtime.onMessage-Listener (Icon-Klick aus background.js)
   const gesetzt = [];
   const ausstehend = [];
   dom.window.chrome = {
@@ -95,11 +96,11 @@ function domMitChrome(html, speicher, extras, verzoegert) {
       },
       onChanged: { addListener: function (fn) { listener.push(fn); } }
     },
-    runtime: Object.assign({ lastError: null }, extras || {})
+    runtime: Object.assign({ lastError: null, onMessage: { addListener: function (fn) { nachrichten.push(fn); } } }, extras || {})
   };
   dom.window.eval(SPRACHEN_SRC);
   dom.window.eval(SCRIPT);
-  return { dom: dom, doc: dom.window.document, listener: listener, gesetzt: gesetzt,
+  return { dom: dom, doc: dom.window.document, listener: listener, nachrichten: nachrichten, gesetzt: gesetzt,
     laden: function () { ausstehend.splice(0).forEach(function (f) { f(); }); },
     shadow: dom.window.document.getElementById('bkl-panel-host').shadowRoot };
 }
@@ -459,8 +460,8 @@ console.log('\n[4] Panel und Stile');
   // Öffnen/Schliessen, Fokus, Detail-Bereich
   pruefe('Pink-Button vorhanden, Panel anfangs geschlossen', !!knopf && !!knopf.querySelector('svg') && panel.hidden === true);
   klick(dom, knopf);
-  pruefe('Klick öffnet Panel, Fokus im Panel, Pink-Button verborgen',
-    panel.hidden === false && knopf.hidden === true && panel.contains(shadow.activeElement));
+  pruefe('Klick öffnet Panel oben rechts (nicht mittig), Fokus im Panel, Pink-Button verborgen',
+    panel.hidden === false && !panel.classList.contains('bkl-mittig') && knopf.hidden === true && panel.contains(shadow.activeElement));
   klick(dom, schliessen);
   pruefe('X schliesst, Fokus zurück auf Pink-Button', panel.hidden === true && shadow.activeElement === knopf);
   klick(dom, knopf);
@@ -491,8 +492,8 @@ console.log('\n[4] Panel und Stile');
     doc.getElementById('bkl-panel-host').getAttribute('lang') === 'it');
   const sprache = wert('bkl-sprache');
   sprache.value = 'de'; ereignis(dom, sprache, 'change');
-  pruefe('Deutsch: einschalten / Hintergrund / Oberfläche dunkel / einfach / erweitert / Breite / Zeilen / Absatz / Ausrichtung / Spalten / Sprache, Flagge CH',
-    label('bkl-aktiv') === 'einschalten' && label('bkl-farbe') === 'Hintergrund' && label('bkl-dunkel') === 'Oberfläche dunkel' && label('bkl-klammern') === 'einfach' &&
+  pruefe('Deutsch: einschalten / Hintergrund / einfach / erweitert / Breite / Zeilen / Absatz / Ausrichtung / Spalten / Sprache, Flagge CH',
+    label('bkl-aktiv') === 'einschalten' && label('bkl-farbe') === 'Hintergrund' && label('bkl-klammern') === 'einfach' &&
     toggle.textContent.trim() === 'erweitert' && label('bkl-spalte') === 'Breite' && label('bkl-zeilenabstand') === 'Zeilen' &&
     label('bkl-absatz') === 'Absatz' && label('bkl-ausrichtung') === 'Ausrichtung' && label('bkl-spalten') === 'Spalten' &&
     label('bkl-sprache') === 'Sprache' && shadow.querySelector('.bkl-sprachwahl').getAttribute('data-sprache') === 'de');
@@ -506,8 +507,8 @@ console.log('\n[4] Panel und Stile');
   });
   pruefe('alle Bedienelemente mit data-tooltip und aria-label, kein natives title', ohne.length === 0, ohne.join(','));
   const zeilenIcons = shadow.querySelectorAll('.bkl-zeile .bkl-icon svg');
-  pruefe('16 Zeilen-Icons aus Colibre (gefüllte Pfade, eigene Farben)',
-    zeilenIcons.length === 16 && Array.prototype.every.call(zeilenIcons, function (svg) {
+  pruefe('15 Zeilen-Icons aus Colibre (gefüllte Pfade, eigene Farben), kein Schalter „Oberfläche dunkel" mehr',
+    zeilenIcons.length === 15 && !wert('bkl-dunkel') && Array.prototype.every.call(zeilenIcons, function (svg) {
       return /#3a3a38|#1e8bcd|#0063b1/i.test(svg.innerHTML) && !svg.getAttribute('stroke');
     }));
   pruefe('Pink: accent-color für Regler/Häkchen, Schliessen-Knopf #d63384',
@@ -526,8 +527,9 @@ console.log('\n[4] Panel und Stile');
     html.classList.contains('bkl-aktiv') && html.style.getPropertyValue('--bkl-size') === '18px' &&
     doc.querySelectorAll('.bkl-fold').length > 0);
   const groesse = wert('bkl-groesse');
-  pruefe('Schriftgrösse: Regler 6–50, Anzeige ohne Einheit („18")',
-    groesse.getAttribute('min') === '6' && groesse.getAttribute('max') === '50' && wert('bkl-groesse-w').textContent === '18');
+  pruefe('Schriftgrösse: Regler 6–50, Anzeige ohne Einheit („18"); Breite: Regler 400–4000 px (Widescreen), Schritt 25',
+    groesse.getAttribute('min') === '6' && groesse.getAttribute('max') === '50' && wert('bkl-groesse-w').textContent === '18' &&
+    wert('bkl-spalte').getAttribute('min') === '400' && wert('bkl-spalte').getAttribute('max') === '4000' && wert('bkl-spalte').getAttribute('step') === '25');
   groesse.value = '40';
   ereignis(dom, groesse, 'input');
   pruefe('Schriftgrösse 40 -> Anzeige „40", --bkl-size 40px',
@@ -535,18 +537,19 @@ console.log('\n[4] Panel und Stile');
   const farbe = wert('bkl-farbe');
   farbe.value = 'nacht';
   ereignis(dom, farbe, 'change');
-  pruefe('Hintergrund Nacht: --bkl-bg #2b1518, Dropdown trägt data-wert, Panel bleibt hell (folgt nicht dem Hintergrund)',
+  pruefe('Hintergrund Nacht: --bkl-bg #2b1518, Dropdown trägt data-wert, Panel folgt dem Hintergrund nicht (kein data-schema am Host)',
     html.style.getPropertyValue('--bkl-bg') === '#2b1518' && farbe.getAttribute('data-wert') === 'nacht' &&
-    doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'hell');
-  // „Oberfläche dunkel": eigener Schalter für Panel und Pop-up, nie nach dem System
-  // (kein prefers-color-scheme/matchMedia) und nie nach der Browsersprache.
-  const dunkel = wert('bkl-dunkel');
-  ereignis(dom, Object.assign(dunkel, { checked: true }), 'change');
-  pruefe('„Oberfläche dunkel": Panel-Host auf dunkles Schema (data-schema), gespeichert; nichts vom System (kein prefers-color-scheme, matchMedia, navigator.language)',
-    doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'dunkel' &&
-    JSON.parse(dom.window.localStorage.getItem(SCHLUESSEL)).oberflaecheDunkel === true &&
-    !/\(prefers-color-scheme|matchMedia\s*\(|navigator\.language/.test(SCRIPT + fs.readFileSync(path.join(EXT, 'popup.js'), 'utf8') +
-      fs.readFileSync(path.join(EXT, 'popup.css'), 'utf8') + fs.readFileSync(path.join(EXT, 'sprachen.js'), 'utf8')));
+    !doc.getElementById('bkl-panel-host').hasAttribute('data-schema'));
+  // Oberfläche immer dunkel (Entscheid der Autorin, 0.11.0): keine hellen Tokens,
+  // kein Schalter, kein data-schema; nie nach dem System (kein
+  // prefers-color-scheme/matchMedia) und nie nach der Browsersprache.
+  const alleQuellen = SCRIPT + fs.readFileSync(path.join(EXT, 'popup.js'), 'utf8') + fs.readFileSync(path.join(EXT, 'popup.css'), 'utf8') +
+    fs.readFileSync(path.join(EXT, 'popup.html'), 'utf8') + fs.readFileSync(path.join(EXT, 'sprachen.js'), 'utf8');
+  pruefe('Oberfläche immer dunkel: Tokens fest in :host (#16141a, Neon-Rand #ff4fa3), color-scheme dark, kein heller Satz (#fff8fb), kein data-schema, keine Einstellung oberflaecheDunkel; nichts vom System (kein prefers-color-scheme, matchMedia, navigator.language)',
+    /:host\s*\{[^}]*--ui-bg:\s*#16141a/.test(panelCss) && /:host\s*\{[^}]*--ui-rahmen:\s*#ff4fa3/.test(panelCss) &&
+    /#bkl-panel\s*\{[^}]*color-scheme:\s*dark/.test(panelCss) && !/#fff8fb/.test(alleQuellen) && !/data-schema/.test(alleQuellen) &&
+    !/oberflaecheDunkel:/.test(alleQuellen) && !/bkl-dunkel/.test(alleQuellen) &&
+    !/\(prefers-color-scheme|matchMedia\s*\(|navigator\.language/.test(alleQuellen));
   const art = wert('bkl-art');
   art.value = 'garamond';
   ereignis(dom, art, 'change');
@@ -610,14 +613,21 @@ console.log('\n[4] Panel und Stile');
 
   // Zurücksetzen
   klick(dom, wert('bkl-reset'));
-  pruefe('Zurücksetzen: Lesemodus aus, Folds weg, Anzeige „18", Dropdowns auf Standard, dunkle Oberfläche bleibt (wie die Sprache)',
+  pruefe('Zurücksetzen: Lesemodus aus, Folds weg, Anzeige „18", Dropdowns auf Standard',
     !html.classList.contains('bkl-aktiv') && doc.querySelectorAll('.bkl-fold').length === 0 &&
-    wert('bkl-groesse-w').textContent === '18' && art.value === 'serif' && farbe.value === 'hell' &&
-    dunkel.checked === true && doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'dunkel');
-  ereignis(dom, Object.assign(dunkel, { checked: false }), 'change');
-  pruefe('„Oberfläche dunkel" aus -> Panel wieder hell, gespeichert',
-    doc.getElementById('bkl-panel-host').getAttribute('data-schema') === 'hell' &&
-    JSON.parse(dom.window.localStorage.getItem(SCHLUESSEL)).oberflaecheDunkel === false);
+    wert('bkl-groesse-w').textContent === '18' && art.value === 'serif' && farbe.value === 'hell');
+
+  // Drucken (auch „Als PDF sichern"): Papierfarben statt Schema, Papierbreite statt
+  // Pixelbreite, Klammern wie am Bildschirm (kein Zwangs-Aufklappen mehr), Panel weg.
+  const druck = (cssText.match(/@media print \{[\s\S]*$/) || [''])[0];
+  pruefe('Druck-CSS: Text schwarz auf weiss, Links schwarz, .main/.middle ohne feste Breite (auch bvger-Spalte), Pfeil schlicht, kein Zwangs-Aufklappen; Panel-Host im Druck ausgeblendet',
+    druck.length > 0 && /html\.bkl-aktiv,\s*html\.bkl-aktiv body,[^{]*\{[^}]*background-color:\s*#ffffff !important;\s*color:\s*#000000 !important/.test(druck) &&
+    /html\.bkl-aktiv body a,\s*html\.bkl-aktiv div\.eit a \{ color: #000000 !important/.test(druck) &&
+    /html\.bkl-aktiv div\.eit \.main,[^{]*\.bkl-text-spalte\s*\{[^}]*width:\s*auto !important/.test(druck) &&
+    /html\.bkl-aktiv div\.eit \.middle\s*\{[^}]*float:\s*none !important;[^}]*width:\s*auto !important/.test(druck) &&
+    /button\.bkl-toggle\s*\{[^}]*background:\s*none !important/.test(druck) &&
+    !/span\.bkl-fold-content\s*\{\s*display:\s*inline !important/.test(cssText) && !/button\.bkl-toggle\s*\{\s*display:\s*none/.test(cssText) &&
+    /@media print \{\s*:host \{ display: none !important; \}/.test(panelCss));
 
   // Sprache der Bedienoberfläche (sprachen.js): vier Wörterbücher mit denselben
   // Schlüsseln; Umschalten schreibt die Texte nach Element-ID in Beschriftungen,
@@ -642,7 +652,7 @@ console.log('\n[4] Panel und Stile');
   const pfeilDe = doc.querySelector('.bkl-toggle').title;
   sprache.value = 'fr'; ereignis(dom, sprache, 'change');
   pruefe('Französisch: Beschriftungen, Knöpfe, Optionen, Tooltip, aria-label, Wertanzeige „désactivé", lang am Host, Pfeil-Titel (auch nachträglich)',
-    label('bkl-aktiv') === 'activer' && label('bkl-farbe') === 'Arrière-plan' && label('bkl-dunkel') === 'Interface sombre' && label('bkl-klammern') === 'simplifier' &&
+    label('bkl-aktiv') === 'activer' && label('bkl-farbe') === 'Arrière-plan' && label('bkl-klammern') === 'simplifier' &&
     toggle.textContent.trim() === 'avancé' && !!toggle.querySelector('svg') && wert('bkl-reset').textContent.trim() === 'Réinitialiser' &&
     wert('bkl-farbe').options[0].textContent === 'Blanc' && wert('bkl-spalten').options[1].textContent === '2 colonnes' &&
     /mode lecture/.test(wert('bkl-aktiv').getAttribute('data-tooltip')) && wert('bkl-groesse').getAttribute('aria-label') === 'Taille de police' &&
@@ -658,6 +668,20 @@ console.log('\n[4] Panel und Stile');
     wert('bkl-spalte').value === '800' && wert('bkl-spalte-w').textContent === '800px' &&
     S.texte('xx') === S.TEXTE.de && !html.classList.contains('bkl-aktiv'));
   sprache.value = 'de'; ereignis(dom, sprache, 'change');
+
+  // Firefox-Content-Skripte: der Skript-Kontext (globalThis, eine Sandbox) ist
+  // nicht das Fenster der Seite. sprachen.js registriert sich an beiden,
+  // content.js und popup.js lesen den nackten Bezeichner – über
+  // window.BGerReaderSprachen blieb das Panel in Firefox deutsch (0.10.0).
+  const vm = require('vm');
+  const sandbox = vm.createContext({ window: {} });
+  vm.runInContext(SPRACHEN_SRC, sandbox);
+  const popupJsQuelle = fs.readFileSync(path.join(EXT, 'popup.js'), 'utf8');
+  pruefe('sprachen.js in einer Sandbox mit fremdem window (Firefox-Content-Skript): am Skript-Kontext und am Fenster registriert; content.js und popup.js lesen den Bezeichner BGerReaderSprachen, nicht window',
+    sandbox.BGerReaderSprachen && typeof sandbox.BGerReaderSprachen.uebersetze === 'function' &&
+    sandbox.window.BGerReaderSprachen === sandbox.BGerReaderSprachen &&
+    /\(typeof BGerReaderSprachen !== 'undefined' && BGerReaderSprachen\) \|\| window\.BGerReaderSprachen \|\|/.test(SCRIPT) &&
+    /\(typeof BGerReaderSprachen !== 'undefined' && BGerReaderSprachen\) \|\| window\.BGerReaderSprachen \|\|/.test(popupJsQuelle));
 
   // Tooltips: erst nach 3 s (Timer abfangen), weg bei Verlassen/Escape
   const tip = shadow.getElementById('bkl-tooltip');
@@ -682,7 +706,7 @@ console.log('\n[4] Panel und Stile');
 console.log('\n[5] Speicher und Live-Sync');
 {
   const speicher = {};
-  speicher[SCHLUESSEL] = { schriftgroesse: 22, aktiv: true, schriftart: 'gibts-nicht-mehr' };
+  speicher[SCHLUESSEL] = { schriftgroesse: 22, aktiv: true, schriftart: 'gibts-nicht-mehr', oberflaecheDunkel: true };
   const t = domMitChrome(SYNTHESE, speicher);
   const html = t.doc.documentElement;
   pruefe('gespeicherte Werte aus chrome.storage.local geladen (22px, aktiv), unbekannte Schriftart -> Standard',
@@ -698,8 +722,8 @@ console.log('\n[5] Speicher und Live-Sync');
     t.gesetzt.length === 1 && speicher[SCHLUESSEL].schriftgroesse === 12, t.gesetzt.length + ' Schreibvorgänge');
   t.dom.window.dispatchEvent(new t.dom.window.Event('pagehide'));
   t.dom.window.dispatchEvent(new t.dom.window.Event('pagehide'));
-  pruefe('pagehide schreibt den letzten Wert genau einmal nach',
-    t.gesetzt.length === 2 && speicher[SCHLUESSEL].schriftgroesse === 30);
+  pruefe('pagehide schreibt den letzten Wert genau einmal nach; veralteter Schlüssel oberflaecheDunkel (0.10.0) wird nicht mitgeschrieben',
+    t.gesetzt.length === 2 && speicher[SCHLUESSEL].schriftgroesse === 30 && !('oberflaecheDunkel' in speicher[SCHLUESSEL]));
   // Loslassen eines Reglers (change) und Auswahl/Häkchen (change) schreiben
   // sofort, auch innerhalb der Bündelung: Firefox verwirft den erst bei
   // pagehide nachgeholten Schreibvorgang (Browser-Smoke-Test), Chrome nicht.
@@ -731,6 +755,30 @@ console.log('\n[5] Speicher und Live-Sync');
       vorher.geschrieben === 0 && !vorher.bereit && nachher.size === '26px' && nachher.aktiv && nachher.bereit && nachher.gespeichert === 26 &&
       v.gesetzt.length === 1 && !v.doc.documentElement.classList.contains('bkl-aktiv'),
       JSON.stringify({ vorher: vorher, nachher: nachher, danach: v.gesetzt.length }));
+  }
+
+  // Icon-Klick in der Symbolleiste: background.js schickt eine Nachricht, das
+  // Panel öffnet sich als mittiger Dialog (Klasse bkl-mittig); zweiter Klick
+  // schliesst ihn, Escape ebenso; fremde Nachrichten werden ignoriert.
+  {
+    const antworten = [];
+    const panel = t.shadow.getElementById('bkl-panel');
+    const pink = t.shadow.getElementById('bkl-button');
+    const fremd = t.nachrichten[0]({ typ: 'etwas-anderes' }, {}, function (a) { antworten.push(a); });
+    const ignoriert = panel.hidden === true && antworten.length === 0 && fremd === undefined;
+    t.nachrichten[0]({ typ: 'bger-reader-einstellungen' }, {}, function (a) { antworten.push(a); });
+    const offen = panel.hidden === false && panel.classList.contains('bkl-mittig') && pink.hidden === true &&
+      antworten.length === 1 && antworten[0].ok === true && antworten[0].offen === true && panel.contains(t.shadow.activeElement);
+    t.nachrichten[0]({ typ: 'bger-reader-einstellungen' }, {}, function (a) { antworten.push(a); });
+    const zu = panel.hidden === true && !panel.classList.contains('bkl-mittig') && pink.hidden === false && antworten[1].offen === false;
+    t.nachrichten[0]({ typ: 'bger-reader-einstellungen' }, {}, function () {});
+    t.doc.dispatchEvent(new t.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+    const escape = panel.hidden === true && !panel.classList.contains('bkl-mittig');
+    klick(t.dom, pink);
+    pruefe('Icon-Klick (Nachricht von background.js): mittiger Dialog auf/zu, Antwort { ok, offen }, Escape schliesst, fremde Nachricht ignoriert; Pink-Button öffnet danach wieder oben rechts',
+      t.nachrichten.length === 1 && ignoriert && offen && zu && escape && panel.hidden === false && !panel.classList.contains('bkl-mittig'),
+      JSON.stringify({ ignoriert: ignoriert, offen: offen, zu: zu, escape: escape, antworten: antworten }));
+    t.shadow.getElementById('bkl-schliessen').click();
   }
 
   // Aufwandstrennung: Typografie baut Folds nicht neu auf, aktiv/klammern schon
@@ -806,8 +854,9 @@ console.log('\n[6] Paket');
     fehlend.join(',') + ' ' + Math.round(fontBytes / 1024) + ' KB');
   const war = (manifest.web_accessible_resources || [])[0] || {};
   const MUSTER = ['https://search.bger.ch/*', 'https://relevancy.bger.ch/*', 'http://relevancy.bger.ch/*', 'https://bvger.weblaw.ch/*'];
-  pruefe('Manifest: sprachen.js vor content.js, fonts/*.woff2 für alle vier Seiten-Muster (bger.ch, bvger.weblaw.ch), Beschreibung <= 132 Zeichen, Icons 16/48/128 vorhanden',
+  pruefe('Manifest: sprachen.js vor content.js, fonts/*.woff2 für alle vier Seiten-Muster (bger.ch, bvger.weblaw.ch), Beschreibung <= 132 Zeichen, Icons 16/48/128 vorhanden, einziges Recht storage (kein tabs, keine host_permissions)',
     manifest.content_scripts[0].js.join(',') === 'sprachen.js,content.js' && fs.existsSync(path.join(EXT, 'sprachen.js')) &&
+    (manifest.permissions || []).join(',') === 'storage' && !manifest.host_permissions && !manifest.optional_permissions &&
     (war.resources || []).indexOf('fonts/*.woff2') !== -1 &&
     MUSTER.every(function (m) { return (war.matches || []).indexOf(m) !== -1 && manifest.content_scripts[0].matches.indexOf(m) !== -1; }) &&
     manifest.description.length <= 132 &&
@@ -850,19 +899,31 @@ console.log('\n[7] Pop-up-Fenster');
   const popupCss = fs.readFileSync(path.join(EXT, 'popup.css'), 'utf8');
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8'));
 
-  pruefe('Manifest: action ohne default_popup, background als service_worker UND scripts, Mindestversionen Chrome >= 121 und Firefox >= 140',
+  pruefe('Manifest: action ohne default_popup, background als service_worker UND scripts, Mindestversionen Chrome >= 121, Firefox >= 140, Firefox für Android >= 142 (data_collection_permissions)',
     !!manifest.action.default_title && !manifest.action.default_popup &&
     manifest.background.service_worker === 'background.js' && (manifest.background.scripts || []).join(',') === 'background.js' &&
     parseInt(manifest.minimum_chrome_version, 10) >= 121 &&
-    parseInt(manifest.browser_specific_settings.gecko.strict_min_version, 10) >= 140);
+    parseInt(manifest.browser_specific_settings.gecko.strict_min_version, 10) >= 140 &&
+    parseInt(manifest.browser_specific_settings.gecko_android.strict_min_version, 10) >= 142);
 
   // background.js mit gemockter chrome-API
   {
     const dom = new JSDOM('<!doctype html><html><body></body></html>',
       { url: 'chrome-extension://test/background.html', runScripts: 'outside-only', pretendToBeVisual: true });
-    const sitzung = {}, klickHandler = [], erstellt = [], aktualisiert = [];
+    const sitzung = {}, klickHandler = [], erstellt = [], aktualisiert = [], gesendet = [];
     dom.window.chrome = {
       action: { onClicked: { addListener: function (fn) { klickHandler.push(fn); } } },
+      // Tab 7 hat ein Content-Skript (Entscheidseite) und antwortet; Tab 8 nicht
+      // (Chrome meldet das als runtime.lastError im Callback).
+      tabs: {
+        sendMessage: function (id, nachricht, cb) {
+          gesendet.push({ id: id, nachricht: nachricht });
+          if (id === 7) { cb({ ok: true, offen: true }); return; }
+          dom.window.chrome.runtime.lastError = { message: 'Could not establish connection. Receiving end does not exist.' };
+          cb(undefined);
+          dom.window.chrome.runtime.lastError = null;
+        }
+      },
       windows: {
         getLastFocused: function (cb) { cb({ left: 100, top: 40, width: 1440, height: 900 }); },
         create: function (daten, cb) { erstellt.push(daten); cb({ id: 42 }); },
@@ -882,16 +943,21 @@ console.log('\n[7] Pop-up-Fenster');
     pruefe('zentriert(): Mitte relativ zum Browser-Fenster, nie negativ',
       P.zentriert({ left: 0, top: 0, width: 1440, height: 900 }, 660, 860).left === 390 &&
       P.zentriert({ left: 0, top: 0, width: 400, height: 300 }, 660, 860).top === 0);
-    klickHandler[0]();
-    await new Promise(function (r) { setTimeout(r, 0); });
-    await new Promise(function (r) { setTimeout(r, 0); });
-    klickHandler[0]();
-    await new Promise(function (r) { setTimeout(r, 0); });
-    await new Promise(function (r) { setTimeout(r, 0); });
-    pruefe('Icon-Klick öffnet popup.html mittig als eigenes Fenster; zweiter Klick fokussiert statt zu duplizieren',
-      klickHandler.length === 1 && erstellt.length === 1 && /popup\.html$/.test(erstellt[0].url) &&
+    async function klicke(tab) {
+      klickHandler[0](tab);
+      for (let i = 0; i < 4; i++) await new Promise(function (r) { setTimeout(r, 0); });
+    }
+    await klicke({ id: 7 });
+    const dialog = gesendet.length === 1 && gesendet[0].id === 7 && gesendet[0].nachricht.typ === P.NACHRICHT_DIALOG && erstellt.length === 0;
+    await klicke({ id: 8 });
+    await klicke({ id: 8 });
+    await klicke(undefined);
+    pruefe('Icon-Klick: Entscheidseite im Tab -> Nachricht an das Content-Skript (mittiger Dialog), kein Fenster; ohne Antwort -> popup.html mittig als eigenes Fenster; weitere Klicks fokussieren statt zu duplizieren (auch ohne Tab)',
+      klickHandler.length === 1 && dialog && gesendet.length === 3 && erstellt.length === 1 && /popup\.html$/.test(erstellt[0].url) &&
       erstellt[0].type === 'popup' && erstellt[0].left === 490 && erstellt[0].top === 10 && erstellt[0].height === 960 &&
-      sitzung['bger-reader-popup-fenster'] === 42 && aktualisiert.length === 1 && aktualisiert[0].daten.focused === true);
+      sitzung['bger-reader-popup-fenster'] === 42 && aktualisiert.length === 2 && aktualisiert[0].daten.focused === true &&
+      P.NACHRICHT_DIALOG === 'bger-reader-einstellungen' && SCRIPT.indexOf("NACHRICHT_DIALOG = 'bger-reader-einstellungen'") !== -1,
+      JSON.stringify({ gesendet: gesendet.length, erstellt: erstellt.length, aktualisiert: aktualisiert.length }));
   }
 
   // popup.html spiegelt das Seiten-Panel
@@ -903,9 +969,9 @@ console.log('\n[7] Pop-up-Fenster');
     while ((m = re.exec(SCRIPT))) panelIds[m[1]] = true;
     const KONTROLLEN = ['bkl-schliessen', 'bkl-details-toggle', 'bkl-aktiv', 'bkl-groesse', 'bkl-art', 'bkl-farbe',
       'bkl-spalte', 'bkl-klammern', 'bkl-staerke', 'bkl-zeilenabstand', 'bkl-absatz', 'bkl-buchstaben', 'bkl-worte',
-      'bkl-laenge', 'bkl-silben', 'bkl-ausrichtung', 'bkl-spalten', 'bkl-reset', 'bkl-sprache', 'bkl-dunkel'];
+      'bkl-laenge', 'bkl-silben', 'bkl-ausrichtung', 'bkl-spalten', 'bkl-reset', 'bkl-sprache'];
     const popupIds = Array.prototype.map.call(pdoc.querySelectorAll('input, select, button'), function (el) { return el.id; });
-    pruefe('Pop-up enthält alle 20 Bedienelemente des Panels und keine fremden',
+    pruefe('Pop-up enthält alle 19 Bedienelemente des Panels und keine fremden',
       KONTROLLEN.every(function (id) { return popupIds.indexOf(id) !== -1; }) &&
       popupIds.every(function (id) { return panelIds[id]; }),
       'fehlt: ' + KONTROLLEN.filter(function (id) { return popupIds.indexOf(id) === -1; }).join(',') +
@@ -915,18 +981,18 @@ console.log('\n[7] Pop-up-Fenster');
       if (!el.getAttribute('data-tooltip') || !el.getAttribute('aria-label') || el.hasAttribute('title')) ohne.push(el.id);
     });
     function plabel(id) { const l = pdoc.querySelector('label[for="' + id + '"]'); return l ? l.textContent.trim() : null; }
-    pruefe('Pop-up: Beschriftungen, Regler 6–50, data-tooltip statt title, kein Zähler-Hinweis',
+    pruefe('Pop-up: Beschriftungen, Regler 6–50 und Breite 400–4000, data-tooltip statt title, kein Zähler-Hinweis',
       pdoc.querySelector('h1').textContent.trim() === 'bger reader' && plabel('bkl-aktiv') === 'einschalten' &&
-      plabel('bkl-farbe') === 'Hintergrund' && plabel('bkl-dunkel') === 'Oberfläche dunkel' && plabel('bkl-klammern') === 'einfach' && plabel('bkl-sprache') === 'Sprache' &&
+      plabel('bkl-farbe') === 'Hintergrund' && plabel('bkl-klammern') === 'einfach' && plabel('bkl-sprache') === 'Sprache' &&
       !!pdoc.querySelector('#bkl-kopf #bkl-sprache') && /<script src="sprachen\.js"><\/script>\s*<script src="popup\.js">/.test(popupHtml) &&
       pdoc.getElementById('bkl-details-toggle').textContent.trim() === 'erweitert' &&
-      pdoc.getElementById('bkl-groesse').getAttribute('max') === '50' && ohne.length === 0 &&
+      pdoc.getElementById('bkl-groesse').getAttribute('max') === '50' && pdoc.getElementById('bkl-spalte').getAttribute('max') === '4000' && ohne.length === 0 &&
       !pdoc.getElementById('bkl-zaehler') && !!pdoc.getElementById('bkl-tooltip'), ohne.join(','));
     // Rohstrings vergleichen (jsdom serialisiert <path/> zu <path></path>)
     const popupIcons = popupHtml.match(/<span class="bkl-icon">(<svg[\s\S]*?<\/svg>)<\/span>/g) || [];
     const popupFlaggen = popupHtml.match(/<span class="bkl-flagge"[^>]*>[\s\S]*?<\/span>/g) || [];
-    pruefe('Pop-up-Icons identisch zu content.js (16 Colibre-SVGs, Marken-Icon pink, 4 Flaggen de/en/fr/it)',
-      popupIcons.length === 16 && popupIcons.every(function (z) {
+    pruefe('Pop-up-Icons identisch zu content.js (15 Colibre-SVGs, Marken-Icon pink, 4 Flaggen de/en/fr/it)',
+      popupIcons.length === 15 && popupIcons.every(function (z) {
         return SCRIPT.indexOf(z.replace(/^<span class="bkl-icon">|<\/span>$/g, '')) !== -1;
       }) && /fill="#d63384"/.test(pdoc.querySelector('h1 svg').outerHTML) &&
       popupFlaggen.length === 4 && popupFlaggen.every(function (z) { return SCRIPT.indexOf(z) !== -1; }) &&
@@ -935,23 +1001,30 @@ console.log('\n[7] Pop-up-Fenster');
       !/<script(?![^>]*\bsrc=)[^>]*>/.test(popupHtml) && /<script src="popup\.js">/.test(popupHtml) &&
       /font-size:\s*16px/.test(popupCss) && /input\[type="checkbox"\]\s*\{[^}]*width:\s*46px/.test(popupCss) &&
       /input\[type="checkbox"\]\s*\{[^}]*width:\s*40px/.test(SCRIPT));
-    // Design-Tokens („Klar", hell und dunkel): Pop-up-CSS (:root / body[data-schema])
-    // muss dieselben Werte tragen wie das Panel (:host / :host([data-schema])) in content.js.
+    // Design-Tokens („Klar", nur dunkel): Pop-up-CSS (:root) muss dieselben
+    // Werte tragen wie das Panel (:host) in content.js.
     function tokens(css, selektor) {
       const i = css.indexOf(selektor);
       const block = i === -1 ? '' : css.slice(i, css.indexOf('}', i));
       return (block.match(/--ui-[a-z0-9-]+:\s*[^;]+;/g) || []).map(function (z) { return z.replace(/\s+/g, ' '); });
     }
-    const hellPanel = tokens(SCRIPT, ':host {'), dunkelPanel = tokens(SCRIPT, ':host([data-schema="dunkel"])');
-    pruefe('Design-Tokens hell (18) und dunkel (17) im Pop-up-CSS identisch zum Panel; Schrift Atkinson Hyperlegible Next, Herz-Regler, Neon-Rand und Violett als Token; Titel fett ohne Versalien, Beschriftungen normal',
-      hellPanel.length === 18 && hellPanel.join('|') === tokens(popupCss, ':root {').join('|') &&
-      dunkelPanel.length === 17 && dunkelPanel.join('|') === tokens(popupCss, 'body[data-schema="dunkel"]').join('|') &&
-      /--ui-schrift: "Atkinson Hyperlegible Next"/.test(hellPanel.join('|')) && /--ui-herz: url\("data:image\/svg\+xml/.test(hellPanel.join('|')) &&
-      /--ui-rahmen: #f0329a/.test(hellPanel.join('|')) && /--ui-rahmen: #ff4fa3/.test(dunkelPanel.join('|')) && /--ui-violett: #/.test(hellPanel.join('|')) &&
+    const panelTokens = tokens(SCRIPT, ':host {');
+    pruefe('Design-Tokens (18, dunkel) im Pop-up-CSS identisch zum Panel; Schrift Atkinson Hyperlegible Next, Herz-Regler, Neon-Rand #ff4fa3 und Violett als Token; Titel fett ohne Versalien, Beschriftungen normal',
+      panelTokens.length === 18 && panelTokens.join('|') === tokens(popupCss, ':root {').join('|') &&
+      /--ui-bg: #16141a/.test(panelTokens.join('|')) && /--ui-schrift: "Atkinson Hyperlegible Next"/.test(panelTokens.join('|')) &&
+      /--ui-herz: url\("data:image\/svg\+xml/.test(panelTokens.join('|')) && /--ui-rahmen: #ff4fa3/.test(panelTokens.join('|')) &&
+      /--ui-violett: #/.test(panelTokens.join('|')) && /\ncolor-scheme|color-scheme: dark/.test(popupCss) && !/color-scheme:\s*light/.test(popupCss + SCRIPT) &&
       /\n\s*h2\s*\{[^}]*font-weight:\s*700/.test(SCRIPT) && /\nh1\s*\{[^}]*font-weight:\s*700/.test(popupCss) &&
       !/text-transform:\s*uppercase/.test(SCRIPT) && !/text-transform:\s*uppercase/.test(popupCss) &&
       /\n\s*label\s*\{[^}]*font-weight:\s*400/.test(SCRIPT) && /\nlabel\s*\{[^}]*font-weight:\s*400/.test(popupCss),
-      hellPanel.length + '/' + dunkelPanel.length);
+      String(panelTokens.length));
+    // Mittiger Dialog (Icon-Klick): dasselbe Panel mit den Massen des Pop-up-Fensters
+    pruefe('Mittiger Dialog (bkl-mittig) im Panel-CSS: 660px breit, zentriert, Schrift 16px wie popup.css; Schalter 46x26, Regler 240px, Auswahllisten 240px wie im Pop-up',
+      /#bkl-panel\.bkl-mittig\s*\{[^}]*top:\s*50%;[^}]*left:\s*50%;[^}]*transform:\s*translate\(-50%, -50%\);[^}]*width:\s*660px;[^}]*font-size:\s*16px/.test(SCRIPT) &&
+      /\.bkl-mittig input\[type="checkbox"\]\s*\{\s*width:\s*46px;\s*height:\s*26px/.test(SCRIPT) &&
+      /input\[type="checkbox"\]\s*\{[^}]*width:\s*46px;\s*height:\s*26px/.test(popupCss) &&
+      /\.bkl-mittig \.bkl-regler input\[type="range"\]\s*\{\s*width:\s*240px/.test(SCRIPT) && /\.bkl-regler input\[type="range"\]\s*\{\s*width:\s*240px/.test(popupCss) &&
+      /\.bkl-mittig select\s*\{\s*width:\s*240px/.test(SCRIPT) && /\nselect\s*\{[^}]*width:\s*240px/.test(popupCss));
     const fontUrls = [];
     popupCss.replace(/url\("(fonts\/[^"]+)"\)/g, function (m2, u) { fontUrls.push(u); return m2; });
     pruefe('Pop-up-CSS: pink, Vorschau-Regeln für alle Schriftarten/Hintergründe, 8 @font-face auf existierende Dateien (Atkinson 400 und 700)',
@@ -968,10 +1041,10 @@ console.log('\n[7] Pop-up-Fenster');
 
   // popup.js: Schlüssel/Standards wie content.js, lädt, speichert, synchronisiert
   {
-    pruefe('popup.js: gleicher Speicherschlüssel und gleiche Standardwerte wie content.js, kein Zähler mehr',
+    pruefe('popup.js: gleicher Speicherschlüssel und gleiche Standardwerte wie content.js (ohne oberflaecheDunkel), kein Zähler mehr',
       popupJs.indexOf(SCHLUESSEL) !== -1 && /schriftgroesse:\s*18/.test(popupJs) && /spaltenbreite:\s*800/.test(popupJs) &&
       /sprache:\s*'it'/.test(popupJs) && /sprache:\s*'it'/.test(SCRIPT) &&
-      /oberflaecheDunkel:\s*false/.test(popupJs) && /oberflaecheDunkel:\s*false/.test(SCRIPT) &&
+      !/oberflaecheDunkel:/.test(popupJs) && !/oberflaecheDunkel:/.test(SCRIPT) &&
       /zeilenabstand:\s*1\.6/.test(popupJs) && /ausrichtung:\s*'links'/.test(popupJs) && /spalten:\s*1\b/.test(popupJs) &&
       /absatzabstand:\s*0\b/.test(popupJs) && popupJs.indexOf('bger-reader-zaehler') === -1 &&
       SCRIPT.indexOf('bger-reader-zaehler') === -1);
@@ -1001,10 +1074,10 @@ console.log('\n[7] Pop-up-Fenster');
     spalten.value = '2'; ereignis(dom, spalten, 'change');
     const absatz = doc.getElementById('bkl-absatz');
     absatz.value = '1.5'; ereignis(dom, absatz, 'input');
-    pruefe('Pop-up speichert in denselben Speicher (aktiv, 2 Spalten, Absatzabstand 1.5); Fenster dunkel nach gespeichertem „Oberfläche dunkel"',
+    pruefe('Pop-up speichert in denselben Speicher (aktiv, 2 Spalten, Absatzabstand 1.5); veraltetes oberflaecheDunkel entfernt, kein data-schema',
       speicher[SCHLUESSEL].aktiv === true && speicher[SCHLUESSEL].spalten === 2 &&
       speicher[SCHLUESSEL].absatzabstand === 1.5 && doc.getElementById('bkl-absatz-w').textContent === '1.5' &&
-      doc.body.getAttribute('data-schema') === 'dunkel');
+      !('oberflaecheDunkel' in speicher[SCHLUESSEL]) && !doc.body.hasAttribute('data-schema'));
     listener[0]({ [SCHLUESSEL]: { newValue: { schriftgroesse: 26 } } }, 'local');
     pruefe('Änderung vom Seiten-Panel erscheint live im Fenster',
       doc.getElementById('bkl-groesse').value === '26' && doc.getElementById('bkl-groesse-w').textContent === '26');
@@ -1026,16 +1099,10 @@ console.log('\n[7] Pop-up-Fenster');
       doc.documentElement.lang === 'fr' && doc.querySelector('main').getAttribute('aria-label') === 'Paramètres bger reader' &&
       doc.getElementById('bkl-details').getAttribute('aria-label') === 'Paramètres avancés' && speicher[SCHLUESSEL].sprache === 'fr' &&
       doc.querySelector('.bkl-sprachwahl').getAttribute('data-sprache') === 'fr';
-    // Der Live-Sync oben hat alles auf Standard gesetzt (hell): Schalter an, zurücksetzen, aus.
-    const dunkelPop = doc.getElementById('bkl-dunkel');
-    ereignis(dom, Object.assign(dunkelPop, { checked: true }), 'change');
     klick(dom, doc.getElementById('bkl-reset'));
-    const dunkelBleibt = speicher[SCHLUESSEL].oberflaecheDunkel === true && doc.body.getAttribute('data-schema') === 'dunkel';
-    ereignis(dom, Object.assign(dunkelPop, { checked: false }), 'change');
-    pruefe('Pop-up: Start auf Italienisch; Französisch (Beschriftung, Fenstertitel, lang, Bereiche, Flagge, gespeichert); Zurücksetzen behält Sprache und dunkle Oberfläche, Breite 800; Schalter aus -> hell, gespeichert',
+    pruefe('Pop-up: Start auf Italienisch; Französisch (Beschriftung, Fenstertitel, lang, Bereiche, Flagge, gespeichert); Zurücksetzen behält die Sprache, Breite 800',
       startIt && uebersetzt && speicher[SCHLUESSEL].sprache === 'fr' && speicher[SCHLUESSEL].aktiv === false && sprache.value === 'fr' &&
-      doc.getElementById('bkl-reset').textContent.trim() === 'Réinitialiser' && doc.getElementById('bkl-spalte').value === '800' &&
-      dunkelBleibt && speicher[SCHLUESSEL].oberflaecheDunkel === false && doc.body.getAttribute('data-schema') === 'hell');
+      doc.getElementById('bkl-reset').textContent.trim() === 'Réinitialiser' && doc.getElementById('bkl-spalte').value === '800');
   }
 
   /* ---------- 8. bvger.weblaw.ch: React-App, nachgeladener Entscheid ---------- */

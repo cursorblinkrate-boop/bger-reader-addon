@@ -7,10 +7,12 @@
  * Voraussetzungen und Aufbau (lokaler Server, Adapter): test/browser-umgebung.js.
  *
  * Geprüft wird, was jsdom nicht kann: Injektion über das Manifest auf der
- * echten URL, Site-CSS-Kaskade, gebündelte Schriften (web_accessible_resources),
+ * echten URL, Sprache des Panels im echten Skript-Kontext (Firefox-Sandbox),
+ * Site-CSS-Kaskade, gebündelte Schriften (web_accessible_resources),
  * Speichern über Neuladen, Pop-up-Seite mit Live-Sync (storage.onChanged
- * zwischen zwei echten Kontexten), Zurücksetzen, http-Seite, Druckansicht
- * (Chromium/Edge). bvger.weblaw.ch (React-App, nicht lokal nachstellbar) wird
+ * zwischen zwei echten Kontexten), mittiger Dialog per Nachricht an den Tab,
+ * Zurücksetzen, http-Seite, Druckansicht (Chromium/Edge) und ein echtes PDF
+ * (druck.pdf, alle Browser). bvger.weblaw.ch (React-App, nicht lokal nachstellbar) wird
  * live geladen und ist nur ein Hinweis. Screenshots liegen danach in
  * test/smoke/<browser>/ (in der CI als Artefakt "smoke-<os>-<browser>"),
  * 1280 x 2000 und zu den Erwägungen gescrollt, damit ein grosser Abschnitt
@@ -67,6 +69,39 @@ const T = {
   popupKlick: `function (id) { document.getElementById(id).click(); }`,
   size30: `function () { return document.documentElement.style.getPropertyValue('--bkl-size') === '30px'; }`,
   zurueckgesetzt: `function () { return !document.documentElement.classList.contains('bkl-aktiv') && document.querySelectorAll('.bkl-fold').length === 0; }`,
+  // Aus der Pop-up-Seite (Extension-Kontext) dieselbe Nachricht an alle Tabs
+  // schicken, die background.js beim Icon-Klick an den aktiven Tab schickt;
+  // liefert, wie viele Tabs mit { ok: true } geantwortet haben (der Entscheid).
+  // chrome.* mit Callbacks gibt es in beiden Browsern; tabs.query ohne Recht
+  // „tabs" liefert nur IDs, mehr braucht es nicht.
+  dialogSenden: `function () {
+    function frage(id) {
+      return new Promise(function (r) {
+        try {
+          chrome.tabs.sendMessage(id, { typ: 'bger-reader-einstellungen' }, function (antwort) {
+            if (chrome.runtime.lastError) { r(null); return; }
+            r(antwort || null);
+          });
+        } catch (e) { r(null); }
+      });
+    }
+    return new Promise(function (fertig) {
+      chrome.tabs.query({}, function (tabs) {
+        Promise.all(tabs.map(function (t) { return frage(t.id); })).then(function (antworten) {
+          fertig(antworten.filter(function (a) { return a && a.ok === true; }).length);
+        });
+      });
+    });
+  }`,
+  // Druck: Farben, Breite und Panel im Druckmedium (emulateMedia)
+  druckStatus: `function () {
+    const host = document.getElementById('bkl-panel-host');
+    const middle = document.querySelector('div.eit .middle');
+    return { text: getComputedStyle(document.body).color, absatz: getComputedStyle(document.querySelector('div.paraatf')).color,
+             hintergrund: getComputedStyle(document.documentElement).backgroundColor,
+             middle: middle ? getComputedStyle(middle).width : null, float: middle ? getComputedStyle(middle).float : null,
+             host: getComputedStyle(host).display, folds: document.querySelectorAll('.bkl-fold').length };
+  }`,
   // Die App liefert den Entscheid in Etappen; erst der vollständige Text zählt.
   bvgerText: `function () { const b = document.querySelector('.bkl-text'); return !!b && b.querySelectorAll('p').length > 100; }`,
   bvgerStatus: `function () { const b = document.querySelector('.bkl-text'); return {
@@ -91,6 +126,12 @@ const T = {
     pruefe('Content-Skript läuft (Panel-Host mit Shadow DOM, Einstellungen geladen)', await U.warteBis(s, Q.bereit, null, 15000));
     let st = await s.js(Q.status);
     console.log('  Browser: ' + st.ua);
+    // Sprache im echten Skript-Kontext: in Firefox ist globalThis des Content-
+    // Skripts nicht window; über window.BGerReaderSprachen blieb das Panel
+    // deutsch, obwohl die Sprachwahl „Italiano" zeigte (0.10.0).
+    const beschriftung = await s.js(Q.panelBeschriftung, 'bkl-aktiv');
+    pruefe('Panel übersetzt (Standard Italienisch: „attivare", Flagge IT) – sprachen.js im Kontext des Content-Skripts gefunden',
+      beschriftung.text === 'attivare' && beschriftung.sprache === 'it' && beschriftung.wahl === 'it', JSON.stringify(beschriftung));
     pruefe('Entscheidabsätze da, Lesemodus anfangs aus, keine Folds',
       st.paraatf > 20 && !st.aktiv && st.folds === 0, JSON.stringify(st));
     st = await U.einschalten(s);
@@ -139,6 +180,23 @@ const T = {
       await popup.screenshot(path.join(BILDER, 'popup.png'));
       await popup.js(T.popupKlick, 'bkl-reset');
       pruefe('Zurücksetzen im Pop-up: Seite Lesemodus aus, Folds weg', await U.warteBis(s, T.zurueckgesetzt, null, 10000));
+      // Icon-Klick: dieselbe Nachricht wie aus background.js, hier aus der
+      // Pop-up-Seite an alle Tabs – genau ein Tab (der Entscheid) antwortet
+      // und zeigt das Panel als mittigen Dialog; die zweite Nachricht schliesst ihn.
+      await U.einschalten(s);
+      await s.js(Q.panelKlick, 'bkl-schliessen');
+      const antworten = await popup.js(T.dialogSenden);
+      await U.schlaf(300);
+      st = await s.js(Q.status);
+      const dialogOffen = antworten === 1 && st.panelOffen && st.mittig;
+      await s.js(Q.zumText);
+      await s.js(Q.fokusWeg);
+      await s.screenshot(path.join(BILDER, 'dialog-mittig.png'));
+      const antworten2 = await popup.js(T.dialogSenden);
+      await U.schlaf(300);
+      st = await s.js(Q.status);
+      pruefe('Nachricht an den Tab (Icon-Klick): mittiger Dialog offen, zweite Nachricht schliesst ihn',
+        dialogOffen && antworten2 === 1 && !st.panelOffen && !st.mittig, JSON.stringify({ antworten: antworten, antworten2: antworten2, st: st }));
       await popup.schliessen();
     }
 
@@ -151,13 +209,33 @@ const T = {
     await s.js(Q.fokusWeg);
     await s.screenshot(path.join(BILDER, 'relevancy.png'));
 
+    console.log('\n[6] Druck');
+    // Bildschirm: Schema Nacht, Breite 1400 px (Widescreen), OpenDyslexic – die
+    // Werte, mit denen das PDF der Autorin blass, verkleinert und rechts
+    // abgeschnitten war (0.10.0). Im Druck: schwarz auf weiss, Papierbreite,
+    // Klammern wie am Bildschirm (eingeklappt bleibt eingeklappt), Panel weg.
+    await s.js(Q.panelWert, { id: 'bkl-farbe', wert: 'nacht', ereignis: 'change' });
+    await s.js(Q.panelWert, { id: 'bkl-spalte', wert: '1400', ereignis: 'input' });
+    await s.js(Q.panelWert, { id: 'bkl-art', wert: 'opendyslexic', ereignis: 'change' });
     if (b.kannDruck) {
-      console.log('\n[6] Druckansicht');
       await s.druck(true);
       const druck = await s.js(T.foldZustand);
-      pruefe('Druck: Klammerinhalt sichtbar, Pfeil ausgeblendet',
-        !!druck && druck.inhalt === 'inline' && druck.knopf === 'none', JSON.stringify(druck));
+      const ds = await s.js(T.druckStatus);
+      pruefe('Druckmedium: Klammern wie am Bildschirm (eingeklappt, Pfeil sichtbar), Text schwarz auf weiss statt Nacht, .middle ohne 1400px und ohne float, Panel-Host ausgeblendet',
+        !!druck && druck.inhalt === 'none' && druck.knopf !== 'none' && ds.text === 'rgb(0, 0, 0)' && ds.absatz === 'rgb(0, 0, 0)' &&
+        ds.hintergrund === 'rgb(255, 255, 255)' && ds.middle !== '1400px' && ds.float === 'none' && ds.host === 'none' && ds.folds > 0,
+        JSON.stringify([druck, ds]));
       await s.druck(false);
+    }
+    if (s.pdf) {
+      // Echtes PDF wie „Als PDF sichern" – liegt als druck.pdf bei den Bildern
+      // (in der CI im Artefakt) zum Ansehen; hier nur, dass es entsteht.
+      try {
+        await s.pdf(path.join(BILDER, 'druck.pdf'));
+        pruefe('Druck als PDF erzeugt (druck.pdf, zum Ansehen)', fs.statSync(path.join(BILDER, 'druck.pdf')).size > 10000);
+      } catch (e) {
+        warnungen.push('PDF-Druck in diesem Browser nicht steuerbar: ' + String(e && e.message || e).slice(0, 120));
+      }
     }
 
     console.log('\n[7] bvger.weblaw.ch (live, React-App – informativ)');

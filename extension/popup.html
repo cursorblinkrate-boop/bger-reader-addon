@@ -1,6 +1,8 @@
 <!doctype html>
 <!-- bger reader – unabhängiges Projekt, nicht mit dem Schweizerischen Bundesgericht verbunden. 100 % offline, keine Datenerhebung. -->
-<!-- Mittiges Pop-up-Fenster (wird von background.js per Icon-Klick geöffnet):
+<!-- Einstellungsfenster (öffnet background.js per Icon-Klick, wenn im aktiven
+     Tab kein Entscheid liegt; auf einer Entscheidseite zeigt content.js
+     stattdessen denselben Inhalt als mittigen Dialog über der Seite):
      dieselben Einstellungen wie das Seiten-Panel, als eigenes Fenster mit
      grösserer Bedienfläche. Skripte/CSS extern (MV3-CSP erlaubt kein Inline-JS).
      Zeilen-Icons: Colibre (Standard-Icon-Thema von LibreOffice, CC0, siehe
@@ -60,15 +62,10 @@
           <option value="nacht">Nacht (rötlich)</option>
         </select>
       </div>
-      <div class="bkl-zeile">
-        <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m8 1a7 7 0 0 0 -7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7 7 7 0 0 0 -7-7z" fill="#fafafa"/><path d="m8 0c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 1c3.87 0 7 3.13 7 7 0 3.87-3.13 7-7 7z" fill="#3a3a38"/></svg></span>
-        <label for="bkl-dunkel">Oberfläche dunkel</label>
-        <input type="checkbox" id="bkl-dunkel" data-tooltip="Panel und Einstellungsfenster dunkel darstellen, unabhängig vom Hintergrund des Entscheids und nie nach dem System" aria-label="Bedienoberfläche dunkel darstellen">
-      </div>
       <div class="bkl-zeile bkl-regler">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m10 1h-4v6.11c0.24 0.08 0.46 0.21 0.62 0.39 0.27 0.3 0.38 0.67 0.38 1.01s-0.11 0.71-0.38 1.01c-0.16 0.18-0.38 0.31-0.62 0.39v5.08h4v-5.09c-0.24-0.08-0.46-0.22-0.62-0.39-0.27-0.3-0.38-0.66-0.38-1.01s0.11-0.71 0.38-1.01c0.16-0.18 0.38-0.31 0.62-0.39z" fill="#fafafa"/><path d="m11 0h-1-5v1h5v4h-4v-4h-1v4 0.36c0 0.03 0.01 0.05 0.01 0.07 0 0.06-0.01 0.12-0.01 0.18v0.38 1.01h0.48c0.17 0 0.35 0.03 0.52 0.09v-1.11h4v1.1c0.17-0.06 0.35-0.1 0.52-0.09h0.48v-1.4c-0.01-0.06-0.02-0.12-0.01-0.18 0-0.03 0.01-0.05 0.01-0.07zm0 10h-0.48c-0.17 0-0.35-0.03-0.52-0.09v1.09h-4v-1.08c-0.17 0.06-0.35 0.1-0.52 0.09h-0.48v0.99 0.33c0.01 0.09 0.02 0.17 0.02 0.25 0 0.04-0.01 0.08-0.02 0.11v3.3h1v-3h4v3h-5v1h5 1v-4.31c-0.01-0.04-0.02-0.07-0.02-0.11 0-0.08 0.01-0.17 0.02-0.25z" fill="#3a3a38"/><g fill="#1e8bcd" fill-rule="evenodd"><path d="m16 8.48c0-0.16-0.08-0.3-0.2-0.39l-2.95-2.94c-0.47-0.47-1.18 0.24-0.71 0.71l2.14 2.14-3.78 0.01c-0.68-0.01-0.68 1.01 0 1l3.78-0.01-2.14 2.15c-0.49 0.47 0.24 1.2 0.71 0.7l2.95-2.96c0.13-0.1 0.2-0.25 0.2-0.4z"/><path d="m0 8.49c0-0.16 0.08-0.3 0.2-0.39l2.95-2.94c0.47-0.47 1.18 0.24 0.71 0.71l-2.14 2.14 3.78 0.01c0.68-0.01 0.68 1.01 0 1l-3.78-0.01 2.14 2.15c0.49 0.47-0.24 1.2-0.71 0.7l-2.95-2.96c-0.13-0.1-0.2-0.25-0.2-0.4z"/></g></svg></span>
         <label for="bkl-spalte">Breite</label>
-        <input type="range" id="bkl-spalte" min="400" max="1400" step="25" data-tooltip="Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
+        <input type="range" id="bkl-spalte" min="400" max="4000" step="25" data-tooltip="Breite des Textrahmens in Pixel (Standard 800, die Seite selbst 625)" aria-label="Breite des Textrahmens in Pixel"><span class="bkl-wert" id="bkl-spalte-w"></span>
       </div>
       <div class="bkl-zeile">
         <span class="bkl-icon"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="m6 0c-1.1 0-2 0.9-2 2v12c0 1.1 0.9 2 2 2h1v-1h-1c-0.55 0-1-0.45-1-1v-8.28-3.72c0-0.55 0.43-1 1-1h1v-1zm3 0v1h1c0.55 0 1 0.45 1 1v3.72 8.28c0 0.55-0.45 1-1 1h-1v1h1c1.1 0 2-0.9 2-2v-12c0-1.1-0.62-2-2-2z" fill="#1e8bcd"/></svg></span>
@@ -140,7 +137,7 @@
         </select>
       </div>
       <div class="bkl-knopfreihe">
-        <button class="bkl-aktion" id="bkl-reset" data-tooltip="Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Sprache und dunkle Oberfläche bleiben." aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
+        <button class="bkl-aktion" id="bkl-reset" data-tooltip="Alle Einstellungen auf Standard zurücksetzen: Lesemodus aus, Schriftgrösse 18, Schriftart System Serif, Schriftstärke normal, Zeilenabstand 1.6, Absatzabstand aus, Buchstaben- und Wortabstand 0, Zeilenlänge aus, Silbentrennung aus, Ausrichtung links, 1 Spalte, Textbreite 800 px, Hintergrund Weiss, Klammern „einfach" ein. Die Sprache bleibt." aria-label="Alle Einstellungen auf Standard zurücksetzen">Zurücksetzen</button>
       </div>
     </section>
   </main>

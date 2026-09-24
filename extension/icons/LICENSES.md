@@ -8,7 +8,7 @@ Nachzeichnung davon (`ICON_MARKE` in content.js, gleicher String in popup.html).
 
 ## Zeilen-Icons: Colibre (LibreOffice)
 
-Die 16 Icons neben den Einstellungen stammen aus dem Icon-Thema **Colibre**,
+Die 15 Icons neben den Einstellungen stammen aus dem Icon-Thema **Colibre**,
 dem Standard-Icon-Thema von LibreOffice (Original-Autor: Andreas Kainz).
 
 - Quelle: https://github.com/LibreOffice/core/tree/master/icon-themes/colibre_svg/cmd
@@ -29,7 +29,6 @@ dem Standard-Icon-Thema von LibreOffice (Original-Autor: Andreas Kainz).
 | Schriftgrösse      | sc_grow.svg                          |
 | Schriftart         | sc_charfontname.svg                  |
 | Hintergrund        | sc_backgroundcolor.svg               |
-| Oberfläche dunkel  | sc_grafcontrast.svg                  |
 | Textbreite         | sc_setoptimalcolumnwidth.svg         |
 | einfach (Klammern) | sc_symbolshapes.bracket-pair.svg     |
 | Schriftstärke      | sc_bold.svg                          |

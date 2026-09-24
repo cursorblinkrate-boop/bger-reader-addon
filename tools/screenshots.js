@@ -16,8 +16,8 @@
  * Hintergrund über den ganzen Text gleichmässig sind (STARTPROMPT Regel 10).
  * Jede Szene ist zu den Erwägungen gescrollt; nur Szenen mit kopf: true
  * zeigen den Urteilskopf. Das Panel ist fast überall geschlossen – nur der
- * pinke Knopf rechts oben ist zu sehen –, offen nur in den zwei
- * Panel-Bildern; das Einstellungsfenster hat sein eigenes Bild. Grundschrift
+ * pinke Knopf rechts oben ist zu sehen –, offen nur in den Panel-Bildern
+ * und als mittiger Dialog; das Einstellungsfenster hat sein eigenes Bild. Grundschrift
  * der Funktionsbilder: OpenDyslexic. In der CI liegt alles als Artefakt
  * "screenshots-<os>-<browser>" beim Lauf.
  */
@@ -48,7 +48,6 @@ const BEDIENUNG = {
   spaltenbreite:    { id: 'bkl-spalte',        art: 'input' },
   silbentrennung:   { id: 'bkl-silben',        art: 'haekchen', erweitert: true },
   farbschema:       { id: 'bkl-farbe',         art: 'change' },
-  oberflaecheDunkel:{ id: 'bkl-dunkel',        art: 'haekchen' },
   klammern:         { id: 'bkl-klammern',      art: 'haekchen' },
   ausrichtung:      { id: 'bkl-ausrichtung',   art: 'change',   erweitert: true },
   spalten:          { id: 'bkl-spalten',       art: 'change',   erweitert: true },
@@ -58,13 +57,14 @@ const BEDIENUNG = {
 /* Die Szenen. e = Einstellungen zusätzlich zu Lesemodus an + OpenDyslexic
    (schriftart-Szenen setzen ihre eigene Schrift). store = 1280 x 800 für den
    Chrome Web Store (sonst 1280 x 2000). kopf = Urteilskopf statt Erwägungen.
-   panelAuf = Panel im Bild offen (sonst geschlossen, nur der pinke Knopf). */
+   panelAuf = Panel im Bild offen (sonst geschlossen, nur der pinke Knopf).
+   dialog = Panel als mittiger Dialog (wie nach dem Klick auf das Extension-Symbol). */
 const SZENEN = [
   { datei: '01-vor-dem-einschalten', titel: 'Vor dem Einschalten',
     text: 'Die Entscheidseite wie gewohnt. Neu ist nur der pinke Knopf rechts oben; er öffnet die Einstellungen.',
     e: { aktiv: false }, store: true, kopf: true },
   { datei: '02-panel', titel: 'Das Panel',
-    text: 'Ein Klick auf den pinken Knopf öffnet das Panel: Einschalten, Schriftgrösse, Schriftart, Hintergrund, Oberfläche dunkel, Textbreite und „einfach" (Klammern einklappen).',
+    text: 'Ein Klick auf den pinken Knopf öffnet das Panel: Einschalten, Schriftgrösse, Schriftart, Hintergrund, Textbreite und „einfach" (Klammern einklappen).',
     e: {}, panelAuf: true, store: true, kopf: true },
   { datei: '03-panel-erweitert', titel: 'Das Panel, erweitert',
     text: 'Unter „erweitert": Schriftstärke, Zeilen-, Absatz-, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten, Zurücksetzen.',
@@ -72,9 +72,12 @@ const SZENEN = [
   { datei: '04-panel-italienisch', titel: 'Das Panel auf Italienisch (Standardsprache)',
     text: 'Die Bedienoberfläche gibt es in Deutsch, Englisch, Französisch und Italienisch; Standard ist Italienisch, umschaltbar in der Kopfzeile (Flagge der gewählten Sprache).',
     e: { sprache: 'it' }, panelAuf: true, store: true, kopf: true },
-  { datei: '05-panel-franzoesisch-dunkel', titel: 'Das Panel auf Französisch, Oberfläche dunkel',
-    text: 'Der Schalter „Oberfläche dunkel" macht Panel und Einstellungsfenster dunkel – nach eigener Wahl, unabhängig vom Hintergrund und nie nach dem System.',
-    e: { sprache: 'fr', farbschema: 'dunkel', oberflaecheDunkel: true }, panelAuf: true, erweitert: true },
+  { datei: '05-panel-franzoesisch', titel: 'Das Panel auf Französisch, Hintergrund Dunkel',
+    text: 'Französische Oberfläche, erweitert, auf dem Hintergrund Dunkel. Das Panel selbst ist immer dunkel, unabhängig vom Hintergrund des Entscheids und nie nach dem System.',
+    e: { sprache: 'fr', farbschema: 'dunkel' }, panelAuf: true, erweitert: true },
+  { datei: '06-dialog-mittig', titel: 'Die Einstellungen mittig über dem Entscheid',
+    text: 'Ein Klick auf das Extension-Symbol in der Symbolleiste öffnet dieselben Einstellungen gross in der Mitte – der Entscheid bleibt sichtbar, jede Änderung ist sofort im Text zu sehen.',
+    e: { farbschema: 'sepia' }, dialog: true, erweitert: true, store: true },
 
   { datei: '10-schrift-atkinson', titel: 'Schriftart Atkinson Hyperlegible', text: 'Vom Braille Institute für gute Lesbarkeit entworfen: Buchstaben, die sich deutlich unterscheiden.', e: { schriftart: 'atkinson' } },
   { datei: '11-schrift-luciole', titel: 'Schriftart Luciole', text: 'Für sehbehinderte Menschen entwickelte Schrift (CTRDV, Frankreich).', e: { schriftart: 'luciole' } },
@@ -103,11 +106,11 @@ const SZENEN = [
   { datei: '41-klammer-aufgeklappt', titel: 'Eine Klammer aufgeklappt', text: 'Ein Klick auf den Pfeil zeigt die Fundstelle, ein zweiter klappt sie wieder ein.', e: {}, foldAuf: true, store: true },
   { datei: '42-klammern-aus', titel: '„einfach" ausgeschaltet', text: 'Der Entscheid mit allen Klammern, wie im Original.', e: { klammern: false }, store: true },
 
-  { datei: '50-popup', titel: 'Einstellungsfenster', text: 'Ein Klick auf das Extension-Symbol öffnet dieselben Einstellungen als eigenes Fenster; Änderungen wirken sofort auf der Seite.', popup: true },
+  { datei: '50-popup', titel: 'Einstellungsfenster', text: 'Liegt im aktiven Tab kein Entscheid, öffnet der Klick auf das Extension-Symbol dieselben Einstellungen als eigenes Fenster; Änderungen wirken sofort auf allen Entscheidseiten.', popup: true },
   { datei: '60-uebersicht-opendyslexic-sepia', titel: 'Übersicht: OpenDyslexic auf Sepia', text: 'Ein bis zwei Bildschirmseiten Entscheid am Stück.', e: { farbschema: 'sepia' } },
   { datei: '61-uebersicht-atkinson-nacht', titel: 'Übersicht: Atkinson Hyperlegible auf Nacht', text: 'Ein bis zwei Bildschirmseiten Entscheid am Stück.', e: { schriftart: 'atkinson', farbschema: 'nacht' } },
   { datei: '62-uebersicht-zwei-spalten', titel: 'Übersicht: zwei Spalten', text: 'Zeitungssatz über eine ganze Bildschirmseite.', e: { spalten: 2, spaltenbreite: 1000 } },
-  { datei: '70-druckansicht', titel: 'Druckansicht', text: 'Beim Drucken sind alle Klammern offen und die Pfeile weg.', e: {}, druck: true },
+  { datei: '70-druckansicht', titel: 'Druckansicht', text: 'Beim Drucken (auch als PDF): schwarz auf weiss in der gewählten Schrift, Text auf Papierbreite, eingeklappte Klammern bleiben eingeklappt.', e: { farbschema: 'nacht', spaltenbreite: 1400 }, druck: true },
   { datei: '80-bundesverwaltungsgericht', titel: 'Bundesverwaltungsgericht', text: 'Auch auf bvger.weblaw.ch: Typografie und eingeklappte Fundstellen.', e: { farbschema: 'sepia' }, seite: 'bvger' },
   // BGE 145 I 207 (Aufhebung der Abstimmung über die Heiratsstrafe-Initiative, 2019): französischsprachiger Entscheid auf der französischen Seite
   { datei: '90-franzoesisch-regeste', titel: 'Französische Seite', text: 'BGE 145 I 207, die Aufhebung der Volksabstimmung über die Heiratsstrafe-Initiative (2019): ein französischsprachiger Entscheid auf der französischen Oberfläche von bger.ch.', e: {}, seite: 'bgeFr', store: true, kopf: true },
@@ -126,6 +129,13 @@ const Z = {
     const s = document.getElementById('bkl-panel-host').shadowRoot;
     const offen = !s.getElementById('bkl-panel').hidden;
     if (offen !== an) s.getElementById(an ? 'bkl-button' : 'bkl-schliessen').click();
+  }`,
+  // Mittiger Dialog nur fürs Bild: wie der Icon-Klick (content.js setzt die
+  // Klasse bkl-mittig), hier ohne Umweg über background.js.
+  dialogAuf: `function () {
+    const s = document.getElementById('bkl-panel-host').shadowRoot;
+    if (s.getElementById('bkl-panel').hidden) s.getElementById('bkl-button').click();
+    s.getElementById('bkl-panel').classList.add('bkl-mittig');
   }`
 };
 
@@ -194,7 +204,8 @@ async function einstellen(seite, e) {
           const e = Object.assign({ aktiv: true, schriftart: 'opendyslexic', sprache: 'de' }, sz.e || {});
           await einstellen(s, e);
           await s.js(Z.detailsAuf, !!sz.erweitert);
-          await s.js(Z.panelAuf, !!sz.panelAuf);
+          await s.js(Z.panelAuf, !!sz.panelAuf || !!sz.dialog);
+          if (sz.dialog) await s.js(Z.dialogAuf);
           if (sz.foldAuf) await s.js(Z.foldAuf);
           if (sz.druck) await s.druck(true);
           await s.groesse(U.BREITE, sz.store ? U.HOEHE : U.HOCH);
