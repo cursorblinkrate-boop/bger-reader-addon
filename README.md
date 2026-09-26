@@ -7,15 +7,16 @@ Privates Projekt,  siehe: https://github.com/cursorblinkrate-boop/bger-reader-ad
 
 ## Unterstützte Seiten
 
-- `https://search.bger.ch/*` – Leitentscheide und alle weiteren Urteile ab 2000
+- `https://search.bger.ch/*` 
 - `https://relevancy.bger.ch/*` und `http://relevancy.bger.ch/*` 
 - `https://bvger.weblaw.ch/*`
 
 ## Datenschutz
 
-Die Erweiterung wird nur auf den vier genannten Adressen gestartet, hat keinen Zugriff auf das Internet und sammelt keine Daten. Einstellungen aus dem Einstellungsfeld, werden lokal in gespeichert. Kein Verlauf gelesener Entscheide, keine Statistik und keine Absturzberichte. Zum Melden von Sicherheitsproblemen siehe https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
+Läuft nur auf den unterstützten Seiten, kein Zugriff auf das Internet und keine Datensammlungen. Einstellungen aus dem Einstellungsfeld, werden lokal in gespeichert. Kein Verlauf gelesener Entscheide, keine Statistik und keine Absturzberichte. 
+Zum Melden von Sicherheitsproblemen siehe https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
 
-## Schriftarten (100% offline und lokal - in der Erweiterung gebündelt)
+## Schriftarten (100% offline / lokal - in der Erweiterung selbst gebündelt)
 
 Die Schriftdateien werden mitgeliefert - lokal komprimiert und eingebunden. Keine davon wird online gehostet oder runtergeladen. 
 
