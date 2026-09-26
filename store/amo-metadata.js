@@ -72,7 +72,12 @@ function uebersetzt(wert) {
   return o;
 }
 function amoHtml(text) {
-  const escapen = function (s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  /* Alle fünf HTML-Sonderzeichen, auch die Anführungszeichen: die Adressen
+     landen in href="…", ein " im Text dürfte das Attribut nicht sprengen
+     (CodeQL js/incomplete-html-attribute-sanitization). */
+  const escapen = function (s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
   const verlinken = function (s) {
     return s.replace(/https?:\/\/[^\s<]+/g, function (u) {
       const rest = (u.match(/[.,;:)]+$/) || [''])[0];
