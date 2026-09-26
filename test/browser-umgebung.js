@@ -57,7 +57,8 @@ const ENTSCHEID_NAME = 'BGE 116 Ia 359 (Frauenstimmrecht Appenzell Innerrhoden, 
 // Fest gewählte interne Firefox-UUID, damit moz-extension://<uuid>/popup.html bekannt ist.
 const FIREFOX_UUID = '7f4d8a3e-2b1c-4e5f-9a6b-0c1d2e3f4a5b';
 const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || '';
-const BREITE = 1280, HOEHE = 800; // Store-Format (Chrome Web Store: genau 1280 x 800)
+const BREITE = 1280, HOEHE = 800; // Store-Format (Chrome Web Store und Edge: 1280 x 800)
+const HOEHE_AMO = 960; // Firefox Add-ons (AMO): Vorschaubilder im Verhältnis 4:3, mindestens 1000 x 750
 const HOCH = 2000; // Prüfbilder: ein bis zwei Bildschirmseiten Entscheidtext (STARTPROMPT Regel 10)
 
 function schlaf(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -400,7 +401,7 @@ async function einschalten(seite) {
 
 module.exports = {
   WURZEL: WURZEL, EXT: EXT, FIXTURES: FIXTURES, SEITEN: SEITEN, ENTSCHEID_NAME: ENTSCHEID_NAME, BROWSER_NAMEN: BROWSER_NAMEN,
-  BREITE: BREITE, HOEHE: HOEHE, HOCH: HOCH, Q: Q,
+  BREITE: BREITE, HOEHE: HOEHE, HOEHE_AMO: HOEHE_AMO, HOCH: HOCH, Q: Q,
   schlaf: schlaf, fixturesPruefen: fixturesPruefen, serverStarten: serverStarten,
   browserStarten: browserStarten, warteBis: warteBis, einschalten: einschalten
 };

@@ -1,0 +1,36 @@
+{
+  "name": {
+    "en-US": "accessibility add-on for bger.ch and bvger.ch"
+  },
+  "summary": {
+    "en-US": "accessibility add-on: adjustable fonts, spacing, colours and citations for Swiss federal court decisions. 100 % offline."
+  },
+  "description": {
+    "en-US": "Free and open-source accessibility add-on for Swiss Federal Supreme Court decisions (search.bger.ch, relevancy.bger.ch) and the Swiss Federal Administrative Court (bvger.weblaw.ch). It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes (dark mode etc.) and folds citations in parentheses out of the way. Available in German, English, French and Italian. Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is storage, used to remember your settings.\n\nSupported pages: https://search.bger.ch/*, https://relevancy.bger.ch/*, http://relevancy.bger.ch/*, https://bvger.weblaw.ch/*\n\nFonts are bundled, none is hosted online or downloaded: Atkinson Hyperlegible Next, OpenDyslexic, Comic Neue, EB Garamond, Liberation Sans and Liberation Serif (SIL Open Font License 1.1), Luciole (CC BY 4.0), System Sans and System Serif (system default).\n\nPrivate project, not affiliated with the courts or Weblaw. Code (MIT): https://github.com/cursorblinkrate-boop/bger-reader-addon – bugs and security: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md"
+  },
+  "default_locale": "en-US",
+  "homepage": {
+    "en-US": "https://github.com/cursorblinkrate-boop/bger-reader-addon"
+  },
+  "support_url": {
+    "en-US": "https://github.com/cursorblinkrate-boop/bger-reader-addon/issues"
+  },
+  "support_email": {
+    "en-US": "bge.reader@gmail.com"
+  },
+  "categories": [
+    "appearance"
+  ],
+  "tags": [
+    "dark mode"
+  ],
+  "is_experimental": false,
+  "requires_payment": false,
+  "version": {
+    "license": "MIT",
+    "release_notes": {
+      "en-US": "Version 1.0.0. Changes are described (in German) in the changelog: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/CHANGELOG.md"
+    },
+    "approval_notes": "Test page (public, no login) – BGE 116 Ia 359, a 1990 judgment on women's suffrage:\nhttps://search.bger.ch/ext/eurospider/live/de/php/clir/http/index.php?highlight_docid=atf%3A%2F%2F116-IA-359%3Ade&lang=de&type=show_document\n\nSteps: 1) Open the page: a round pink button appears at the top right. 2) Click it: the settings panel opens. The interface defaults to Italian on purpose (the extension never reads the browser or page language); switch with the dropdown in the panel header (Deutsch / English / Français / Italiano). 3) Turn on the first switch (\"attiva\" / \"einschalten\" / \"enable\"): the typography changes and parentheses with citations fold into small arrows; click an arrow to expand a citation. 4) Try font, size and background; \"avanzate\" / \"erweitert\" / \"advanced\" shows the remaining settings. Settings survive a reload. 5) Click the toolbar icon: the same panel opens large over the decision; on a tab without a decision, a small settings window opens instead. 6) Print preview: black on white in the chosen font, folded parentheses stay folded.\n\n- No network activity: no fetch, XMLHttpRequest, WebSocket or sendBeacon anywhere, nothing is loaded remotely (DevTools → Network shows no request from the extension); all fonts are bundled (fonts/*.woff2).\n- Permissions: only \"storage\" (settings in storage.local). Content scripts run only on the three court sites listed in the manifest. No host_permissions, no \"tabs\" permission: the toolbar click uses tabs.sendMessage to the active tab.\n- innerHTML is used once (content.js, ~line 1600) to build the settings panel in a Shadow DOM from a static template literal; the only interpolated values are module constants (panel CSS, inline SVG icons, one fixed tooltip). No page content or user input is ever inserted via innerHTML; the decision text is changed with DOM methods only and every change is reversible.\n- data_collection_permissions: required [\"none\"] – the extension collects no data. Privacy policy: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/PRIVACY.md\n- No build step, no minification, no bundler, no third-party JavaScript: the uploaded ZIP is the source (git archive of extension/ at the tagged commit; SHA-256 published next to the GitHub release). Repository (MIT): https://github.com/cursorblinkrate-boop/bger-reader-addon\n- Fonts (SIL OFL 1.1; Luciole CC BY 4.0) are Latin subsets made with tools/subset-fonts.py from the upstream files, so the binaries differ from upstream downloads; licences in fonts/LICENSES.md and icons/LICENSES.md.\n- The manifest lists background as both service_worker (Chrome/Edge) and scripts (Firefox event page), same file; the linter warning BACKGROUND_SERVICE_WORKER_IGNORED is expected.\n- search.bger.ch sits behind a bot protection (Imperva): an automated or headless browser may receive a CAPTCHA page; a normal browser session works. relevancy.bger.ch (plain http) is a second entry point to the same decisions."
+  }
+}

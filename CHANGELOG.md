@@ -13,6 +13,29 @@ hinten bei Korrekturen.
 
 ---
 
+## 1.0.0 — 2026-09-26
+
+- **Erstveröffentlichung in den Stores** (Chrome Web Store, Firefox Add-ons,
+  Microsoft Edge Add-ons): 1.0.0 als erste stabile öffentliche Version. Die
+  Erweiterung selbst ist gegenüber 0.11.1 unverändert; neu sind Texte und
+  Werkzeuge für die Stores.
+- Manifest: Name „accessibility add-on for bger.ch and bvger.ch",
+  Kurzbeschreibung und Symbol-Titel aus `extension/_locales/en/messages.json`
+  (`__MSG_…__`, `default_locale` en) – nur Englisch, in allen Stores gleich
+  (Vorgabe der Autorin). Chrome Web Store und Edge zeigen die Kurzbeschreibung
+  als Store-Kurztext. Block [6] prüft Schlüssel und Längen (Name ≤ 50,
+  Kurzbeschreibung ≤ 132 Zeichen).
+- Neu: `PRIVACY.md` (englisch) – die Datenschutz-URL der drei Stores.
+- Neu: `store/` (nicht im Paket) – `listing.en.md` (der eine Store-Text),
+  Reviewer-Hinweise, AMO-Metadaten daraus erzeugt (`amo-metadata.js`),
+  Promo-Kachel 440 × 280, Marquee 1400 × 560 und Edge-Logo 300 × 300 aus
+  `ICON_MARKE` gerendert (`promo/render.js`), Screenshot-Auswahl aus den
+  CI-Artefakten, Ablauf für Updates (`STORE-UPDATE.md`).
+- `tools/screenshots.js`: Store-Szenen zusätzlich als 1280 × 960 unter `amo/`,
+  weil Firefox Add-ons Vorschaubilder im Verhältnis 4:3 verlangt.
+- Doku: STARTPROMPT (Struktur, Regeln 2, 7, 8); README ist die Fassung der
+  Autorin.
+
 ## 0.11.1 — 2026-09-24
 
 - Mittiger Dialog und Einstellungsfenster **700 px breit statt 660**

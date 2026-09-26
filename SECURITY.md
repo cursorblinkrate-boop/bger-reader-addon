@@ -12,7 +12,7 @@ If you find a security problem, please report it privately:
 
 1. Preferred: use GitHub's private reporting form under
    **Security → Report a vulnerability** in this repository.
-2. If GitHub is not reachable: send an e-mail to **bger.reader@gmail.com**.
+2. If GitHub is not reachable: send an e-mail to **bge.reader@gmail.com**.
 
 Please do not open a public issue for security problems.
 

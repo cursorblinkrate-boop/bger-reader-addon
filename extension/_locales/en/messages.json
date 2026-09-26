@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "accessibility add-on for bger.ch and bvger.ch",
+    "description": "Name of the extension: store listing, extension manager, toolbar. Chrome allows 75 characters, AMO 50."
+  },
+  "appDescription": {
+    "message": "accessibility add-on: adjustable fonts, spacing, colours and citations on bger.ch and bvger.ch. 100 % offline.",
+    "description": "Short description; Chrome Web Store and Edge show it as the store tagline. At most 132 characters."
+  },
+  "actionTitle": {
+    "message": "settings",
+    "description": "Tooltip of the toolbar icon; a click opens the settings."
+  }
+}
