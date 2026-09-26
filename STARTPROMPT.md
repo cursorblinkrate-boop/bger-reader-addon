@@ -59,14 +59,13 @@ extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
                           nie von Hand ändern (siehe tools/version.js). Name,
                           Kurzbeschreibung und Symbol-Titel sind Platzhalter
                           (__MSG_appName__ …), default_locale de
-extension/_locales/       messages.json je Sprache (de/en/fr/it): appName,
-                          appDescription, actionTitle. Chrome Web Store und Edge
-                          zeigen appDescription als Store-Kurztext (max. 132
-                          Zeichen) und erkennen daraus die Listing-Sprachen;
-                          Marke „BGer Reader" steht in jedem Namen (≤ 45
-                          Zeichen), der Zusatz ist je Sprache übersetzt. Block
-                          [6] prüft Schlüssel und Längen. Dieselben Texte
-                          stehen in store/listing.<sprache>.md
+extension/_locales/en/    messages.json: appName („accessibility add-on for
+                          bger.ch and bvger.ch"), appDescription, actionTitle –
+                          nur Englisch, überall gleich (Vorgabe der Autorin).
+                          Chrome Web Store und Edge zeigen appDescription als
+                          Store-Kurztext (max. 132 Zeichen); Name ≤ 50 (AMO).
+                          Block [6] prüft Schlüssel und Längen. Dieselben
+                          Texte stehen in store/listing.en.md
 extension/background.js   Service Worker/Event-Seite: Icon-Klick schickt dem
                           aktiven Tab eine Nachricht (tabs.sendMessage, kein
                           Recht nötig) -> content.js öffnet den mittigen
@@ -160,14 +159,15 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Test-Abhängigkeiten sind dort festgenagelt (jsdom,
                           Playwright, Selenium): neue Versionen bewusst
                           hochsetzen, im Workflow und im Setup unten.
-PRIVACY.md                Datenschutzerklärung in vier Sprachen, die
-                          Datenschutz-URL der drei Stores (GitHub-Link auf
-                          main); im README unter „Datenschutz" verlinkt
+PRIVACY.md                Datenschutzerklärung (englisch), die Datenschutz-URL
+                          der drei Stores (GitHub-Link auf main); im README
+                          unter „Datenschutz" verlinkt
 store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
-                          und CI packen nur extension/): listing.<de|en|fr|it>.md
-                          (Name, Kurz- und Langbeschreibung, Kategorie, Edge-
-                          Suchbegriffe, Single Purpose, Berechtigungs-
-                          Begründungen, Bildliste mit Unterschriften),
+                          und CI packen nur extension/): listing.en.md (der
+                          eine englische Text für alle drei Stores: Name, Kurz-
+                          und Langbeschreibung, Kategorie, Edge-Suchbegriffe,
+                          Single Purpose, Berechtigungs-Begründungen, Bildliste
+                          mit Unterschriften),
                           reviewer-notes.md (englisch: AMO „Notes to Reviewer",
                           Edge „Notes for certification"), amo-metadata.json
                           (web-ext sign --amo-metadata), promo/ (vorlage.html
@@ -175,9 +175,7 @@ store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
                           Edge-Logo 300x300, aus ICON_MARKE gerendert, nie
                           hochskaliert), screenshots/<chromium|firefox>/
                           (Auswahl aus den CI-Artefakten, Windows-Lauf),
-                          STORE-UPDATE.md (Ablauf je Store, Kennungen),
-                          TEXTE-PRUEFUNG.md (alle Laien-Texte DE/EN zur
-                          Prüfung durch die Autorin)
+                          STORE-UPDATE.md (Ablauf je Store, Kennungen)
 Kein Wiki, keine weitere Doku ausser README und CHANGELOG – bewusst.
 (SPRACHEN.md ist keine Doku, sondern die Arbeitstabelle der Übersetzungen;
 PRIVACY.md und store/ haben einen festen Zweck für die Stores und sind
@@ -220,9 +218,9 @@ alle zusammen installieren.
    Autorin SPRACHEN.md korrigiert: `node tools/sprachen-tabelle.js uebernehmen`,
    dann Suite. release.sh prüft, dass beide übereinstimmen.
    Name, Kurzbeschreibung und Symbol-Titel des Manifests: extension/_locales/
-   <sprache>/messages.json, alle vier Sprachen, Name mit Marke „BGer Reader"
-   ≤ 45 Zeichen, Kurzbeschreibung ≤ 132 Zeichen (Chrome/Edge zeigen sie im
-   Store); Block [6] prüft es. Gleicher Wortlaut in store/listing.<sprache>.md.
+   en/messages.json (nur Englisch), Name ≤ 50 Zeichen, Kurzbeschreibung ≤ 132
+   Zeichen (Chrome/Edge zeigen sie im Store); Block [6] prüft es. Gleicher
+   Wortlaut in store/listing.en.md (node store/amo-metadata.js prüft das).
    Änderungen daran sind nutzersichtbar (Store, Erweiterungsverwaltung) und
    brauchen eine neue Version.
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
@@ -241,13 +239,17 @@ alle zusammen installieren.
    auf eigenen Elementen — Null-Längen-Dashes ergeben bei square-linecap
    hässliche Quadrate.
 7. Antworte knapp, ohne Höflichkeitsfloskeln. Keine „Soll ich…?“-Vorschläge
-   ohne echten Mehrwert.
+   ohne echten Mehrwert. Stil der Autorin: kurz, direkt, ohne Umschweife;
+   wer 1000 Worte braucht, wo 10 reichen, überarbeitet. Alle Texte für
+   Nutzer (Stores, Manifest, PRIVACY) englisch, überall gleich, so kurz wie
+   möglich; keine Marke, der Name ist „accessibility add-on for bger.ch and
+   bvger.ch". Erst machen, nachbessern, wenn es Probleme gibt.
 8. Vor einem Store-Upload: die Bilder aus dem CI-Lauf ansehen (Artefakte
    screenshots-windows-latest-<browser> für den Store, smoke-… als
    Funktionsbilder), nicht nur den grünen Haken. Das Release-ZIP von
    github.com/…/releases hochladen, seine Prüfsumme steht daneben.
    Ablauf, Texte und Bilder je Store: store/STORE-UPDATE.md und
-   store/listing.<sprache>.md (Firefox Add-ons braucht Bilder im
+   store/listing.en.md (Firefox Add-ons braucht Bilder im
    Verhältnis 4:3, deshalb liegen die Store-Szenen zusätzlich als
    1280 x 960 unter amo/); nie Zugangsdaten oder API-Keys ins Repo.
 9. Echte Entscheide als Test- oder Beispielmaterial (Fixtures, Bilder,

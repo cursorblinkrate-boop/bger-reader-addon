@@ -885,12 +885,11 @@ console.log('\n[6] Paket');
     ['16', '48', '128'].every(function (g) {
       return fs.existsSync(path.join(EXT, manifest.icons[g])) && fs.existsSync(path.join(EXT, manifest.action.default_icon[g]));
     }));
-  // Name, Kurzbeschreibung und Symbol-Titel sind lokalisiert (_locales/<de|en|fr|it>/
-  // messages.json, Standard Deutsch): Chrome Web Store und Edge Add-ons zeigen die
-  // Kurzbeschreibung des Manifests als Store-Kurztext (Chrome: höchstens 132 Zeichen)
-  // und erkennen daraus die Listing-Sprachen; AMO erlaubt Namen bis 50 Zeichen,
-  // Chrome rät zu höchstens 45. Die Marke „BGer Reader" steht in jedem Namen.
-  const LOCALES = ['de', 'en', 'fr', 'it'];
+  // Name, Kurzbeschreibung und Symbol-Titel kommen aus _locales/en/messages.json
+  // (nur Englisch, überall gleich – Vorgabe der Autorin): Chrome Web Store und
+  // Edge zeigen die Kurzbeschreibung als Store-Kurztext (Chrome: höchstens 132
+  // Zeichen); AMO erlaubt Namen bis 50 Zeichen (Chrome 75).
+  const LOCALES = ['en'];
   const TEXTSCHLUESSEL = 'actionTitle,appDescription,appName';
   const textFehler = [];
   LOCALES.forEach(function (l) {
@@ -902,12 +901,12 @@ console.log('\n[6] Paket');
       const text = m[k] && m[k].message;
       const n = typeof text === 'string' ? Array.from(text.trim()).length : 0;
       if (n === 0) textFehler.push(l + '.' + k + ' leer');
-      if (k === 'appName' && (n > 45 || text.indexOf('BGer Reader') !== 0)) textFehler.push(l + ': Name ' + n + ' Zeichen / ohne Marke');
+      if (k === 'appName' && n > 50) textFehler.push(l + ': Name ' + n + ' Zeichen');
       if (k === 'appDescription' && n > 132) textFehler.push(l + ': Kurzbeschreibung ' + n + ' Zeichen');
     });
   });
-  pruefe('Manifest lokalisiert: default_locale de, Platzhalter __MSG_appName__/__MSG_appDescription__/__MSG_actionTitle__, messages.json in de/en/fr/it mit gleichen Schlüsseln, Name „BGer Reader …" <= 45 Zeichen, Kurzbeschreibung <= 132 Zeichen',
-    manifest.default_locale === 'de' && manifest.name === '__MSG_appName__' && manifest.description === '__MSG_appDescription__' &&
+  pruefe('Manifest-Texte: default_locale en, Platzhalter __MSG_appName__/__MSG_appDescription__/__MSG_actionTitle__, _locales/en/messages.json mit den drei Schlüsseln, Name <= 50 Zeichen, Kurzbeschreibung <= 132 Zeichen',
+    manifest.default_locale === 'en' && manifest.name === '__MSG_appName__' && manifest.description === '__MSG_appDescription__' &&
     manifest.action.default_title === '__MSG_actionTitle__' && textFehler.length === 0, textFehler.join('; '));
   const mitRuntime = domMitChrome(SYNTHESE, {}, { getURL: function (p) { return 'chrome-extension://testid/' + p; } });
   const css = mitRuntime.doc.getElementById('bkl-style').textContent;

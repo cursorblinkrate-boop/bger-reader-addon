@@ -10,7 +10,6 @@
  *   kachel-klein-440x280.png      Chrome Web Store: kleine Promo-Kachel (Pflicht); Edge optional
  *   kachel-marquee-1400x560.png   Chrome Web Store: Marquee (fürs Featuring); Edge optional
  *   logo-300x300.png              Edge Add-ons: Store-Logo (mindestens 128 x 128)
- *   *-lesbar.png                  Variante mit dem Claim „lesbar." statt „BGE · ATF · DTF"
  * PNG ohne Alphakanal (Chrome verlangt 24-bit PNG oder JPEG), erzeugt aus
  * Vektoren – nie ein hochskaliertes icon128.png (STARTPROMPT Regel 8).
  */
@@ -25,9 +24,7 @@ const VORLAGE = 'file://' + path.join(__dirname, 'vorlage.html');
 const BILDER = [
   { datei: 'kachel-klein-440x280.png',          hash: 'klein',          b: 440,  h: 280 },
   { datei: 'kachel-marquee-1400x560.png',       hash: 'marquee',        b: 1400, h: 560 },
-  { datei: 'logo-300x300.png',                  hash: 'logo',           b: 300,  h: 300 },
-  { datei: 'kachel-klein-440x280-lesbar.png',   hash: 'klein-lesbar',   b: 440,  h: 280 },
-  { datei: 'kachel-marquee-1400x560-lesbar.png', hash: 'marquee-lesbar', b: 1400, h: 560 }
+  { datei: 'logo-300x300.png',                  hash: 'logo',           b: 300,  h: 300 }
 ];
 
 /* PNG-Kopf lesen: Breite, Höhe, Farbtyp (2 = RGB ohne Alpha, 6 = RGBA). */

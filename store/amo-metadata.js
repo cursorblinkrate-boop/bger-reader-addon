@@ -6,19 +6,19 @@
  *
  * Eine Quelle, kein Auseinanderlaufen – alles kommt aus den Dateien, die die
  * Autorin ohnehin pflegt:
- *   store/listing.<de|en|fr|it>.md  Abschnitte 1–3: Name, Kurzbeschreibung,
- *                                   ausführliche Beschreibung
+ *   store/listing.en.md             Abschnitte 1–3: Name, Kurzbeschreibung,
+ *                                   Beschreibung (nur Englisch, Vorgabe der Autorin)
  *   store/reviewer-notes.md         Abschnitt „Kurzfassung" -> version.approval_notes
- *   CHANGELOG.md                    Abschnitt der aktuellen Version -> version.release_notes
- *   extension/_locales/<sprache>/messages.json  Abgleich: Name und Kurzbeschreibung
- *                                   müssen mit den Listing-Dateien übereinstimmen
+ *   CHANGELOG.md                    Abschnitt der aktuellen Version muss existieren
+ *   extension/_locales/en/messages.json  Abgleich: Name und Kurzbeschreibung
+ *                                   müssen mit listing.en.md übereinstimmen
  *
  * Aufruf (aus dem Repo-Wurzelverzeichnis):
  *   node store/amo-metadata.js           schreibt store/amo-metadata.json
  *   node store/amo-metadata.js pruefen   vergleicht nur (Exit 1 bei Abweichung)
  *
  * Format: addons-server API v5 „Add-on Create" – übersetzte Felder als Objekt mit
- * den AMO-Locale-Schlüsseln de, en-US, fr, it; Pflicht für ein neues gelistetes
+ * dem AMO-Locale-Schlüssel en-US; Pflicht für ein neues gelistetes
  * Add-on: categories, summary, version.license. Grenzen: Name 50, Summary 250
  * (ohne URLs oder Domains – AMO lehnt sie ab), Beschreibung 15 000,
  * approval_notes und release_notes je 3000 Zeichen.
@@ -29,21 +29,18 @@ const path = require('path');
 
 const WURZEL = path.join(__dirname, '..');
 const ZIEL = path.join(__dirname, 'amo-metadata.json');
-const LOCALES = { de: 'de', en: 'en-US', fr: 'fr', it: 'it' };
+const LOCALES = { en: 'en-US' };
 /* AMO-Kategorien für Erweiterungen (es gibt keine „Barrierefreiheit"; „other"
    ist nicht kombinierbar), Tags nur aus der festen AMO-Liste. */
 const KATEGORIEN = ['appearance'];
 const TAGS = ['dark mode'];
 const HOMEPAGE = 'https://github.com/cursorblinkrate-boop/bger-reader-addon';
 const SUPPORT_URL = HOMEPAGE + '/issues';
-const SUPPORT_EMAIL = 'bger.reader@gmail.com';
+const SUPPORT_EMAIL = 'bge.reader@gmail.com';
 /* Die Kurzbeschreibung des Manifests nennt die Domain bger.ch; die AMO-Summary
    darf keine URLs oder Domains enthalten (NoURLsValidator). */
 const ERSATZ = {
-  de: ['bger.ch und BVGer', 'Bundesgericht und BVGer'],
-  en: ['bger.ch and BVGer', 'Federal Supreme Court and BVGer'],
-  fr: ['bger.ch et TAF', 'Tribunal fédéral et TAF'],
-  it: ['bger.ch e TAF', 'Tribunale federale e TAF']
+  en: ['on bger.ch and bvger.ch', 'for Swiss federal court decisions']
 };
 const DOMAIN = /\b[\w-]+\.(ch|com|org|net|io|de|fr|it|eu)\b/i;
 
@@ -88,12 +85,8 @@ else pruefeLaenge('approval_notes', notizen.text, 3000);
 const changelog = fs.readFileSync(path.join(WURZEL, 'CHANGELOG.md'), 'utf8');
 const eintrag = abschnitte(changelog).filter(function (a) { return a.titel.indexOf(manifest.version + ' ') === 0; })[0];
 if (!eintrag) fehler.push('CHANGELOG.md: kein Abschnitt für Version ' + manifest.version);
-const notizDe = eintrag ? eintrag.text.replace(/\*\*/g, '').replace(/`/g, '') : '';
 const releaseNotes = {
-  'de': notizDe,
-  'en-US': 'Version ' + manifest.version + '. Changes are described in German in the changelog: ' + HOMEPAGE + '/blob/main/CHANGELOG.md',
-  'fr': 'Version ' + manifest.version + '. Les changements sont décrits en allemand dans le journal des modifications : ' + HOMEPAGE + '/blob/main/CHANGELOG.md',
-  'it': 'Versione ' + manifest.version + '. Le modifiche sono descritte in tedesco nel registro delle modifiche: ' + HOMEPAGE + '/blob/main/CHANGELOG.md'
+  'en-US': 'Version ' + manifest.version + '. Changes are described (in German) in the changelog: ' + HOMEPAGE + '/blob/main/CHANGELOG.md'
 };
 Object.keys(releaseNotes).forEach(function (l) { pruefeLaenge('release_notes ' + l, releaseNotes[l], 3000); });
 
@@ -106,7 +99,7 @@ const metadaten = {
   name: name,
   summary: summary,
   description: description,
-  default_locale: 'de',
+  default_locale: 'en-US',
   homepage: uebersetzt(HOMEPAGE),
   support_url: uebersetzt(SUPPORT_URL),
   support_email: uebersetzt(SUPPORT_EMAIL),

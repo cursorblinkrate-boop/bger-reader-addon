@@ -19,27 +19,22 @@ hinten bei Korrekturen.
   Microsoft Edge Add-ons): 1.0.0 als erste stabile öffentliche Version. Die
   Erweiterung selbst ist gegenüber 0.11.1 unverändert; neu sind Texte und
   Werkzeuge für die Stores.
-- Manifest lokalisiert: Name, Kurzbeschreibung und Symbol-Titel liegen in
-  `extension/_locales/` (de/en/fr/it, Standard Deutsch) mit echten Umlauten
-  (`__MSG_appName__`, `__MSG_appDescription__`, `__MSG_actionTitle__`,
-  `default_locale`). Chrome Web Store und Edge zeigen die Kurzbeschreibung als
-  Store-Kurztext und erkennen daraus die Listing-Sprachen; die Marke
-  „BGer Reader" steht in jedem Namen, der Zusatz ist je Sprache übersetzt.
-  Block [6] prüft gleiche Schlüssel und die Längen (Name ≤ 45, Kurzbeschreibung
-  ≤ 132 Zeichen).
-- Neu: `PRIVACY.md` – Datenschutzerklärung in vier Sprachen, die
-  Datenschutz-URL der drei Stores; im README verlinkt.
-- Neu: `store/` (nicht im Paket) – Store-Texte je Sprache
-  (`listing.<sprache>.md`), Reviewer-Hinweise, AMO-Metadaten aus den
-  Listing-Dateien erzeugt (`amo-metadata.js`), Promo-Kachel 440 × 280, Marquee
-  1400 × 560 und Edge-Logo 300 × 300 aus `ICON_MARKE` gerendert
-  (`promo/render.js`), Screenshot-Auswahl aus den CI-Artefakten, Ablauf für
-  Updates (`STORE-UPDATE.md`), alle Laien-Texte DE/EN zur Prüfung
-  (`TEXTE-PRUEFUNG.md`).
+- Manifest: Name „accessibility add-on for bger.ch and bvger.ch",
+  Kurzbeschreibung und Symbol-Titel aus `extension/_locales/en/messages.json`
+  (`__MSG_…__`, `default_locale` en) – nur Englisch, in allen Stores gleich
+  (Vorgabe der Autorin). Chrome Web Store und Edge zeigen die Kurzbeschreibung
+  als Store-Kurztext. Block [6] prüft Schlüssel und Längen (Name ≤ 50,
+  Kurzbeschreibung ≤ 132 Zeichen).
+- Neu: `PRIVACY.md` (englisch) – die Datenschutz-URL der drei Stores; im README
+  verlinkt.
+- Neu: `store/` (nicht im Paket) – `listing.en.md` (der eine Store-Text),
+  Reviewer-Hinweise, AMO-Metadaten daraus erzeugt (`amo-metadata.js`),
+  Promo-Kachel 440 × 280, Marquee 1400 × 560 und Edge-Logo 300 × 300 aus
+  `ICON_MARKE` gerendert (`promo/render.js`), Screenshot-Auswahl aus den
+  CI-Artefakten, Ablauf für Updates (`STORE-UPDATE.md`).
 - `tools/screenshots.js`: Store-Szenen zusätzlich als 1280 × 960 unter `amo/`,
   weil Firefox Add-ons Vorschaubilder im Verhältnis 4:3 verlangt.
-- Doku: README (Datenschutz, Stores, `_locales`, `store/`), STARTPROMPT
-  (Struktur, Regeln 2 und 8).
+- Doku: README (Fassung der Autorin), STARTPROMPT (Struktur, Regeln 2, 7, 8).
 
 ## 0.11.1 — 2026-09-24
 

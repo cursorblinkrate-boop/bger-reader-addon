@@ -1,14 +1,14 @@
 {
   "appName": {
-    "message": "BGer Reader – Swiss court decisions, readable",
-    "description": "Name der Erweiterung (Store-Eintrag, Erweiterungsverwaltung, Symbolleiste). Marke „BGer Reader“ gleich in allen Sprachen, Zusatz lokalisiert. Höchstens 45 Zeichen (Chrome-Empfehlung; AMO erlaubt 50)."
+    "message": "accessibility add-on for bger.ch and bvger.ch",
+    "description": "Name of the extension: store listing, extension manager, toolbar. Chrome allows 75 characters, AMO 50."
   },
   "appDescription": {
-    "message": "Read Swiss Federal Supreme Court decisions accessibly: fonts, spacing, colours, folded citations. bger.ch and BVGer. 100 % offline.",
-    "description": "Kurzbeschreibung. Chrome Web Store und Edge Add-ons zeigen sie als Kurztext im Store; höchstens 132 Zeichen (Chrome-Grenze)."
+    "message": "accessibility add-on: adjustable fonts, spacing, colours and citations on bger.ch and bvger.ch. 100 % offline.",
+    "description": "Short description; Chrome Web Store and Edge show it as the store tagline. At most 132 characters."
   },
   "actionTitle": {
-    "message": "BGer Reader – open settings",
-    "description": "Tooltip des Symbols in der Symbolleiste (Klick öffnet die Einstellungen)."
+    "message": "settings",
+    "description": "Tooltip of the toolbar icon; a click opens the settings."
   }
 }
