@@ -10,7 +10,7 @@ Name and short description are also in the package
 
 accessibility add-on for bger.ch and bvger.ch
 
-## Short description (manifest, 111 characters; Chrome/Edge ≤ 132)
+## Short description (manifest, 110 characters; Chrome/Edge ≤ 132)
 
 accessibility add-on: adjustable fonts, spacing, colours and citations on bger.ch and bvger.ch. 100 % offline.
 
