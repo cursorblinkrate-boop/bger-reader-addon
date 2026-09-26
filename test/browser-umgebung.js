@@ -101,7 +101,9 @@ function antworte(req, res) {
     const docid = decodeURIComponent((/highlight_docid=([^&]*)/.exec(req.url || '') || [])[1] || '');
     const nummer = (/atf:\/\/([0-9A-Za-z-]+:[a-z]{2})/.exec(docid) || [])[1];
     const datei = s.html[nummer];
-    if (!datei) { res.writeHead(404); res.end('unbekannter Entscheid: ' + docid); return; }
+    // 404 ohne Echo der Eingabe (CodeQL js/reflected-xss, CWE-79/116): der
+    // Wert aus der URL gehört nicht in die Antwort, auch nicht im Testserver.
+    if (!datei) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('unbekannter Entscheid'); return; }
     // Die Seiten sind ISO-8859-1 (wie der Live-Server sie ausliefert): als latin1
     // lesen und schreiben, damit kein Byte verändert wird. Absolute Verweise auf
     // den eigenen Host relativ machen (behalten so den lokalen Port). Fremde
