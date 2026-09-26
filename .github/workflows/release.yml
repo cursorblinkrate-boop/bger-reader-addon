@@ -227,3 +227,14 @@ jobs:
 
           SHA-256 von bger-reader-$VERSION.zip: \`$SUMME\`"
           echo "Release $TAG angelegt: $DATEI"
+
+      # Zweiter Anhang: Bilder und Texte zum Einfügen in die Store-Dashboards
+      # (store/assets-paket.js, nur Node und zip). Läuft auch, wenn das Release
+      # schon bestand – --clobber ersetzt eine ältere Datei gleichen Namens.
+      - name: Store-Assets an das Release hängen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node tools/version.js)"
+          node store/assets-paket.js
+          gh release upload "v$VERSION" "dist/store-assets-$VERSION.zip" --repo "$GITHUB_REPOSITORY" --clobber
