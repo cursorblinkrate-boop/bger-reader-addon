@@ -55,7 +55,7 @@ Schriftarten:
 - Comic Neue, EB Garamond, Liberation Sans und Liberation Serif
 - System Sans und System Serif (System-Default)
 
-Die Schriftdateien werden mitgeliefert; lokal - in der Erweiterung selbst gebündelt.
+Die Schriftdateien werden mitgeliefert und sind lokal - in der Erweiterung selbst gebündelt. Kein Verbindungsaufbau zu fremden Servern.
 
 Lizenz
 Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0.
