@@ -5,6 +5,9 @@ Edge Add-ons), English only, as short as possible – decision of the author.
 Name and short description are also in the package
 (`extension/_locales/en/messages.json`); keep both places identical.
 `amo-metadata.js` reads sections 1–3 of this file. Procedure: `STORE-UPDATE.md`.
+No lists of font names or other proper names in the description: the Chrome Web
+Store rejected the first submission (2026-09-26, "keyword spam") for exactly the
+two font lists; fonts are described generically, the list stays in the README.
 
 ## Name (manifest, 45 characters; Chrome allows 75, AMO 50)
 
@@ -28,7 +31,7 @@ https://bvger.weblaw.ch/*
 
 Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. Stores only the display settings locally in the browser (storage.local). Not affiliated with any courts, governments or Weblaw.
 
-Fonts: Atkinson Hyperlegible Next, OpenDyslexic, Comic Neue, EB Garamond, Liberation Sans and Liberation Serif (SIL Open Font License 1.1), Luciole (CC BY 4.0), System Sans and System Serif (system default).
+The fonts are bundled with the extension under open licences (SIL Open Font License 1.1, CC BY 4.0); the list is in the repository.
 
 Source code (MIT) is public: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
@@ -45,14 +48,10 @@ Die Erweiterung arbeitet vollständig im eigenen Browser. Sie baut keine Verbind
 Die Schriftdateien sind lokal - in der Erweiterung selbst - gebündelt. Kein Verbindungsaufbau zu irgendwelchen Servern.
 
 Schriftarten:
-- OpenDyslexic (https://opendyslexic.org)
-- Atkinson Hyperlegible Next (Braille Institute; https://www.brailleinstitute.org)
-- Luciole (https://www.luciole-vision.com)
-- Comic Neue, EB Garamond, Liberation Sans und Liberation Serif
-- System Sans und System Serif (System-Default)
+Schriften, die für Menschen mit Legasthenie oder Sehbeeinträchtigung entworfen wurden, dazu Serifen- und serifenlose Schriften sowie die Systemschriften; die Liste steht im Repository.
 
 Lizenz:
-Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0.
+Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1 bzw. Creative Commons BY 4.0.
 Die Icons neben den Einstellungen stammen aus dem Icon-Thema Colibre von LibreOffice (CC0), das Symbol der Erweiterung ist mit Claude erstellt worden. Quellcode (MIT) ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
 Das accessibility add-on ist ein privates Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden.

@@ -35,6 +35,14 @@ hinten bei Korrekturen.
   weil Firefox Add-ons Vorschaubilder im Verhältnis 4:3 verlangt.
 - Doku: STARTPROMPT (Struktur, Regeln 2, 7, 8); README ist die Fassung der
   Autorin.
+- Store-Einreichung: Firefox Add-ons am 26.09.2026 eingereicht (Slug
+  `accessibility-add-on-for-bgerc`). Chrome Web Store: erste Einreichung am
+  26.09.2026 wegen „Keyword-Spam" abgelehnt – beanstandet waren genau die
+  beiden Schriftarten-Listen in der Beschreibung. Beschreibung in
+  `store/listing.en.md` ohne Listen (Schriften generisch beschrieben, die
+  Liste bleibt im README), Paket unverändert, Neueinreichung mit demselben
+  Release. `store/chrome-store.js` (Chrome Web Store API: Paket hochladen,
+  einreichen, Status) wieder im Repo.
 
 ## 0.11.1 — 2026-09-24
 
