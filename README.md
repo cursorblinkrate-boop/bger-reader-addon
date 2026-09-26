@@ -1,4 +1,4 @@
-# Barrierefreie BGEs in Firefox, Chrome, Brave und Edge**
+# Barrierefreie BGEs in Firefox, Chrome, Brave und Edge
 Open-Source Browser-Erweiterung für BGEs und Bundesverwaltungsgerichtsentscheide (experimentell) - Schriftart, Schriftgrösse, Abstände, Zeilenlänge, Textbreite und Farbschema lassen sich frei einstellen. Die Erweiterung wird nur auf den vier genannten Adressen gestartet, hat keinen Zugriff auf das Internet und sammelt keine Daten. Einstellungen aus dem Einstellungsfeld, werden lokal in `storage`gespeichert. Kein Verlauf gelesener Entscheide, keine Statistik und kein Datensammeln für Absturzberichte. 
 
 Zum Melden von Bugs und Sicherheitsproblemen siehe: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
