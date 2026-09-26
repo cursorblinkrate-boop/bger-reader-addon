@@ -69,7 +69,7 @@ The extension improves the readability of decisions of the Swiss Federal Supreme
 
 ## Images and captions (order; images in `screenshots/`)
 
-Chrome (max. 5) and Edge (max. 6) from `screenshots/chromium/`, AMO from `screenshots/firefox/` (AMO shows captions):
+Chrome (max. 5) and Edge (max. 6) from `screenshots/chromium/` (1280 × 800), AMO from `screenshots/firefox/` (1280 × 960, 4:3 ratio as AMO requires; AMO shows captions):
 
 1. `02-panel.png` – The settings panel on the decision page: enable, font size, font, background, width, "simplify" (fold citations).
 2. `41-klammer-aufgeklappt.png` – Citations folded, one parenthesis opened with a click; references to statutes stay open.

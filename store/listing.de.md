@@ -69,7 +69,7 @@ Die Erweiterung verbessert die Lesbarkeit von Entscheiden des Bundesgerichts (bg
 
 ## Bilder und Bildunterschriften (Reihenfolge; Bilder in `screenshots/`)
 
-Chrome (max. 5) und Edge (max. 6) aus `screenshots/chromium/`, AMO aus `screenshots/firefox/` (AMO zeigt Bildunterschriften):
+Chrome (max. 5) und Edge (max. 6) aus `screenshots/chromium/` (1280 × 800), AMO aus `screenshots/firefox/` (1280 × 960, Verhältnis 4:3 – AMO verlangt das; AMO zeigt Bildunterschriften):
 
 1. `02-panel.png` – Das Einstellungsfeld auf der Entscheidseite: einschalten, Schriftgrösse, Schriftart, Hintergrund, Breite, „einfach" (Fundstellen einklappen).
 2. `41-klammer-aufgeklappt.png` – Fundstellen eingeklappt, eine Klammer per Klick geöffnet; Gesetzesverweise bleiben offen.
