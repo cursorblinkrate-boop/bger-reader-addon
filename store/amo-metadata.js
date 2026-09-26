@@ -14,8 +14,19 @@
  *                                   müssen mit listing.en.md übereinstimmen
  *
  * Aufruf (aus dem Repo-Wurzelverzeichnis):
- *   node store/amo-metadata.js           schreibt store/amo-metadata.json
- *   node store/amo-metadata.js pruefen   vergleicht nur (Exit 1 bei Abweichung)
+ *   node store/amo-metadata.js              schreibt store/amo-metadata.json
+ *   node store/amo-metadata.js pruefen      vergleicht nur (Exit 1 bei Abweichung)
+ *   node store/amo-metadata.js beschreibung gibt die Beschreibung so aus, wie sie
+ *                                           in das Feld „Beschreibung" des Developer
+ *                                           Hub gehört (zum Einfügen von Hand)
+ *
+ * AMO-Beschreibung: Das Feld kennt kein Markdown, nur diese HTML-Tags:
+ * a href, abbr, acronym, b, blockquote, code, em, i, li, ol, strong, ul;
+ * Zeilenumbrüche bleiben erhalten. amoHtml() wandelt den Klartext aus
+ * listing.en.md deshalb um: Zeilen, die mit „:" enden, fett; Zeilen mit „- "
+ * als Liste (eine Zeile, sonst entstehen Leerzeilen zwischen den Punkten);
+ * Adressen als Links; der Wortlaut bleibt unverändert (die Trennlinie „---"
+ * zwischen Englisch und Deutsch bleibt stehen, AMO kennt kein hr).
  *
  * Format: addons-server API v5 „Add-on Create" – übersetzte Felder als Objekt mit
  * dem AMO-Locale-Schlüssel en-US; Pflicht für ein neues gelistetes
@@ -60,6 +71,31 @@ function uebersetzt(wert) {
   Object.keys(LOCALES).forEach(function (l) { o[LOCALES[l]] = typeof wert === 'function' ? wert(l) : wert; });
   return o;
 }
+function amoHtml(text) {
+  const escapen = function (s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  const verlinken = function (s) {
+    return s.replace(/https?:\/\/[^\s<]+/g, function (u) {
+      const rest = (u.match(/[.,;:)]+$/) || [''])[0];
+      const url = u.slice(0, u.length - rest.length);
+      return '<a href="' + url + '">' + url + '</a>' + rest;
+    });
+  };
+  const zeilen = [];
+  let liste = [];
+  const listeSchliessen = function () {
+    if (liste.length) zeilen.push('<ul>' + liste.map(function (p) { return '<li>' + p + '</li>'; }).join('') + '</ul>');
+    liste = [];
+  };
+  text.split('\n').forEach(function (roh) {
+    const z = escapen(roh.trim());
+    if (/^- /.test(z)) { liste.push(verlinken(z.slice(2))); return; }
+    listeSchliessen();
+    if (/:$/.test(z) && z.length <= 60 && !/https?:/.test(z)) zeilen.push('<b>' + z + '</b>');
+    else zeilen.push(verlinken(z));
+  });
+  listeSchliessen();
+  return zeilen.join('\n');
+}
 
 const manifest = JSON.parse(fs.readFileSync(path.join(WURZEL, 'extension', 'manifest.json'), 'utf8'));
 const name = {}, summary = {}, description = {};
@@ -71,10 +107,11 @@ Object.keys(LOCALES).forEach(function (l) {
   if (kurz !== m.appDescription.message) fehler.push(l + ': Kurzbeschreibung in listing.' + l + '.md und _locales verschieden');
   const s = kurz.split(ERSATZ[l][0]).join(ERSATZ[l][1]);
   if (DOMAIN.test(s)) fehler.push(l + ': AMO-Summary enthält eine Domain: ' + s.match(DOMAIN)[0]);
+  const html = amoHtml(lang);
   pruefeLaenge(l + ' Name', n, 50);
   pruefeLaenge(l + ' Summary', s, 250);
-  pruefeLaenge(l + ' Beschreibung', lang, 15000);
-  name[LOCALES[l]] = n; summary[LOCALES[l]] = s; description[LOCALES[l]] = lang;
+  pruefeLaenge(l + ' Beschreibung', html, 15000);
+  name[LOCALES[l]] = n; summary[LOCALES[l]] = s; description[LOCALES[l]] = html;
 });
 
 const notizen = abschnitte(fs.readFileSync(path.join(__dirname, 'reviewer-notes.md'), 'utf8'))
@@ -115,7 +152,9 @@ const metadaten = {
 };
 const json = JSON.stringify(metadaten, null, 2) + '\n';
 
-if (process.argv[2] === 'pruefen') {
+if (process.argv[2] === 'beschreibung') {
+  console.log(description['en-US']);
+} else if (process.argv[2] === 'pruefen') {
   const alt = fs.existsSync(ZIEL) ? fs.readFileSync(ZIEL, 'utf8') : '';
   if (alt !== json) {
     console.error('store/amo-metadata.json ist nicht aktuell – bitte: node store/amo-metadata.js');
