@@ -170,12 +170,7 @@ store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
                           mit Unterschriften),
                           reviewer-notes.md (englisch: AMO „Notes to Reviewer",
                           Edge „Notes for certification"), amo-metadata.json
-                          (web-ext sign --amo-metadata), chrome-store.js
-                          (Chrome Web Store API v2: Release-ZIP von GitHub
-                          holen, Prüfsumme prüfen, hochladen, einreichen,
-                          Status; Zugangsdaten nur als Umgebungsvariablen
-                          CHROME_*; Erstveröffentlichung nur im Dashboard,
-                          die API legt kein Element an), promo/ (vorlage.html
+                          (web-ext sign --amo-metadata), promo/ (vorlage.html
                           + render.js -> Kachel 440x280, Marquee 1400x560,
                           Edge-Logo 300x300, aus ICON_MARKE gerendert, nie
                           hochskaliert), screenshots/<chromium|firefox>/
