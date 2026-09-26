@@ -29,7 +29,7 @@ Die Erweiterung arbeitet zu 100 % offline. Sie sendet keine Daten, lädt nichts 
 2. In Chrome, Brave oder Edge die Erweiterungsseite öffnen (`chrome://extensions`, `brave://extensions`, `edge://extensions`), den Entwicklermodus einschalten und mit «Entpackte Erweiterung laden» den entpackten Ordner wählen. In Firefox unter `about:debugging#/runtime/this-firefox` mit «Temporäres Add-on laden…» das ZIP wählen.
 3. Einen Entscheid auf `search.bger.ch`, `relevancy.bger.ch` oder `bvger.weblaw.ch` öffnen, oben rechts auf den pinken Knopf (oder auf das Symbol in der Symbolleiste) klicken und **einschalten** anhaken.
 
-Die Erweiterung ist bei den Browser-Stores eingereicht; nach der Freigabe wird die Installation ein einziger Klick. Jedes Release entsteht automatisch aus `main`, nachdem die Tests in echten Browsern grün waren, und trägt seine SHA-256-Prüfsumme als eigene Datei bei sich.
+Die Erweiterung wird beim Chrome Web Store, bei Firefox Add-ons und bei Microsoft Edge Add-ons eingereicht; nach der Freigabe wird die Installation ein einziger Klick. Jedes Release entsteht automatisch aus `main`, nachdem die Tests in echten Browsern grün waren, und trägt seine SHA-256-Prüfsumme als eigene Datei bei sich.
 
 ## Unterstützte Seiten
 
@@ -39,7 +39,7 @@ Die Erweiterung ist bei den Browser-Stores eingereicht; nach der Freigabe wird d
 
 ## Datenschutz
 
-Die Erweiterung wird nur auf den vier genannten Adressen gestartet und hat keinen Zugriff auf das Internet. Gespeichert werden ausschliesslich die Einstellungen aus dem Einstellungsfeld, lokal im Erweiterungsspeicher des Browsers, ohne Abgleich mit einem Konto; beim Entfernen der Erweiterung werden sie gelöscht. Es gibt keinen Verlauf gelesener Entscheide, keine Statistik und keine Absturzberichte. Zum Melden von Sicherheitsproblemen siehe [SECURITY.md](SECURITY.md).
+Die Erweiterung wird nur auf den vier genannten Adressen gestartet und hat keinen Zugriff auf das Internet. Gespeichert werden ausschliesslich die Einstellungen aus dem Einstellungsfeld, lokal im Erweiterungsspeicher des Browsers, ohne Abgleich mit einem Konto; beim Entfernen der Erweiterung werden sie gelöscht. Es gibt keinen Verlauf gelesener Entscheide, keine Statistik und keine Absturzberichte. Die vollständige Datenschutzerklärung in Deutsch, Englisch, Französisch und Italienisch steht in [PRIVACY.md](PRIVACY.md). Zum Melden von Sicherheitsproblemen siehe [SECURITY.md](SECURITY.md).
 
 ## Schriftarten
 
@@ -106,7 +106,7 @@ bash tools/fetch-fixtures.sh
 cd test && npm install --no-save jsdom@30.1.0 && node test-runner.js
 ```
 
-Erwartet wird «0 fehlgeschlagen». Die Texte der Bedienoberfläche in allen vier Sprachen stehen zum Prüfen und Korrigieren in [SPRACHEN.md](SPRACHEN.md); `node tools/sprachen-tabelle.js uebernehmen` schreibt Korrekturen in den Code zurück. Die Versionsnummer steht nur in `extension/manifest.json` und wird mit `node tools/version.js patch|minor|major` erhöht; `bash tools/release.sh` baut das Paket `dist/bger-reader-<Version>.zip`. Bei jedem Push auf `main` mit grünen Tests entsteht daraus automatisch ein GitHub-Release. Der [Änderungsverlauf](CHANGELOG.md) beschreibt, was sich von Version zu Version geändert hat; die Arbeitsregeln für Sessions mit Claude Code stehen in `STARTPROMPT.md`.
+Erwartet wird «0 fehlgeschlagen». Die Texte der Bedienoberfläche in allen vier Sprachen stehen zum Prüfen und Korrigieren in [SPRACHEN.md](SPRACHEN.md); `node tools/sprachen-tabelle.js uebernehmen` schreibt Korrekturen in den Code zurück. Name und Kurzbeschreibung der Erweiterung liegen in `extension/_locales/` (vier Sprachen), die Store-Texte, Bilder und der Ablauf für Einreichung und Updates in `store/`. Die Versionsnummer steht nur in `extension/manifest.json` und wird mit `node tools/version.js patch|minor|major` erhöht; `bash tools/release.sh` baut das Paket `dist/bger-reader-<Version>.zip`. Bei jedem Push auf `main` mit grünen Tests entsteht daraus automatisch ein GitHub-Release. Der [Änderungsverlauf](CHANGELOG.md) beschreibt, was sich von Version zu Version geändert hat; die Arbeitsregeln für Sessions mit Claude Code stehen in `STARTPROMPT.md`.
 
 ## Lizenz
 

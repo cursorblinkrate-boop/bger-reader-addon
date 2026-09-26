@@ -56,7 +56,17 @@ tools/sprachen-tabelle.js erzeugt SPRACHEN.md aus sprachen.js (ohne Argument),
                           schreibt sie zurück (uebernehmen), prüft (pruefen);
                           Block [4] prüft den Rundlauf
 extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
-                          nie von Hand ändern (siehe tools/version.js)
+                          nie von Hand ändern (siehe tools/version.js). Name,
+                          Kurzbeschreibung und Symbol-Titel sind Platzhalter
+                          (__MSG_appName__ …), default_locale de
+extension/_locales/       messages.json je Sprache (de/en/fr/it): appName,
+                          appDescription, actionTitle. Chrome Web Store und Edge
+                          zeigen appDescription als Store-Kurztext (max. 132
+                          Zeichen) und erkennen daraus die Listing-Sprachen;
+                          Marke „BGer Reader" steht in jedem Namen (≤ 45
+                          Zeichen), der Zusatz ist je Sprache übersetzt. Block
+                          [6] prüft Schlüssel und Längen. Dieselben Texte
+                          stehen in store/listing.<sprache>.md
 extension/background.js   Service Worker/Event-Seite: Icon-Klick schickt dem
                           aktiven Tab eine Nachricht (tabs.sendMessage, kein
                           Recht nötig) -> content.js öffnet den mittigen
@@ -150,8 +160,28 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Test-Abhängigkeiten sind dort festgenagelt (jsdom,
                           Playwright, Selenium): neue Versionen bewusst
                           hochsetzen, im Workflow und im Setup unten.
+PRIVACY.md                Datenschutzerklärung in vier Sprachen, die
+                          Datenschutz-URL der drei Stores (GitHub-Link auf
+                          main); im README unter „Datenschutz" verlinkt
+store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
+                          und CI packen nur extension/): listing.<de|en|fr|it>.md
+                          (Name, Kurz- und Langbeschreibung, Kategorie, Edge-
+                          Suchbegriffe, Single Purpose, Berechtigungs-
+                          Begründungen, Bildliste mit Unterschriften),
+                          reviewer-notes.md (englisch: AMO „Notes to Reviewer",
+                          Edge „Notes for certification"), amo-metadata.json
+                          (web-ext sign --amo-metadata), promo/ (vorlage.html
+                          + render.js -> Kachel 440x280, Marquee 1400x560,
+                          Edge-Logo 300x300, aus ICON_MARKE gerendert, nie
+                          hochskaliert), screenshots/<chromium|firefox>/
+                          (Auswahl aus den CI-Artefakten, Windows-Lauf),
+                          STORE-UPDATE.md (Ablauf je Store, Kennungen),
+                          TEXTE-PRUEFUNG.md (alle Laien-Texte DE/EN zur
+                          Prüfung durch die Autorin)
 Kein Wiki, keine weitere Doku ausser README und CHANGELOG – bewusst.
-(SPRACHEN.md ist keine Doku, sondern die Arbeitstabelle der Übersetzungen.)
+(SPRACHEN.md ist keine Doku, sondern die Arbeitstabelle der Übersetzungen;
+PRIVACY.md und store/ haben einen festen Zweck für die Stores und sind
+keine Anleitungen darüber hinaus.)
 
 == SETUP AUF FRISCHEM KLON ==
   git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git
@@ -189,6 +219,12 @@ alle zusammen installieren.
    Sprachen), dann `node tools/sprachen-tabelle.js` für SPRACHEN.md. Hat die
    Autorin SPRACHEN.md korrigiert: `node tools/sprachen-tabelle.js uebernehmen`,
    dann Suite. release.sh prüft, dass beide übereinstimmen.
+   Name, Kurzbeschreibung und Symbol-Titel des Manifests: extension/_locales/
+   <sprache>/messages.json, alle vier Sprachen, Name mit Marke „BGer Reader"
+   ≤ 45 Zeichen, Kurzbeschreibung ≤ 132 Zeichen (Chrome/Edge zeigen sie im
+   Store); Block [6] prüft es. Gleicher Wortlaut in store/listing.<sprache>.md.
+   Änderungen daran sind nutzersichtbar (Store, Erweiterungsverwaltung) und
+   brauchen eine neue Version.
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
    mit Begründung und Verifikationshinweis (siehe git log).
 4. Push: git push origin main — direkt auf main, keine Feature-Branches,
@@ -210,6 +246,10 @@ alle zusammen installieren.
    screenshots-windows-latest-<browser> für den Store, smoke-… als
    Funktionsbilder), nicht nur den grünen Haken. Das Release-ZIP von
    github.com/…/releases hochladen, seine Prüfsumme steht daneben.
+   Ablauf, Texte und Bilder je Store: store/STORE-UPDATE.md und
+   store/listing.<sprache>.md (Firefox Add-ons braucht Bilder im
+   Verhältnis 4:3, deshalb liegen die Store-Szenen zusätzlich als
+   1280 x 960 unter amo/); nie Zugangsdaten oder API-Keys ins Repo.
 9. Echte Entscheide als Test- oder Beispielmaterial (Fixtures, Bilder,
    Zitat-Beispiele in Tests, Kommentaren, Doku): nur inhaltlich harmlose.
    Grund: Wer die Tests laufen lässt, hat danach Dutzende Screenshots des

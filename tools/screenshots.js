@@ -11,9 +11,11 @@
  * Bildunterschrift je Bild – die Vorlage für README und Store-Texte.
  * Beispiel-Entscheid: BGE 116 Ia 359, das Frauenstimmrecht-Urteil von 1990
  * (U.SEITEN.bge). Szenen mit store: true sind 1280 x 800 (Chrome Web Store
- * verlangt genau das), alle anderen 1280 x 2000 – ein bis zwei
- * Bildschirmseiten Fliesstext, damit sichtbar ist, ob Schrift, Abstände und
- * Hintergrund über den ganzen Text gleichmässig sind (STARTPROMPT Regel 10).
+ * und Edge verlangen genau das) und liegen zusätzlich als 1280 x 960 unter
+ * amo/ (Firefox Add-ons verlangt das Verhältnis 4:3, mindestens 1000 x 750);
+ * alle anderen 1280 x 2000 – ein bis zwei Bildschirmseiten Fliesstext, damit
+ * sichtbar ist, ob Schrift, Abstände und Hintergrund über den ganzen Text
+ * gleichmässig sind (STARTPROMPT Regel 10).
  * Jede Szene ist zu den Erwägungen gescrollt; nur Szenen mit kopf: true
  * zeigen den Urteilskopf. Das Panel ist fast überall geschlossen – nur der
  * pinke Knopf rechts oben ist zu sehen –, offen nur in den Panel-Bildern
@@ -155,9 +157,9 @@ async function einstellen(seite, e) {
   const warnungen = [];
   U.fixturesPruefen(warnungen);
   fs.rmSync(AUSGABE, { recursive: true, force: true });
-  fs.mkdirSync(AUSGABE, { recursive: true });
+  fs.mkdirSync(path.join(AUSGABE, 'amo'), { recursive: true });
   const galerie = ['# Screenshots – ' + BROWSER, '',
-    'Erzeugt von tools/screenshots.js auf der echten Entscheidseite von ' + U.ENTSCHEID_NAME + '. Store-Bilder 1280 x 800, alle anderen 1280 x 2000; jede Szene zeigt die Erwägungen, ausser sie ist als Urteilskopf gekennzeichnet.', ''];
+    'Erzeugt von tools/screenshots.js auf der echten Entscheidseite von ' + U.ENTSCHEID_NAME + '. Store-Bilder 1280 x 800 (Chrome, Edge) und zusätzlich 1280 x 960 unter amo/ (Firefox Add-ons, Verhältnis 4:3), alle anderen 1280 x 2000; jede Szene zeigt die Erwägungen, ausser sie ist als Urteilskopf gekennzeichnet.', ''];
   let anzahl = 0;
 
   const server = await U.serverStarten();
@@ -213,6 +215,13 @@ async function einstellen(seite, e) {
           await s.js(Q.fokusWeg);
           await s.js(sz.kopf ? Q.zumKopf : Q.zumText);
           await s.screenshot(ziel);
+          if (sz.store) {
+            // Dieselbe Szene im Format für Firefox Add-ons (4:3), gleich gescrollt.
+            await s.groesse(U.BREITE, U.HOEHE_AMO);
+            await U.schlaf(200);
+            await s.js(sz.kopf ? Q.zumKopf : Q.zumText);
+            await s.screenshot(path.join(AUSGABE, 'amo', sz.datei + '.png'));
+          }
           if (sz.druck) await s.druck(false);
         }
         anzahl++;

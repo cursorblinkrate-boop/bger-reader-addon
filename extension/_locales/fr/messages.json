@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "BGer Reader – Tribunal fédéral & TAF lisibles",
+    "description": "Name der Erweiterung (Store-Eintrag, Erweiterungsverwaltung, Symbolleiste). Marke „BGer Reader“ gleich in allen Sprachen, Zusatz lokalisiert. Höchstens 45 Zeichen (Chrome-Empfehlung; AMO erlaubt 50)."
+  },
+  "appDescription": {
+    "message": "Arrêts du Tribunal fédéral accessibles : police, espacements, couleurs, références repliées. bger.ch et TAF. 100 % hors ligne.",
+    "description": "Kurzbeschreibung. Chrome Web Store und Edge Add-ons zeigen sie als Kurztext im Store; höchstens 132 Zeichen (Chrome-Grenze)."
+  },
+  "actionTitle": {
+    "message": "BGer Reader – ouvrir les paramètres",
+    "description": "Tooltip des Symbols in der Symbolleiste (Klick öffnet die Einstellungen)."
+  }
+}

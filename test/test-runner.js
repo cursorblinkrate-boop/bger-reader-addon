@@ -877,15 +877,38 @@ console.log('\n[6] Paket');
     fehlend.join(',') + ' ' + Math.round(fontBytes / 1024) + ' KB');
   const war = (manifest.web_accessible_resources || [])[0] || {};
   const MUSTER = ['https://search.bger.ch/*', 'https://relevancy.bger.ch/*', 'http://relevancy.bger.ch/*', 'https://bvger.weblaw.ch/*'];
-  pruefe('Manifest: sprachen.js vor content.js, fonts/*.woff2 für alle vier Seiten-Muster (bger.ch, bvger.weblaw.ch), Beschreibung <= 132 Zeichen, Icons 16/48/128 vorhanden, einziges Recht storage (kein tabs, keine host_permissions)',
+  pruefe('Manifest: sprachen.js vor content.js, fonts/*.woff2 für alle vier Seiten-Muster (bger.ch, bvger.weblaw.ch), Icons 16/48/128 vorhanden, einziges Recht storage (kein tabs, keine host_permissions)',
     manifest.content_scripts[0].js.join(',') === 'sprachen.js,content.js' && fs.existsSync(path.join(EXT, 'sprachen.js')) &&
     (manifest.permissions || []).join(',') === 'storage' && !manifest.host_permissions && !manifest.optional_permissions &&
     (war.resources || []).indexOf('fonts/*.woff2') !== -1 &&
     MUSTER.every(function (m) { return (war.matches || []).indexOf(m) !== -1 && manifest.content_scripts[0].matches.indexOf(m) !== -1; }) &&
-    manifest.description.length <= 132 &&
     ['16', '48', '128'].every(function (g) {
       return fs.existsSync(path.join(EXT, manifest.icons[g])) && fs.existsSync(path.join(EXT, manifest.action.default_icon[g]));
     }));
+  // Name, Kurzbeschreibung und Symbol-Titel sind lokalisiert (_locales/<de|en|fr|it>/
+  // messages.json, Standard Deutsch): Chrome Web Store und Edge Add-ons zeigen die
+  // Kurzbeschreibung des Manifests als Store-Kurztext (Chrome: höchstens 132 Zeichen)
+  // und erkennen daraus die Listing-Sprachen; AMO erlaubt Namen bis 50 Zeichen,
+  // Chrome rät zu höchstens 45. Die Marke „BGer Reader" steht in jedem Namen.
+  const LOCALES = ['de', 'en', 'fr', 'it'];
+  const TEXTSCHLUESSEL = 'actionTitle,appDescription,appName';
+  const textFehler = [];
+  LOCALES.forEach(function (l) {
+    const datei = path.join(EXT, '_locales', l, 'messages.json');
+    if (!fs.existsSync(datei)) { textFehler.push(l + ': messages.json fehlt'); return; }
+    const m = JSON.parse(fs.readFileSync(datei, 'utf8'));
+    if (Object.keys(m).sort().join(',') !== TEXTSCHLUESSEL) textFehler.push(l + ': Schlüssel ' + Object.keys(m).join(','));
+    Object.keys(m).forEach(function (k) {
+      const text = m[k] && m[k].message;
+      const n = typeof text === 'string' ? Array.from(text.trim()).length : 0;
+      if (n === 0) textFehler.push(l + '.' + k + ' leer');
+      if (k === 'appName' && (n > 45 || text.indexOf('BGer Reader') !== 0)) textFehler.push(l + ': Name ' + n + ' Zeichen / ohne Marke');
+      if (k === 'appDescription' && n > 132) textFehler.push(l + ': Kurzbeschreibung ' + n + ' Zeichen');
+    });
+  });
+  pruefe('Manifest lokalisiert: default_locale de, Platzhalter __MSG_appName__/__MSG_appDescription__/__MSG_actionTitle__, messages.json in de/en/fr/it mit gleichen Schlüsseln, Name „BGer Reader …" <= 45 Zeichen, Kurzbeschreibung <= 132 Zeichen',
+    manifest.default_locale === 'de' && manifest.name === '__MSG_appName__' && manifest.description === '__MSG_appDescription__' &&
+    manifest.action.default_title === '__MSG_actionTitle__' && textFehler.length === 0, textFehler.join('; '));
   const mitRuntime = domMitChrome(SYNTHESE, {}, { getURL: function (p) { return 'chrome-extension://testid/' + p; } });
   const css = mitRuntime.doc.getElementById('bkl-style').textContent;
   pruefe('@font-face: 14 Regeln über runtime.getURL mit font-display swap; ohne runtime (jsdom) keine',
