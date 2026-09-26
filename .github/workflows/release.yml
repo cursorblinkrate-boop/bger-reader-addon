@@ -227,3 +227,41 @@ jobs:
 
           SHA-256 von bger-reader-$VERSION.zip: \`$SUMME\`"
           echo "Release $TAG angelegt: $DATEI"
+
+      # Paket für Microsoft Edge Add-ons: das Hauptpaket ohne die zwei Firefox-
+      # Schlüssel des Manifests (Partner Center lehnt background.scripts in
+      # Manifest V3 ab; tools/edge-paket.js). Quelle ist bewusst der Anhang des
+      # Releases, nicht der aktuelle Commit: so gehört das Edge-Paket immer zu
+      # genau dem Hauptpaket, das im Release liegt – auch nachträglich für ein
+      # Release, das ohne Edge-Paket entstand. Ist es schon unverändert dort,
+      # passiert nichts.
+      - name: Edge-Paket aus dem Release-Anhang bauen und anhängen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node tools/version.js)"
+          TAG="v$VERSION"
+          HAUPT="bger-reader-$VERSION.zip"
+          EDGE="bger-reader-$VERSION-edge.zip"
+          mkdir -p /tmp/release
+          ( cd /tmp/release && gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$HAUPT" --pattern "$HAUPT.sha256" --clobber && sha256sum -c "$HAUPT.sha256" )
+          node tools/edge-paket.js --quelle "/tmp/release/$HAUPT"
+          NEU="$(cut -d' ' -f1 "/tmp/release/$EDGE.sha256")"
+          VORHANDEN="$(gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$EDGE.sha256" --output - 2>/dev/null | cut -d' ' -f1 || true)"
+          if [ "$VORHANDEN" = "$NEU" ]; then
+            echo "Edge-Paket liegt unverändert am Release ($NEU) – nichts zu tun."
+            exit 0
+          fi
+          gh release upload "$TAG" "/tmp/release/$EDGE" "/tmp/release/$EDGE.sha256" --repo "$GITHUB_REPOSITORY" --clobber
+          echo "Edge-Paket angehängt: $EDGE (SHA-256 $NEU)"
+
+      # Zweiter Anhang: Bilder und Texte zum Einfügen in die Store-Dashboards
+      # (store/assets-paket.js, nur Node und zip). Läuft auch, wenn das Release
+      # schon bestand – --clobber ersetzt eine ältere Datei gleichen Namens.
+      - name: Store-Assets an das Release hängen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node tools/version.js)"
+          node store/assets-paket.js
+          gh release upload "v$VERSION" "dist/store-assets-$VERSION.zip" --repo "$GITHUB_REPOSITORY" --clobber

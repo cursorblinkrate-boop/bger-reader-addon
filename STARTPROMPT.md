@@ -140,6 +140,12 @@ tools/version.js          Version anzeigen/erhöhen (patch|minor|major|x.y.z),
                           ergänzt zugleich einen CHANGELOG-Eintrag
 tools/release.sh          baut dist/bger-reader-<version>.zip aus extension/,
                           prüft Tests, Grösse (< 1023 KB) und Prüfsumme
+tools/edge-paket.js       baut aus dem Hauptpaket das Edge-Paket
+                          dist/bger-reader-<version>-edge.zip: Manifest ohne
+                          background.scripts und browser_specific_settings
+                          (Partner Center lehnt background.scripts in
+                          Manifest V3 ab), sonst byte-identisch; release.sh
+                          ruft es auf, die CI hängt es an jedes Release
 CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           der Abschnitt der aktuellen Version wird zur
                           Release-Notiz auf GitHub
@@ -152,9 +158,11 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Suite und grünem Smoke-Test zudem GitHub-Release
                           v<version>: das ZIP entsteht dort direkt aus dem
                           Commit (git archive, reproduzierbar, ohne npm in dem
-                          Job, der Schreibrechte hat), dazu die volle SHA-256
-                          als .sha256-Datei – DER Download-Ort für das
-                          Store-Paket (github.com/…/releases), nie „Download
+                          Job, der Schreibrechte hat), dazu das Edge-Paket
+                          bger-reader-<version>-edge.zip (tools/edge-paket.js,
+                          aus dem Release-Anhang) und je die volle SHA-256
+                          als .sha256-Datei – DER Download-Ort für die
+                          Store-Pakete (github.com/…/releases), nie „Download
                           ZIP" des Repos (heisst immer gleich, enthält alles).
                           Test-Abhängigkeiten sind dort festgenagelt (jsdom,
                           Playwright, Selenium): neue Versionen bewusst
@@ -170,12 +178,20 @@ store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
                           mit Unterschriften),
                           reviewer-notes.md (englisch: AMO „Notes to Reviewer",
                           Edge „Notes for certification"), amo-metadata.json
-                          (web-ext sign --amo-metadata), promo/ (vorlage.html
+                          (web-ext sign --amo-metadata), chrome-store.js
+                          (Chrome Web Store API v2: Release-ZIP von GitHub
+                          holen, Prüfsumme prüfen, hochladen, einreichen,
+                          Status; Zugangsdaten nur als Umgebungsvariablen
+                          CHROME_*; Store-Texte, Bilder und Datenschutz-
+                          Angaben setzt nur das Dashboard), promo/ (vorlage.html
                           + render.js -> Kachel 440x280, Marquee 1400x560,
                           Edge-Logo 300x300, aus ICON_MARKE gerendert, nie
                           hochskaliert), screenshots/<chromium|firefox>/
                           (Auswahl aus den CI-Artefakten, Windows-Lauf),
-                          STORE-UPDATE.md (Ablauf je Store, Kennungen)
+                          assets-paket.js (dist/store-assets-<version>.zip:
+                          Bilder und Texte zum Einfügen in die Dashboards,
+                          hängt die CI an jedes Release), STORE-UPDATE.md
+                          (Ablauf je Store, Kennungen, Verlauf)
 Kein Wiki, keine weitere Doku ausser README und CHANGELOG – bewusst.
 (SPRACHEN.md ist keine Doku, sondern die Arbeitstabelle der Übersetzungen;
 PRIVACY.md und store/ haben einen festen Zweck für die Stores und sind
@@ -213,6 +229,7 @@ alle zusammen installieren.
    TODO-Zeile vor dem Push ausgefüllt werden muss (Block [6] prüft das).
    Reine Test-/Tool-Commits ohne Bump.
    Paket bauen: `bash tools/release.sh` -> dist/bger-reader-<version>.zip
+   und dist/bger-reader-<version>-edge.zip
    Neue oder geänderte Texte der Bedienoberfläche: in sprachen.js (alle vier
    Sprachen), dann `node tools/sprachen-tabelle.js` für SPRACHEN.md. Hat die
    Autorin SPRACHEN.md korrigiert: `node tools/sprachen-tabelle.js uebernehmen`,
@@ -247,7 +264,8 @@ alle zusammen installieren.
 8. Vor einem Store-Upload: die Bilder aus dem CI-Lauf ansehen (Artefakte
    screenshots-windows-latest-<browser> für den Store, smoke-… als
    Funktionsbilder), nicht nur den grünen Haken. Das Release-ZIP von
-   github.com/…/releases hochladen, seine Prüfsumme steht daneben.
+   github.com/…/releases hochladen (Chrome, Firefox: bger-reader-<version>.zip;
+   Edge: bger-reader-<version>-edge.zip), seine Prüfsumme steht daneben.
    Ablauf, Texte und Bilder je Store: store/STORE-UPDATE.md und
    store/listing.en.md (Firefox Add-ons braucht Bilder im
    Verhältnis 4:3, deshalb liegen die Store-Szenen zusätzlich als
@@ -322,6 +340,12 @@ alle zusammen installieren.
 - search.bger.ch steht hinter einem Bot-Schutz (Imperva): Headless-Browser
   bekommen eine Captcha-Seite. Automatisierte Browser-Tests deshalb nie gegen
   die Live-Seite, sondern gegen die lokal ausgelieferten Fixtures.
+- Edge Add-ons (Partner Center) lehnt background.scripts in Manifest V3 ab
+  („cannot be used with manifest version 3"); Chrome >= 121 duldet scripts
+  neben service_worker, Firefox braucht scripts (Event-Seite, kein Service
+  Worker). Deshalb bekommt Edge ein eigenes Paket aus tools/edge-paket.js –
+  nie das Manifest für Edge von Hand ändern, nie ein lokal gebautes Paket
+  einreichen: die CI hängt bger-reader-<version>-edge.zip an das Release.
 
 Aktuelle Aufgabe: <hier eintragen>
 ```

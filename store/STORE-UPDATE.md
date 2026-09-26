@@ -1,14 +1,41 @@
 # Update in die drei Stores bringen
 
-1. Version erhöhen: `node tools/version.js patch|minor|major`, CHANGELOG-Eintrag ausfüllen, Suite grün, Push auf `main`. Die CI legt das Release `v<version>` mit `bger-reader-<version>.zip` und `.sha256` an (github.com/cursorblinkrate-boop/bger-reader-addon/releases). Nur dieses ZIP wird hochgeladen, nie ein lokal gebautes (STARTPROMPT Regel 8).
-2. Texte: nur Englisch, in allen drei Stores gleich (Vorgabe der Autorin). Name und Kurzbeschreibung liegen im Paket (`extension/_locales/en/messages.json`, Block [6] prüft die Längen), Beschreibung, Berechtigungs-Begründungen und Bildunterschriften in `store/listing.en.md` – sie werden im jeweiligen Dashboard von Hand eingetragen. Reviewer-Hinweise: `store/reviewer-notes.md`. Nach Textänderungen `node store/amo-metadata.js` (prüft auch, dass Listing und `_locales` übereinstimmen).
-3. Chrome Web Store: https://chrome.google.com/webstore/devconsole → Element → „Paket" → „Neues Paket hochladen" → Release-ZIP → Tabs „Store-Eintrag" und „Datenschutz" prüfen → „Zur Überprüfung einreichen". Prüfung: einige Tage, bis zu einige Wochen.
+1. Version erhöhen: `node tools/version.js patch|minor|major`, CHANGELOG-Eintrag ausfüllen, Suite grün, Push auf `main`. Die CI legt das Release `v<version>` mit `bger-reader-<version>.zip` (Chrome, Firefox), `bger-reader-<version>-edge.zip` (Edge: Manifest ohne `background.scripts` und `browser_specific_settings`, `tools/edge-paket.js`) und je `.sha256` an (github.com/cursorblinkrate-boop/bger-reader-addon/releases). Nur diese ZIPs werden hochgeladen, nie lokal gebaute (STARTPROMPT Regel 8).
+2. Texte: nur Englisch, in allen drei Stores gleich (Vorgabe der Autorin). Name und Kurzbeschreibung liegen im Paket (`extension/_locales/en/messages.json`, Block [6] prüft die Längen), Beschreibung, Berechtigungs-Begründungen und Bildunterschriften in `store/listing.en.md` – sie werden im jeweiligen Dashboard von Hand eingetragen. Keine Listen von Schrift- oder anderen Eigennamen in der Beschreibung (Chrome-Ablehnung vom 26.09.2026, „Keyword-Spam"). Reviewer-Hinweise: `store/reviewer-notes.md`. Nach Textänderungen `node store/amo-metadata.js` (prüft auch, dass Listing und `_locales` übereinstimmen).
+3. Chrome Web Store, Paket per API: `node store/chrome-store.js hochladen --einreichen` lädt das Release-ZIP von GitHub, prüft die SHA-256, lädt es auf das Element und reicht es zur Prüfung ein (nach Freigabe sofort veröffentlicht; `--gestuft` wartet auf den Klick im Dashboard); `node store/chrome-store.js status` zeigt Prüfstand und Versionen. Zugangsdaten nur als Umgebungsvariablen `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`, `CHROME_PUBLISHER_ID`, `CHROME_EXTENSION_ID` (Herkunft im Kopf des Skripts; Claude Code Web: Environment → Secrets), nie im Repo. Ohne API: https://chrome.google.com/webstore/devconsole → Element → „Paket" → „Neues Paket hochladen" → Release-ZIP → „Zur Überprüfung einreichen". Store-Texte, Bilder und Datenschutz-Angaben ändert nur das Dashboard (Tabs „Store-Eintrag", „Datenschutz"); die API kennt dafür keine Felder. Prüfung: Stunden bis einige Tage.
 4. Firefox Add-ons (AMO): headless mit `web-ext sign --channel listed --source-dir <entpacktes Release-ZIP> --amo-metadata store/amo-metadata.json` (API-Keys als Umgebungsvariablen `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET`, nie im Repo) – oder https://addons.mozilla.org/developers/ → Add-on → „Neue Version hochladen". Listed-Versionen werden nach der automatischen Prüfung signiert und veröffentlicht; eine manuelle Prüfung kann folgen. Beschreibung von Hand im Developer Hub eintragen: `node store/amo-metadata.js beschreibung` gibt sie im AMO-Format aus (erlaubte HTML-Tags, kein Markdown).
-5. Microsoft Edge Add-ons: https://partner.microsoft.com/dashboard/microsoftedge → Erweiterung → „Update" → Release-ZIP → Listing prüfen → „Publish". Zertifizierung bis zu 7 Werktage.
+5. Microsoft Edge Add-ons: https://partner.microsoft.com/dashboard/microsoftedge → Erweiterung → „Packages" → `bger-reader-<version>-edge.zip` (das Hauptpaket lehnt Partner Center ab: `background.scripts`) → Listing prüfen → „Publish". Zertifizierung bis zu 7 Werktage. Die Edge-API (Partner Center → „Publish API": Client-ID und API-Key) kann nur Pakete hochladen und veröffentlichen, keine Texte ändern und keine neue Erweiterung anlegen.
 6. Bilder nur bei sichtbaren Änderungen an Panel, Dialog oder Pop-up neu: CI-Artefakte `screenshots-windows-latest-chromium` (Chrome, Edge: die 1280 × 800 im Wurzelordner) und `screenshots-windows-latest-firefox` (AMO: die 1280 × 960 aus dem Unterordner `amo/`, Verhältnis 4:3) des Release-Laufs herunterladen, Auswahl nach `store/screenshots/<browser>/` (Liste und Reihenfolge in `listing.en.md`), jedes Bild ansehen. Promo-Kacheln und Edge-Logo: `node store/promo/render.js`.
-7. Nach jeder Einreichung: Status im Dashboard prüfen, Ablehnungsgründe im CHANGELOG der Folgeversion nennen.
+7. Nach jeder Einreichung: Status im Dashboard prüfen, Ablehnungsgründe im CHANGELOG der Folgeversion nennen und unten im Verlauf eintragen.
 
-Kennungen (nach der Erstveröffentlichung eintragen):
-- Chrome Web Store, Element-ID: …
-- AMO, Slug / Add-on-ID: … / bger-reader@bge.reader
-- Edge Add-ons, Produkt-ID: …
+## Erstveröffentlichung (einmalig; Felder von Hand, Texte aus `listing.en.md`)
+
+Voraussetzungen. Chrome Web Store: Entwicklerkonto (einmalig 5 USD), Google-Konto mit Bestätigung in zwei Schritten, im Tab „Konto" Kontakt-E-Mail bestätigt und Händlerstatus erklärt (EU-DSA; Privatprojekt = kein Händler) – ohne das lässt sich nicht einreichen. Edge: Partner-Center-Konto mit Microsoft-Konto (Outlook/Live/Hotmail oder Anmeldung über GitHub; kein Firmen-/Schulkonto), im Programm „Microsoft Edge" registriert (kostenlos, Kontotyp „Individual"). Edge lehnt das Hauptpaket ab („The background.scripts field cannot be used with manifest version 3"): dort nur `bger-reader-<version>-edge.zip` hochladen. Chrome: Warnungen zu `browser_specific_settings` oder `background.scripts` (Firefox-Teile des Manifests) sind erwartet, keine Ablehnung. Alle Bilder und Texte zum Einfügen liegen als `store-assets-<version>.zip` beim GitHub-Release (baut die CI mit `store/assets-paket.js`; lokal: `node store/assets-paket.js` → `dist/`).
+
+Chrome Web Store (erledigt am 26.09.2026, Element-ID unten): Dashboard → „Neues Element" → Release-ZIP.
+- „Store-Eintrag": Beschreibung = „Description"; Kategorie Accessibility; Sprache English; Store-Symbol `extension/icons/icon128.png`; Screenshots 1–5 aus `screenshots/chromium/` in der Reihenfolge der Bildliste; kleine Werbekachel `promo/kachel-klein-440x280.png` (Pflicht), Marquee `promo/kachel-marquee-1400x560.png`; Homepage- und Support-URL aus „Addresses", „Offizielle URL" leer lassen (nur verifizierte Websites); keine nicht jugendfreien Inhalte, keine Analytics-ID.
+- „Datenschutz": Einzelzweck = „Single purpose"; Begründungen für `storage` und für die Host-Berechtigung (die `content_scripts`-Muster) = „Permissions – justifications"; Remote-Code: nein; Datennutzung: keine Kategorie ankreuzen, die drei Zusicherungen bestätigen; Datenschutzerklärung = PRIVACY-Link.
+- „Vertrieb": kostenlos, Sichtbarkeit öffentlich, alle Regionen.
+- „Zur Überprüfung einreichen"; automatische Veröffentlichung nach der Prüfung eingeschaltet lassen. Element-ID = die 32 Buchstaben in der URL des Elements.
+- Nach einer Ablehnung: Mail lesen (Verstoss und beanstandete Stelle stehen darin), Text in `listing.en.md` korrigieren, im Dashboard unter „Store-Eintrag" ersetzen, erneut „Zur Überprüfung einreichen". „Einspruch einlegen" nur, wenn die Beanstandung sachlich falsch ist.
+
+Edge Add-ons (offen): Partner Center → „Create new extension" → `bger-reader-<version>-edge.zip` → „Continue".
+- „Availability": Public, alle Märkte.
+- „Properties": Kategorie Accessibility; Website = Homepage; Support contact = Issues-URL; „Mature content" nicht ankreuzen.
+- „Privacy": Single Purpose = „Single purpose"; Permission justification für `storage` = Text aus „Permissions – justifications"; Remote code: „No"; Data usage: keine Kategorie ankreuzen, die Zusicherungen bestätigen; Privacy Policy URL = PRIVACY-Link.
+- „Store listings" → English (United States) → „Edit details": Beschreibung = „Description" (250–10 000 Zeichen; Name und Kurzbeschreibung kommen aus dem Manifest und sind schreibgeschützt); Extension logo `promo/logo-300x300.png` (Pflicht); Screenshots (max. 6) aus `screenshots/chromium/` in der Reihenfolge der Bildliste; kleine und grosse Werbekachel optional; Search terms = „Search terms Edge"; „Save draft".
+- „Publish" → „Notes for certification" = Kurzfassung aus `reviewer-notes.md` → „Publish". Produkt-ID = GUID in der URL der Erweiterung (zwischen `microsoftedge/` und `/packages`).
+
+AMO (erledigt am 26.09.2026): erste Version wie Schritt 4 (`web-ext sign` legt das gelistete Add-on aus `amo-metadata.json` an). Bilder lädt die API nicht: danach im Developer Hub die sechs Bilder aus `screenshots/firefox/` mit Unterschriften hochladen.
+
+## Kennungen
+
+- Chrome Web Store, Element-ID (`CHROME_EXTENSION_ID`): `kobgnclomglmgafhellfbdbfjfedokdf` / Publisher-ID (`CHROME_PUBLISHER_ID`): … (Dashboard → „Konto")
+- AMO, Slug / Add-on-ID: `accessibility-add-on-for-bgerc` / `bger-reader@bge.reader` – https://addons.mozilla.org/en-US/firefox/addon/accessibility-add-on-for-bgerc/
+- Edge Add-ons, Produkt-ID: … (nach der Erstveröffentlichung)
+
+## Verlauf
+
+- 2026-09-26 AMO: 1.0.0 eingereicht (`web-ext sign`, automatische Prüfung), Freigabe ausstehend.
+- 2026-09-26 Chrome: 1.0.0 eingereicht und abgelehnt („Keyword-Spam", Referenz „Yellow Argon": die beiden Schriftarten-Listen der Beschreibung). Beschreibung ohne Listen, Paket unverändert, Neueinreichung im Dashboard.
+- 2026-09-26 Edge: Partner-Center-Konto registriert. Upload von `bger-reader-1.0.0.zip` abgelehnt („The background.scripts field cannot be used with manifest version 3"); seither eigenes Edge-Paket (`tools/edge-paket.js`), Einreichung mit `bger-reader-1.0.0-edge.zip` offen.

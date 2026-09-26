@@ -35,6 +35,23 @@ hinten bei Korrekturen.
   weil Firefox Add-ons Vorschaubilder im Verhältnis 4:3 verlangt.
 - Doku: STARTPROMPT (Struktur, Regeln 2, 7, 8); README ist die Fassung der
   Autorin.
+- Store-Einreichung: Firefox Add-ons am 26.09.2026 eingereicht (Slug
+  `accessibility-add-on-for-bgerc`). Chrome Web Store: erste Einreichung am
+  26.09.2026 wegen „Keyword-Spam" abgelehnt – beanstandet waren genau die
+  beiden Schriftarten-Listen in der Beschreibung. Beschreibung in
+  `store/listing.en.md` ohne Listen (Schriften generisch beschrieben, die
+  Liste bleibt im README), Paket unverändert, Neueinreichung mit demselben
+  Release. `store/chrome-store.js` (Chrome Web Store API: Paket hochladen,
+  einreichen, Status) wieder im Repo.
+- Microsoft Edge Add-ons: Partner Center lehnt das Hauptpaket ab („The
+  background.scripts field cannot be used with manifest version 3", Upload
+  vom 26.09.2026) – `background.scripts` ist der Firefox-Teil des Manifests,
+  Chrome ≥ 121 duldet ihn neben `service_worker`. Neu `tools/edge-paket.js`:
+  baut aus dem Hauptpaket `bger-reader-<version>-edge.zip` (Manifest ohne
+  `background.scripts` und `browser_specific_settings`, sonst byte-identisch);
+  `tools/release.sh` baut es mit, die CI hängt es samt `.sha256` an jedes
+  Release, auch nachträglich an v1.0.0. Block [6] prüft die Umwandlung.
+  Paket für Chrome und Firefox unverändert, kein Versionssprung.
 
 ## 0.11.1 — 2026-09-24
 

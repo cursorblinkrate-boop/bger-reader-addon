@@ -908,6 +908,15 @@ console.log('\n[6] Paket');
   pruefe('Manifest-Texte: default_locale en, Platzhalter __MSG_appName__/__MSG_appDescription__/__MSG_actionTitle__, _locales/en/messages.json mit den drei Schlüsseln, Name <= 50 Zeichen, Kurzbeschreibung <= 132 Zeichen',
     manifest.default_locale === 'en' && manifest.name === '__MSG_appName__' && manifest.description === '__MSG_appDescription__' &&
     manifest.action.default_title === '__MSG_actionTitle__' && textFehler.length === 0, textFehler.join('; '));
+  // Edge Add-ons: Partner Center lehnt background.scripts in Manifest V3 ab. Das
+  // Edge-Paket ist das Hauptpaket ohne die zwei Firefox-Schlüssel (tools/edge-paket.js).
+  const edge = JSON.parse(require(path.join(WURZEL, 'tools', 'edge-paket.js')).edgeManifest(JSON.stringify(manifest)));
+  const edgeErwartet = JSON.parse(JSON.stringify(manifest));
+  delete edgeErwartet.background.scripts;
+  delete edgeErwartet.browser_specific_settings;
+  pruefe('Edge-Paket (tools/edge-paket.js): Manifest ohne background.scripts und browser_specific_settings, service_worker bleibt, sonst unverändert',
+    edge.background.service_worker === 'background.js' && !('scripts' in edge.background) && !('browser_specific_settings' in edge) &&
+    JSON.stringify(edge) === JSON.stringify(edgeErwartet));
   const mitRuntime = domMitChrome(SYNTHESE, {}, { getURL: function (p) { return 'chrome-extension://testid/' + p; } });
   const css = mitRuntime.doc.getElementById('bkl-style').textContent;
   pruefe('@font-face: 14 Regeln über runtime.getURL mit font-display swap; ohne runtime (jsdom) keine',
