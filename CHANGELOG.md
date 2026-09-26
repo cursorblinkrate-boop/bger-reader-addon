@@ -25,8 +25,7 @@ hinten bei Korrekturen.
   (Vorgabe der Autorin). Chrome Web Store und Edge zeigen die Kurzbeschreibung
   als Store-Kurztext. Block [6] prüft Schlüssel und Längen (Name ≤ 50,
   Kurzbeschreibung ≤ 132 Zeichen).
-- Neu: `PRIVACY.md` (englisch) – die Datenschutz-URL der drei Stores; im README
-  verlinkt.
+- Neu: `PRIVACY.md` (englisch) – die Datenschutz-URL der drei Stores.
 - Neu: `store/` (nicht im Paket) – `listing.en.md` (der eine Store-Text),
   Reviewer-Hinweise, AMO-Metadaten daraus erzeugt (`amo-metadata.js`),
   Promo-Kachel 440 × 280, Marquee 1400 × 560 und Edge-Logo 300 × 300 aus
@@ -34,7 +33,8 @@ hinten bei Korrekturen.
   CI-Artefakten, Ablauf für Updates (`STORE-UPDATE.md`).
 - `tools/screenshots.js`: Store-Szenen zusätzlich als 1280 × 960 unter `amo/`,
   weil Firefox Add-ons Vorschaubilder im Verhältnis 4:3 verlangt.
-- Doku: README (Fassung der Autorin), STARTPROMPT (Struktur, Regeln 2, 7, 8).
+- Doku: STARTPROMPT (Struktur, Regeln 2, 7, 8); README ist die Fassung der
+  Autorin.
 
 ## 0.11.1 — 2026-09-24
 

@@ -160,8 +160,8 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           Playwright, Selenium): neue Versionen bewusst
                           hochsetzen, im Workflow und im Setup unten.
 PRIVACY.md                Datenschutzerklärung (englisch), die Datenschutz-URL
-                          der drei Stores (GitHub-Link auf main); im README
-                          unter „Datenschutz" verlinkt
+                          der drei Stores (GitHub-Link auf main). README.md
+                          pflegt die Autorin selbst – nicht anfassen
 store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
                           und CI packen nur extension/): listing.en.md (der
                           eine englische Text für alle drei Stores: Name, Kurz-
