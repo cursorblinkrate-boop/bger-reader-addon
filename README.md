@@ -21,7 +21,7 @@ Läuft nur auf den unterstützten Seiten, kein Zugriff auf das Internet und kein
 Privates Projekt, siehe: https://github.com/cursorblinkrate-boop/bger-reader-addon / zum Melden von Bugs und Sicherheitsproblemen: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
 
 
-## Schriftarten (100% offline / lokal - in der Erweiterung selbst gebündelt)
+## Schriftarten 
 Die Schriftdateien werden mitgeliefert - lokal komprimiert und eingebunden. Keine davon wird online gehostet oder runtergeladen. 
 - Atkinson Hyperlegible Next ([Braille Institute](https://www.brailleinstitute.org), SIL Open Font License 1.1)
 - Luciole ([luciole-vision.com](https://www.luciole-vision.com), CC BY 4.0)
