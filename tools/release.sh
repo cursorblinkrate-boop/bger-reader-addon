@@ -5,7 +5,9 @@
 #
 # Aufruf (aus dem Repo-Wurzelverzeichnis):   bash tools/release.sh
 #
-# Ergebnis:  dist/bger-reader-<version>.zip  plus Prüfsumme
+# Ergebnis:  dist/bger-reader-<version>.zip  plus Prüfsumme (Chrome, Firefox)
+#            dist/bger-reader-<version>-edge.zip plus Prüfsumme (Edge Add-ons:
+#            Manifest ohne die Firefox-Schlüssel, tools/edge-paket.js)
 # Läuft auf macOS und Linux.
 
 set -euo pipefail
@@ -74,6 +76,12 @@ if [ "$KB" -gt "$LIMIT_KB" ]; then
   rm -f "$ZIEL"
   exit 1
 fi
+
+# 5. Edge-Paket: dasselbe ZIP ohne die zwei Firefox-Schlüssel des Manifests
+#    (Partner Center lehnt background.scripts in Manifest V3 ab).
+echo ""
+echo "  Edge-Paket (tools/edge-paket.js):"
+node tools/edge-paket.js | sed 's/^/  /'
 
 echo ""
 echo "Fertig. Die Prüfsumme identifiziert diese Datei eindeutig:"

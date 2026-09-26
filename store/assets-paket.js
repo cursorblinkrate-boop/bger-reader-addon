@@ -75,7 +75,12 @@ schreiben('texte/04-permission-host-sites.txt', rechte[1].replace(/^- Host permi
 schreiben('texte/05-search-terms-edge.txt', abschnitt(listing, /^Search terms Edge/, 'listing.en.md').split(' · ').join('\n'));
 schreiben('texte/06-urls.txt', abschnitt(listing, /^Addresses/, 'listing.en.md').replace(/^- /gm, '') +
   '\nPrivacy policy: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/PRIVACY.md');
-schreiben('texte/07-notes-for-certification.txt', abschnitt(notizen, /^Kurzfassung/, 'reviewer-notes.md'));
+/* Edge bekommt das Paket ohne die Firefox-Schlüssel (tools/edge-paket.js): der
+   Satz zum doppelten background-Eintrag gilt dort nicht. */
+schreiben('texte/07-notes-for-certification.txt', abschnitt(notizen, /^Kurzfassung/, 'reviewer-notes.md')
+  .replace(/^- The manifest lists background as both[^\n]*$/m,
+    '- The Edge package (bger-reader-' + VERSION + '-edge.zip) is the main package without the two Firefox-only manifest keys ' +
+    '(background.scripts, browser_specific_settings); all other files are byte-identical; SHA-256 next to the GitHub release.'));
 schreiben('texte/08-short-description-manifest.txt', abschnitt(listing, /^Short description/, 'listing.en.md'));
 
 /* Bilder */
@@ -92,8 +97,9 @@ schreiben('LIESMICH.txt', `${NAME} – Bilder und Texte zum Einfügen in die Sto
 (erzeugt mit store/assets-paket.js aus listing.en.md, reviewer-notes.md,
 promo/ und screenshots/chromium/; Ablauf je Store: store/STORE-UPDATE.md)
 
-Das Paket der Erweiterung ist NICHT hier drin: bger-reader-${VERSION}.zip liegt
-daneben beim GitHub-Release (SHA-256 steht in der Release-Notiz).
+Das Paket der Erweiterung ist NICHT hier drin: bger-reader-${VERSION}.zip (Chrome,
+Firefox) und bger-reader-${VERSION}-edge.zip (Edge) liegen daneben beim GitHub-Release,
+je mit .sha256-Datei.
 
 texte/
   01-description.txt                Beschreibung (Chrome „Beschreibung", Edge
@@ -130,8 +136,9 @@ MICROSOFT EDGE ADD-ONS – Erstveröffentlichung
      Land Schweiz, Kontotyp „Individual", Publisher display name (öffentlich, z. B.
      „bge.reader"), Kontakt-E-Mail bge.reader@gmail.com, Vereinbarung annehmen,
      „Finish". Kostenlos; Bestätigungsmail abwarten.
-  1. Dashboard → „Create new extension" → bger-reader-${VERSION}.zip vom GitHub-Release
-     hochladen → „Continue"
+  1. Dashboard → „Create new extension" → bger-reader-${VERSION}-edge.zip vom GitHub-Release
+     hochladen (nicht bger-reader-${VERSION}.zip: Partner Center lehnt dessen
+     background.scripts ab) → „Continue"
   2. „Availability": Public, alle Märkte → „Save & Continue"
   3. „Properties": Category „Accessibility"; Website und Support contact aus
      texte/06-urls.txt; „Mature content" leer → „Save & Continue"
