@@ -16,13 +16,54 @@ accessibility add-on: adjustable fonts, spacing, colours and citations on bger.c
 
 ## Description (Chrome, AMO, Edge; Edge requires 250–10,000 characters)
 
-Free and open-source accessibility add-on for Swiss Federal Supreme Court decisions (search.bger.ch, relevancy.bger.ch) and the Swiss Federal Administrative Court (bvger.weblaw.ch). It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes (dark mode etc.) and folds citations in parentheses out of the way. Available in German, English, French and Italian. Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is storage, used to remember your settings.
+English, then German after `---` (one field; Chrome lists this package in English only). Text of the author, 2026-09-26.
 
-Supported pages: https://search.bger.ch/*, https://relevancy.bger.ch/*, http://relevancy.bger.ch/*, https://bvger.weblaw.ch/*
+Free and open-source accessibility add-on for Swiss Federal Supreme Court decisions and the Swiss Federal Administrative Court. It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes (dark mode, sepia).
 
-Fonts are bundled, none is hosted online or downloaded: Atkinson Hyperlegible Next, OpenDyslexic, Comic Neue, EB Garamond, Liberation Sans and Liberation Serif (SIL Open Font License 1.1), Luciole (CC BY 4.0), System Sans and System Serif (system default).
+Advanced settings: weight, line, paragraph, letter and word spacing, line length, hyphenation, alignment, columns.
 
-Private project, not affiliated with the courts or Weblaw. Code (MIT): https://github.com/cursorblinkrate-boop/bger-reader-addon – bugs and security: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
+Supported pages:
+https://search.bger.ch/*
+https://relevancy.bger.ch/*
+http://relevancy.bger.ch/*
+https://bvger.weblaw.ch/*
+
+Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. Stores only the display settings locally in the browser (storage.local). Not affiliated with any courts, governments or Weblaw.
+
+Fonts: Atkinson Hyperlegible Next, OpenDyslexic, Comic Neue, EB Garamond, Liberation Sans and Liberation Serif (SIL Open Font License 1.1), Luciole (CC BY 4.0), System Sans and System Serif (system default).
+
+Source code (MIT) is public: https://github.com/cursorblinkrate-boop/bger-reader-addon
+
+---
+
+Open-Source Browser-Erweiterung für BGEs und Bundesverwaltungsgerichtsentscheide (experimentell). Die Erweiterung verbessert die Lesbarkeit von BGEs (bger.ch) und BVGer Entscheiden (bvger.weblaw.ch) - anpassbare Typografie, Farbschemata und einklappbare Fundstellen-Klammern.
+
+Erweiterte Einstellungen: Schriftstärke, Zeilen, Absatz, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten.
+
+Die Erweiterung arbeitet vollständig im eigenen Browser. Sie baut keine Verbindung zu Servern auf, lädt nichts nach und sendet nichts – auch nicht an die Entwicklerin. Erhebt, speichert und übermittelt keine personenbezogenen Daten, keine Registrierung, keine Werbung, keine Nutzungsstatistik und keine Absturzberichte. Speichert ausschliesslich die Anzeige-Einstellungen lokal im Browser (storage.local).
+
+Unterstützte Seiten:
+- https://search.bger.ch/*
+- https://relevancy.bger.ch/*
+- http://relevancy.bger.ch/*
+- https://bvger.weblaw.ch/*
+
+Der Quellcode ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
+
+Schriftarten:
+- OpenDyslexic (https://opendyslexic.org)
+- Atkinson Hyperlegible Next (Braille Institute; https://www.brailleinstitute.org)
+- Luciole (https://www.luciole-vision.com)
+- Comic Neue, EB Garamond, Liberation Sans und Liberation Serif
+- System Sans und System Serif (System-Default)
+
+Die Schriftdateien werden mitgeliefert; lokal - in der Erweiterung selbst gebündelt.
+
+Lizenz
+Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0.
+Die Icons neben den Einstellungen stammen aus dem Icon-Thema Colibre von LibreOffice (CC0), das Symbol der Erweiterung ist mit Claude erstellt worden. Quellcode (MIT) ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
+
+Das accessibility add-on ist ein privates Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden.
 
 ## Category
 
