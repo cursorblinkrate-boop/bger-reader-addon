@@ -1,40 +1,37 @@
-# Barrierefreie BGEs in Firefox, Chrome, Brave und Edge
-Open-Source Browser-Erweiterung für BGEs und Bundesverwaltungsgerichtsentscheide (experimentell) - Schriftart, Schriftgrösse, Abstände, Zeilenlänge, Textbreite und Farbschema lassen sich frei einstellen. Die Erweiterung wird nur auf den vier genannten Adressen gestartet, hat keinen Zugriff auf das Internet und sammelt keine Daten. Einstellungen aus dem Einstellungsfeld, werden lokal in `storage`gespeichert. Kein Verlauf gelesener Entscheide, keine Statistik und kein Datensammeln für Absturzberichte. 
+# accessibility extension for bger.ch and bvger.ch 
+Free and open-source accessibility add-on for Swiss Federal Supreme Court decisions (search.bger.ch, relevancy.bger.ch) and the Swiss Federal Administrative Court (bvger.weblaw.ch). 
+It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes (dark mode etc.). 
+Available in German, English, French and Italian. 
+Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is `storage`, used to remember your settings.
 
-Zum Melden von Bugs und Sicherheitsproblemen siehe: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
+---
 
-Privates Projekt,  siehe: https://github.com/cursorblinkrate-boop/bger-reader-addon
+Schriftart, Schriftgrösse, Abstände, Zeilenlänge, Textbreite und Farbschema lassen sich frei einstellen. Die Erweiterung wird nur auf den vier genannten Adressen gestartet, hat keinen Zugriff auf das Internet und sammelt keine Daten. Einstellungen werden lokal in `storage`gespeichert. Keine Statistik und keine Daten.
 
 ## Unterstützte Seiten
-
 - `https://search.bger.ch/*` 
 - `https://relevancy.bger.ch/*` und `http://relevancy.bger.ch/*` 
 - `https://bvger.weblaw.ch/*`
 
 ## Datenschutz
+Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is `storage`, used to remember your settings.
 
 Läuft nur auf den unterstützten Seiten, kein Zugriff auf das Internet und keine Datensammlungen. Einstellungen aus dem Einstellungsfeld, werden lokal in gespeichert. Kein Verlauf gelesener Entscheide, keine Statistik und keine Absturzberichte. 
-Zum Melden von Sicherheitsproblemen siehe https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
+
+Privates Projekt, siehe: https://github.com/cursorblinkrate-boop/bger-reader-addon / zum Melden von Bugs und Sicherheitsproblemen: https://github.com/cursorblinkrate-boop/bger-reader-addon/blob/main/SECURITY.md
+
 
 ## Schriftarten (100% offline / lokal - in der Erweiterung selbst gebündelt)
-
 Die Schriftdateien werden mitgeliefert - lokal komprimiert und eingebunden. Keine davon wird online gehostet oder runtergeladen. 
-
 - Atkinson Hyperlegible Next ([Braille Institute](https://www.brailleinstitute.org), SIL Open Font License 1.1)
 - Luciole ([luciole-vision.com](https://www.luciole-vision.com), CC BY 4.0)
 - OpenDyslexic ([opendyslexic.org](https://opendyslexic.org), SIL Open Font License 1.1)
 - Comic Neue, EB Garamond, Liberation Sans und Liberation Serif (SIL Open Font License 1.1)
 - System Sans und System Serif (System-Default)
 
----
-
-Free and open-source accessibility extension for decisions of the Swiss Federal Supreme Court (search.bger.ch, relevancy.bger.ch) and the Swiss Federal Administrative Court (bvger.weblaw.ch). It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes including dark and night mode, and it folds citations in parentheses out of the way so the court's reasoning stays readable. The interface is available in German, English, French and Italian. It runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. The only browser permission it asks for is `storage`, used to remember your settings.
-
----
-
 ## Lizenz
+MIT - Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0 ([extension/fonts/LICENSES.md](extension/fonts/LICENSES.md)). Die Icons neben den Einstellungen stammen aus dem Icon-Thema Colibre von LibreOffice (CC0), das Symbol der Erweiterung ist mit Claude erstellt worden.
 
-Der Code steht unter der [MIT-Lizenz](LICENSE). Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0 ([extension/fonts/LICENSES.md](extension/fonts/LICENSES.md)). Die Icons neben den Einstellungen stammen aus dem Icon-Thema Colibre von LibreOffice (CC0), das Symbol der Erweiterung ist mit Claude erstellt worden.
 
 ---
 
