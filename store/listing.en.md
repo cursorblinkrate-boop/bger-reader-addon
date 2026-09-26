@@ -99,19 +99,19 @@ The extension improves the readability of decisions of the Swiss Federal Supreme
 
 ## Images and captions (order; images in `screenshots/`)
 
-Chrome (max. 5) and Edge (max. 6) from `screenshots/chromium/` (1280 × 800), AMO from `screenshots/firefox/` (1280 × 960, 4:3 ratio as AMO requires; AMO shows captions):
+Set used in the stores (Chrome Web Store, submitted 2026-09-26; Edge Add-ons identical), all from `screenshots/chromium/`, 1280 × 800, cropped by the author from her own captures:
 
-1. `02-panel.png` – Settings panel on the decision page: enable, font size, font, background, width, "simplify" (fold citations).
-2. `41-klammer-aufgeklappt.png` – Citations folded, one parenthesis opened with a click; references to statutes stay open.
-3. `23-hintergrund-nacht.png` – Night background.
-4. `06-dialog-mittig.png` – Toolbar icon: the same settings large in the middle, the decision stays visible.
-5. `03-panel-erweitert.png` – Advanced settings: weight, spacing, line length, hyphenation, alignment, columns.
-6. `90-franzoesisch-regeste.png` (Edge, AMO) – A French-language decision on the French pages of bger.ch.
+1. `50-garamond-zwei-spalten-italiano.png` – EB Garamond, two columns, dark background, Italian interface (BGE 129 IV 230).
+2. `51-system-sans-dunkel-deutsch.png` – System Sans, wide text, dark background, German interface (BGE 116 Ia 359).
+3. `52-luciole-nacht-francais.png` – Luciole, night background, French interface (BGE 99 Ib 39).
 
-Three further screenshots by the author, cropped to 1280 × 800 from her own captures (`screenshots/chromium/50…52`); Chrome shows at most 5, so they replace items from the list above:
+Further images from the CI run (Chrome max. 5, Edge max. 6; AMO from `screenshots/firefox/`, 1280 × 960, 4:3 as AMO requires, AMO shows captions):
 
-- `50-garamond-zwei-spalten-italiano.png` – EB Garamond, two columns, dark background, Italian interface (BGE 129 IV 230).
-- `51-system-sans-dunkel-deutsch.png` – System Sans, wide text, dark background, German interface (BGE 116 Ia 359).
-- `52-luciole-nacht-francais.png` – Luciole, night background, French interface (BGE 99 Ib 39).
+- `02-panel.png` – Settings panel on the decision page: enable, font size, font, background, width, "simplify" (fold citations).
+- `41-klammer-aufgeklappt.png` – Citations folded, one parenthesis opened with a click; references to statutes stay open.
+- `23-hintergrund-nacht.png` – Night background.
+- `06-dialog-mittig.png` – Toolbar icon: the same settings large in the middle, the decision stays visible.
+- `03-panel-erweitert.png` – Advanced settings: weight, spacing, line length, hyphenation, alignment, columns.
+- `90-franzoesisch-regeste.png` (Edge, AMO) – A French-language decision on the French pages of bger.ch.
 
 Promo images (`promo/`): `kachel-klein-440x280.png` (Chrome required, Edge optional), `kachel-marquee-1400x560.png` (Chrome optional, Edge optional), `logo-300x300.png` (Edge store logo). Chrome store icon: `extension/icons/icon128.png`.
