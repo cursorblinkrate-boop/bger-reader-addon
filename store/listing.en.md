@@ -36,9 +36,26 @@ Source code (MIT) is public: https://github.com/cursorblinkrate-boop/bger-reader
 
 Open-Source Browser-Erweiterung für BGEs und Bundesverwaltungsgerichtsentscheide (experimentell). Die Erweiterung verbessert die Lesbarkeit von BGEs (bger.ch) und BVGer Entscheiden (bvger.weblaw.ch) - anpassbare Typografie, Farbschemata und einklappbare Fundstellen-Klammern.
 
-Erweiterte Einstellungen: Schriftstärke, Zeilen, Absatz, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten.
+Erweiterte Einstellungen:
+Schriftstärke, Zeilen, Absatz, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten.
 
+DATENSCHUTZ:
 Die Erweiterung arbeitet vollständig im eigenen Browser. Sie baut keine Verbindung zu Servern auf, lädt nichts nach und sendet nichts – auch nicht an die Entwicklerin. Erhebt, speichert und übermittelt keine personenbezogenen Daten, keine Registrierung, keine Werbung, keine Nutzungsstatistik und keine Absturzberichte. Speichert ausschliesslich die Anzeige-Einstellungen lokal im Browser (storage.local).
+
+Die Schriftdateien sind lokal - in der Erweiterung selbst - gebündelt. Kein Verbindungsaufbau zu irgendwelchen Servern.
+
+Schriftarten:
+- OpenDyslexic (https://opendyslexic.org)
+- Atkinson Hyperlegible Next (Braille Institute; https://www.brailleinstitute.org)
+- Luciole (https://www.luciole-vision.com)
+- Comic Neue, EB Garamond, Liberation Sans und Liberation Serif
+- System Sans und System Serif (System-Default)
+
+Lizenz:
+Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0.
+Die Icons neben den Einstellungen stammen aus dem Icon-Thema Colibre von LibreOffice (CC0), das Symbol der Erweiterung ist mit Claude erstellt worden. Quellcode (MIT) ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
+
+Das accessibility add-on ist ein privates Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden.
 
 Unterstützte Seiten:
 - https://search.bger.ch/*
@@ -48,20 +65,10 @@ Unterstützte Seiten:
 
 Der Quellcode ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
-Schriftarten:
-- OpenDyslexic (https://opendyslexic.org)
-- Atkinson Hyperlegible Next (Braille Institute; https://www.brailleinstitute.org)
-- Luciole (https://www.luciole-vision.com)
-- Comic Neue, EB Garamond, Liberation Sans und Liberation Serif
-- System Sans und System Serif (System-Default)
+Anregungen und Verbesserungsvorschläge bitte an:
+bge (punkt) reader (at) gmail (punkt) com
 
-Die Schriftdateien werden mitgeliefert und sind lokal - in der Erweiterung selbst gebündelt. Kein Verbindungsaufbau zu fremden Servern.
-
-Lizenz
-Die mitgelieferten Schriften stehen unter der SIL Open Font License 1.1, Luciole unter Creative Commons BY 4.0.
-Die Icons neben den Einstellungen stammen aus dem Icon-Thema Colibre von LibreOffice (CC0), das Symbol der Erweiterung ist mit Claude erstellt worden. Quellcode (MIT) ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
-
-Das accessibility add-on ist ein privates Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden.
+oder auf github: https://github.com/cursorblinkrate-boop/
 
 ## Category
 
