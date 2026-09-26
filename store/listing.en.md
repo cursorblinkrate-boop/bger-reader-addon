@@ -14,9 +14,7 @@ accessibility add-on for bger.ch and bvger.ch
 
 accessibility add-on: adjustable fonts, spacing, colours and citations on bger.ch and bvger.ch. 100 % offline.
 
-## Description (Chrome, AMO, Edge; Edge requires 250–10,000 characters)
-
-English, then German after `---` (one field; Chrome lists this package in English only). Text of the author, 2026-09-26.
+## Description (Chrome, AMO, Edge; Edge 250–10,000 characters; English, then German after ---, one field; text of the author, 2026-09-26)
 
 Free and open-source accessibility add-on for Swiss Federal Supreme Court decisions and the Swiss Federal Administrative Court. It adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes (dark mode, sepia).
 
