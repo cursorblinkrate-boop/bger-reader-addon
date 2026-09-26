@@ -62,4 +62,10 @@ Chrome (max. 5) and Edge (max. 6) from `screenshots/chromium/` (1280 × 800), AM
 5. `03-panel-erweitert.png` – Advanced settings: weight, spacing, line length, hyphenation, alignment, columns.
 6. `90-franzoesisch-regeste.png` (Edge, AMO) – A French-language decision on the French pages of bger.ch.
 
+Three further screenshots by the author, cropped to 1280 × 800 from her own captures (`screenshots/chromium/50…52`); Chrome shows at most 5, so they replace items from the list above:
+
+- `50-garamond-zwei-spalten-italiano.png` – EB Garamond, two columns, dark background, Italian interface (BGE 129 IV 230).
+- `51-system-sans-dunkel-deutsch.png` – System Sans, wide text, dark background, German interface (BGE 116 Ia 359).
+- `52-luciole-nacht-francais.png` – Luciole, night background, French interface (BGE 99 Ib 39).
+
 Promo images (`promo/`): `kachel-klein-440x280.png` (Chrome required, Edge optional), `kachel-marquee-1400x560.png` (Chrome optional, Edge optional), `logo-300x300.png` (Edge store logo). Chrome store icon: `extension/icons/icon128.png`.
