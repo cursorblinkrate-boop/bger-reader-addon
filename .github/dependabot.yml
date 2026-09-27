@@ -1,0 +1,23 @@
+# Dependabot (GitHubs Update-Dienst): schlägt neue Versionen als Pull Request
+# vor – monatlich und gebündelt, damit höchstens ein PR je Bereich entsteht.
+# Betrifft nur, was nie im Paket landet: die per Commit-Hash gepinnten GitHub
+# Actions in .github/workflows/release.yml und die Test-Abhängigkeiten in
+# test/package.json (jsdom, Playwright, Selenium). Ablauf für die Autorin:
+# PR öffnen, grüner Haken (Suite und Smoke-Test) -> mergen; rot -> liegen
+# lassen und in der nächsten Session klären.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /test
+    schedule:
+      interval: monthly
+    groups:
+      test-abhaengigkeiten:
+        patterns: ["*"]

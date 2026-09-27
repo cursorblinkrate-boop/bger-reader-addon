@@ -113,5 +113,5 @@ if [ "$fehler" = "1" ]; then
 fi
 
 echo ""
-echo "Alle Fixtures bereit. Testlauf:  cd test && npm install jsdom@30.1.0 && node test-runner.js"
+echo "Alle Fixtures bereit. Testlauf:  (cd test && npm ci) && node test/test-runner.js"
 echo "Browser-Smoke-Test:              node test/browser-smoke.js chromium|firefox"

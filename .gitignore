@@ -1,8 +1,6 @@
-# Test-Abhaengigkeiten (jsdom wird bei Bedarf per npm install geladen,
-# siehe STARTPROMPT.md – bewusst kein npm-Manifest im Repo)
+# Test-Abhaengigkeiten: test/package.json und package-lock.json sind im Repo
+# (gepinnte Versionen, npm ci), nur die installierten Pakete nicht
 test/node_modules/
-test/package.json
-test/package-lock.json
 
 # Echte Entscheidseiten als Testvorlagen: gross und nicht zu committen,
 # werden per tools/fetch-fixtures.sh geladen

@@ -15,9 +15,11 @@
  *    über denselben Code in allen Browsern.
  *
  * Voraussetzungen: bash tools/fetch-fixtures.sh (Seiten und Site-CSS),
- *   cd test && npm install playwright@1.56.1 && npx playwright install chromium   (Chromium)
- *   cd test && npm install playwright@1.56.1     (Edge: nutzt das installierte Microsoft Edge)
- *   cd test && npm install selenium-webdriver    (Firefox; Firefox und geckodriver holt
+ *   cd test && npm ci                            (Playwright und Selenium aus
+ *                                                 package.json/Lockfile, gepinnt)
+ *   cd test && npx playwright install chromium   (Chromium; Edge nutzt das
+ *                                                 installierte Microsoft Edge,
+ *                                                 Firefox und geckodriver holt
  *                                                 Selenium selbst, falls sie fehlen)
  *   openssl im Pfad (Zertifikat für den lokalen HTTPS-Server).
  * Hinter einem Proxy (HTTPS_PROXY gesetzt) wird er übernommen; die lokal
