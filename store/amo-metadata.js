@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Erzeugt store/amo-metadata.json für die Einreichung bei Firefox Add-ons:
  *   web-ext sign --channel listed --source-dir <entpacktes Release-ZIP> \
  *     --amo-metadata store/amo-metadata.json
@@ -150,7 +153,7 @@ const metadaten = {
   is_experimental: false,
   requires_payment: false,
   version: {
-    license: 'MIT',
+    license: 'GPL-3.0-or-later', // AMO-Slug aus der festen Liste: „GNU General Public License, version 3.0"
     release_notes: releaseNotes,
     approval_notes: notizen.text
   }

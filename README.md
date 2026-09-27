@@ -23,6 +23,10 @@ Dateien werden mitgeliefert - lokal komprimiert und eingebunden. Keine davon wir
 # DATENSCHUTZ
 100% offline im eigenen Browser. Keine Verbindung zu externen Servern, lädt nichts nach und sendet nichts – auch nicht an die Entwicklerin. Die Schriftdateien sind lokal - in der Erweiterung selbst - gebündelt. Erhebt, speichert und übermittelt keinerlei Daten, keine Registrierung, keine Werbung, keine Nutzungsstatistiken oder sonstige Unannehmlichkeiten. Speichert Einstellungen lokal im Browser (storage.local).
 
+# LIZENZ
+Code: GNU General Public License v3.0 or later (GNU GPLv3), Volltext in [LICENSE](LICENSE). Copyleft: Wer den Code oder Teile davon (auch die Klammer-Heuristik) weiterverbreitet oder in eigene Software einbaut, muss das Ganze wieder unter der GPL mit Quellcode veröffentlichen. Closed-Source-Verwendung ist ausgeschlossen.
+
+Schriften: SIL Open Font License 1.1 bzw. CC BY 4.0 ([extension/fonts/LICENSES.md](extension/fonts/LICENSES.md)). Icons: CC0 ([extension/icons/LICENSES.md](extension/icons/LICENSES.md)).
 
 Der Quellcode ist öffentlich: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
@@ -47,7 +51,7 @@ Runs entirely offline: no frameworks, no tracking, no external requests, no data
 
 The fonts are bundled with the extension under open licences (SIL Open Font License 1.1, CC BY 4.0); the list is in the repository.
 
-Source code (MIT) is public: https://github.com/cursorblinkrate-boop/bger-reader-addon
+Source code (GNU GPLv3) is public: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
 Supported pages:
 https://search.bger.ch/*

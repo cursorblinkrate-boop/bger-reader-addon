@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Chrome Web Store über die Chrome Web Store API (v2): Release-ZIP hochladen,
  * zur Prüfung einreichen, Status abfragen.
  *

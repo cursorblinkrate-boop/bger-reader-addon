@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Baut dist/store-assets-<version>.zip: alle Bilder und Texte, die in den
  * Store-Dashboards von Hand eingefügt werden (Chrome Web Store, Edge Add-ons;
  * die AMO-Bilder liegen im Repo unter screenshots/firefox/). Die CI hängt das

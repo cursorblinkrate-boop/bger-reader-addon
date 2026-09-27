@@ -13,6 +13,36 @@ hinten bei Korrekturen.
 
 ---
 
+## 1.1.0 — 2026-09-27
+
+- **Lizenzwechsel: GNU GPLv3 (GPL-3.0-or-later) statt MIT.** Entscheid der
+  Autorin: MIT ist für ein Accessibility-Werkzeug ungeeignet. Copyleft: Wer den
+  Code oder Teile davon (etwa die Klammer-Heuristik) weiterverbreitet oder in
+  eigene Software einbaut, muss das Ganze wieder unter der GPL mit Quellcode
+  veröffentlichen; Closed-Source-Verwendung ist ausgeschlossen.
+- `LICENSE` ist der unveränderte GPLv3-Text der FSF (GitHub erkennt die Lizenz
+  daran; die Schriftlizenzen stehen nur noch in `extension/fonts/`). Neu
+  `extension/LICENSE`, byte-identisch: das Store-Paket trägt die Lizenz mit
+  (GPLv3 §4), Paket 281 KB von 1023 KB.
+- Jede Quelldatei (extension, tools, test, store) beginnt mit
+  `SPDX-License-Identifier: GPL-3.0-or-later` und dem Copyright der Autorin;
+  die vier Extension-Skripte tragen den vollen GPL-Hinweis. Manifest und
+  `_locales` können keine Kommentare tragen und sind über `extension/LICENSE`
+  abgedeckt. Block [6] prüft LICENSE (SHA-256), `extension/LICENSE` und die
+  Header; STARTPROMPT Regel 11.
+- `extension/icons/LICENSES.md`: eigenes Icon unter der Projektlizenz;
+  `extension/fonts/LICENSES.md`: Schriften bleiben OFL bzw. CC BY, im Paket
+  nur beigelegt (GPLv3 §5).
+- Store-Text (`store/listing.en.md`): Fassung der Autorin vom 27.09.2026 –
+  Lizenz GNU GPLv3, Schriftlisten wieder enthalten (Chrome lehnte solche Listen
+  am 26.09.2026 als „Keyword-Spam" ab; bei erneuter Ablehnung dort streichen).
+  AMO-Lizenzfeld `GPL-3.0-or-later` (`store/amo-metadata.js`); es gilt pro
+  Version und wechselt mit dem Upload von 1.1.0. Firefox Add-ons: Beschreibung
+  am 27.09.2026 aktualisiert; Chrome Web Store: Eintrag bis zur Freigabe der
+  laufenden Prüfung gesperrt, Text danach ersetzen. Reviewer-Hinweise nennen
+  die Lizenz und die LICENSE-Datei im Paket.
+- Erweiterung selbst gegenüber 1.0.0 funktional unverändert.
+
 ## 1.0.0 — 2026-09-26
 
 - **Erstveröffentlichung in den Stores** (Chrome Web Store, Firefox Add-ons,

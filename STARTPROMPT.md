@@ -149,6 +149,11 @@ tools/edge-paket.js       baut aus dem Hauptpaket das Edge-Paket
 CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           der Abschnitt der aktuellen Version wird zur
                           Release-Notiz auf GitHub
+LICENSE                   GNU GPLv3 (GPL-3.0-or-later), unveränderter FSF-Text –
+                          GitHub erkennt die Lizenz daran, nichts anhängen;
+                          extension/LICENSE ist die byte-identische Kopie im
+                          Paket (Block [6] prüft beides und die SPDX-Header,
+                          Regel 11)
 .github/workflows/        CI bei jedem Push: Pflichtlauf der Suite (ohne
                           Fixtures), Zusatzlauf mit Fixtures (nicht
                           blockierend) und der Browser-Smoke-Test auf
@@ -294,6 +299,17 @@ alle zusammen installieren.
    sind. Nicht nur Urteilskopf und Regeste. Nur die Store-Szenen
    (store: true in SZENEN) bleiben 1280 x 800, ebenfalls zu den
    Erwägungen gescrollt; Urteilskopf nur bei Szenen mit kopf: true.
+11. Lizenz: GNU GPLv3, SPDX GPL-3.0-or-later (seit 1.1.0; Entscheid der
+   Autorin: Copyleft, kein Closed-Source, kein Einbau in kommerzielle
+   Produkte ohne Quelloffenlegung). Jede Quelldatei (.js/.html/.css/.sh/.py,
+   auch tools/, test/, store/) beginnt – nach Shebang bzw. Doctype – mit
+   „SPDX-License-Identifier: GPL-3.0-or-later" und „Copyright (C) <Jahr>
+   Stephanie Blaettler"; die vier Extension-Skripte tragen den vollen
+   GPL-Hinweis. Block [6] prüft die Header, LICENSE (SHA-256 des FSF-Texts)
+   und extension/LICENSE. In Texten heisst es „GNU GPLv3" (Stores, README),
+   maschinenlesbar „GPL-3.0-or-later" (SPDX, AMO-Lizenzfeld in
+   amo-metadata.js). Nichts ins Paket, was GPL-inkompatibel ist; Schriften
+   (OFL, CC BY) und Icons (CC0) sind nur beigelegt (§5 Aggregat).
 
 == BEKANNTE FALLSTRICKE ==
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,

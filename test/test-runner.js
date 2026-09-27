@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Tests für den bger reader – Kernlogik gegen echte und synthetische Seiten.
  * Aufruf: node test-runner.js [pfad-zum-skript]
  *
@@ -933,6 +936,26 @@ console.log('\n[6] Paket');
     eintraege.length === new Set(eintraege).size && changelog.indexOf('TODO: Änderung hier beschreiben') === -1 &&
     !/@version|"version"\s*:/.test(SCRIPT),
     'Changelog: ' + eintraege[0] + ', Manifest: ' + manifest.version);
+  // Lizenz: GNU GPLv3 (GPL-3.0-or-later, seit 1.1.0, Regel 11). LICENSE ist der
+  // unveränderte FSF-Text (GitHub erkennt die Lizenz daran), extension/LICENSE
+  // die Kopie im Paket (GPLv3 §4), jede Quelldatei trägt den SPDX-Header.
+  const GPL3_SHA256 = '3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986';
+  const lizenz = fs.readFileSync(path.join(WURZEL, 'LICENSE'));
+  const quelldateien = [];
+  [['extension', /\.(js|html|css)$/], ['tools', /./], ['test', /\.js$/], ['store', /\.js$/], [path.join('store', 'promo'), /\.(js|html)$/]].forEach(function (v) {
+    fs.readdirSync(path.join(WURZEL, v[0])).forEach(function (name) {
+      const p = path.join(WURZEL, v[0], name);
+      if (fs.statSync(p).isFile() && v[1].test(name)) quelldateien.push(path.relative(WURZEL, p));
+    });
+  });
+  const ohneHeader = quelldateien.filter(function (p) {
+    return fs.readFileSync(path.join(WURZEL, p), 'utf8').indexOf('SPDX-License-Identifier: GPL-3.0-or-later') === -1;
+  });
+  pruefe('Lizenz: LICENSE = unveränderter GPLv3-Text (SHA-256), extension/LICENSE identisch, SPDX-Header GPL-3.0-or-later in jeder Quelldatei (extension, tools, test, store)',
+    require('crypto').createHash('sha256').update(lizenz).digest('hex') === GPL3_SHA256 &&
+    lizenz.equals(fs.readFileSync(path.join(EXT, 'LICENSE'))) &&
+    quelldateien.length >= 20 && ohneHeader.length === 0,
+    ohneHeader.join(', '));
   function verzeichnisBytes(dir) {
     return fs.readdirSync(dir).reduce(function (summe, name) {
       const st = fs.statSync(path.join(dir, name));

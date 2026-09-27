@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Browser-Smoke-Test: die fertige Extension in echten Browsern.
  *
  * Aufruf (aus dem Repo-Wurzelverzeichnis):

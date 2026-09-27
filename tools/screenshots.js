@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Screenshots für Store und Doku: jede Funktion der Extension einmal im Bild,
  * in echtem Chromium, Edge oder Firefox, auf den lokal ausgelieferten echten
  * Entscheidseiten (Aufbau: test/browser-umgebung.js).

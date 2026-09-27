@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Übersetzungstabelle der Bedienoberfläche: SPRACHEN.md <-> extension/sprachen.js
  *
  * Die Texte in vier Sprachen stehen im Code (extension/sprachen.js, Objekt
