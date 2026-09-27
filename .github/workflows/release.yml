@@ -123,11 +123,17 @@ jobs:
 
       # Fixtures zwischenspeichern: nach dem ersten Lauf hängt der Job nicht
       # mehr an der Erreichbarkeit von bger.ch, und die Site wird geschont.
-      # Neuer Schlüssel, sobald sich die Fixture-Liste ändert.
+      # Neuer Schlüssel, sobald sich die Fixture-Liste ändert. restore-keys:
+      # bei neuem Schlüssel den letzten Stand übernehmen, fetch-fixtures.sh
+      # lädt dann nur Fehlendes – sonst müsste jede Änderung am Skript (1.1.0:
+      # nur der Lizenz-Header) alles neu von bger.ch laden, und dessen
+      # Bot-Schutz weist die Runner unregelmässig ab (alle sechs Smoke-Jobs
+      # rot, 27.09.2026).
       - uses: actions/cache@v4
         with:
           path: test/fixtures
           key: fixtures-${{ runner.os }}-${{ hashFiles('tools/fetch-fixtures.sh') }}
+          restore-keys: fixtures-${{ runner.os }}-
 
       - name: Fixtures laden (Seiten und Site-CSS, übersprungen wenn vorhanden)
         run: bash tools/fetch-fixtures.sh
