@@ -2,7 +2,8 @@
 
 ## Extension-Icon (icon16/48/128.png, Marken-Icon in der Kopfzeile)
 
-Eigenes Werk (pinkes Buch mit Smiley), Lizenz wie das Projekt (MIT).
+Eigenes Werk (pinkes Buch mit Smiley), Lizenz wie das Projekt (GNU GPLv3,
+GPL-3.0-only, siehe LICENSE).
 Das Marken-Icon in der Kopfzeile von Panel und Pop-up ist eine Inline-SVG-
 Nachzeichnung davon (`ICON_MARKE` in content.js, gleicher String in popup.html).
 
@@ -41,5 +42,5 @@ dem Standard-Icon-Thema von LibreOffice (Original-Autor: Andreas Kainz).
 | Ausrichtung        | sc_alignblock.svg                    |
 | Spalten            | sc_formatcolumns.svg                 |
 
-Die Themen Elementary und Sifr aus LibreOffice stehen unter GPL bzw.
-CC-BY-SA und wurden deshalb nicht verwendet (Projektlizenz MIT).
+Die Themen Elementary (GPL) und Sifr (CC-BY-SA) aus LibreOffice wurden nicht
+verwendet; Colibre (CC0) bleibt.

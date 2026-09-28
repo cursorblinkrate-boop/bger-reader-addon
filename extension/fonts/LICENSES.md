@@ -14,6 +14,10 @@ und im CSS unter eigenen Familiennamen umbenannt („Dyslexie-Leseschrift“,
 „BGEReader Serif“, „BGEReader Sans“). Atkinson Hyperlegible Next, EB Garamond
 und Comic Neue deklarieren keine Reserved Font Names und behalten ihre Namen.
 
+Die Schriften sind eigenständige Werke und behalten ihre eigenen Lizenzen. Mit
+dem GPL-lizenzierten Code der Erweiterung (LICENSE) sind sie nur zusammengestellt
+(GPLv3 §5, „aggregate"), nicht unter die GPL gestellt.
+
 ## Atkinson Hyperlegible Next 2.001 (Regular 400, Bold 700)
 
 - Quelle: https://github.com/google/fonts/tree/main/ofl/atkinsonhyperlegiblenext

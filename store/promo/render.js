@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Rendert die Promo-Bilder der Stores aus vorlage.html – mit Playwright in
  * Chromium, pixelgenau in den von den Stores verlangten Grössen.
  *

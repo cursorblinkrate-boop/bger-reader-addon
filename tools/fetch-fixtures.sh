@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Stephanie Blaettler
+
 # Fixtures für die Tests laden: echte Entscheidseiten und eine API-Antwort
 # nach test/fixtures/, dazu das Site-CSS der bger.ch-Seiten für den
 # Browser-Smoke-Test und die Screenshots. Danach läuft test/test-runner.js vollständig

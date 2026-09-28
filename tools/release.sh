@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Stephanie Blaettler
+
 # Baut das Paket für den Web Store aus extension/ und benennt es nach der
 # Version im Manifest. Damit trägt jede Datei ihre Version im Namen – im
 # Downloadordner, im Backup und im Store ist immer erkennbar, was drin ist.

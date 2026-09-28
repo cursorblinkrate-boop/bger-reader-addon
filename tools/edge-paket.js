@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Baut das Paket für Microsoft Edge Add-ons aus dem fertigen Hauptpaket:
  *   dist/bger-reader-<version>.zip  ->  dist/bger-reader-<version>-edge.zip  (+ .sha256)
  *

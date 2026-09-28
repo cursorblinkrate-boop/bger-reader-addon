@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Stephanie Blaettler
+
 """Reproduzierbares Subsetting der lokalen FOSS-Fonts für den BGer Reader.
 
 Schritte:

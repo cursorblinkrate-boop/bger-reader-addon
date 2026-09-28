@@ -46,6 +46,11 @@ Dateien werden mitgeliefert - lokal komprimiert und eingebunden. Keine davon wir
 - Comic Neue, EB Garamond, Liberation Sans und Liberation Serif (SIL Open Font License 1.1)
 - System Sans und System Serif (System-Default)
 
+# LIZENZ
+Code: GNU General Public License v3.0 only (GNU GPLv3, keine spätere Fassung), Volltext in [LICENSE](LICENSE). Copyleft: Wer den Code oder Teile davon (auch die Klammer-Heuristik) weiterverbreitet oder in eigene Software einbaut, muss das Ganze wieder unter der GPL mit Quellcode veröffentlichen. Closed-Source-Verwendung ist ausgeschlossen.
+
+Schriften: SIL Open Font License 1.1 bzw. CC BY 4.0 ([extension/fonts/LICENSES.md](extension/fonts/LICENSES.md)). Icons: CC0 ([extension/icons/LICENSES.md](extension/icons/LICENSES.md)).
+
 ---
 
 # accessibility extension for bger.ch and bvger.ch 
@@ -54,6 +59,8 @@ FOSS accessibility add-on for Swiss Federal Supreme Court decisions (BGE / ATF /
 Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. Stores only the display settings locally in the browser (storage.local). Not affiliated with any courts, governments or Weblaw.
 
 The fonts are bundled with the extension under open licences (SIL Open Font License 1.1, CC BY 4.0); the list is in the repository.
+
+Source code (GNU GPLv3) is public: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
 # Supported pages:
 https://search.bger.ch/*

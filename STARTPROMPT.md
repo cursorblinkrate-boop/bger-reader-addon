@@ -156,6 +156,11 @@ tools/edge-paket.js       baut aus dem Hauptpaket das Edge-Paket
 CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           der Abschnitt der aktuellen Version wird zur
                           Release-Notiz auf GitHub
+LICENSE                   GNU GPLv3 (GPL-3.0-only), unveränderter FSF-Text –
+                          GitHub erkennt die Lizenz daran, nichts anhängen;
+                          extension/LICENSE ist die byte-identische Kopie im
+                          Paket (Block [6] prüft beides und die SPDX-Header,
+                          Regel 12)
 .github/workflows/        CI bei jedem Pull Request und jedem Push auf main:
                           ein Job "fixtures" holt die echten Entscheidseiten
                           einmal je Lauf (Cache; bger_aza.html optional, weil
@@ -335,6 +340,21 @@ Lockfile folgt, und Suite plus Smoke-Test laufen lassen.
    Punktetabelle LITERATUR_SIGNALE) – Handarbeit der Autorin und
    Alleinstellungsmerkmal, funktioniert und bleibt so. Block [1] (Korpus) und
    die Klammer-Baseline (Block [3]) schlagen bei jeder Abweichung an.
+12. Lizenz: GNU GPLv3, SPDX GPL-3.0-only (seit 1.1.0; Entscheid der
+   Autorin: Copyleft, kein Closed-Source, kein Einbau in kommerzielle
+   Produkte ohne Quelloffenlegung; bewusst „only": es gilt die heutige
+   Fassung der GPL, keine automatische Geltung einer künftigen Version). Jede Quelldatei (.js/.html/.css/.sh/.py,
+   auch tools/, test/, store/) beginnt – nach Shebang bzw. Doctype – mit
+   „SPDX-License-Identifier: GPL-3.0-only" und „Copyright (C) <Jahr>
+   Stephanie Blaettler"; die vier Extension-Skripte tragen den vollen
+   GPL-Hinweis (Fassung „version 3 of the License only", ohne „any later
+   version"). Block [6] prüft die Header, LICENSE (SHA-256 des FSF-Texts)
+   und extension/LICENSE. In Texten heisst es „GNU GPLv3" (Stores, README),
+   maschinenlesbar „GPL-3.0-only" (SPDX). AMO kennt in seiner festen
+   Lizenzliste nur die or-later-Fassung; deshalb steht die Lizenz dort als
+   eigene Lizenz mit Namen und vollem Text aus LICENSE (API-Feld
+   custom_license, amo-metadata.js). Nichts ins Paket, was GPL-inkompatibel ist; Schriften
+   (OFL, CC BY) und Icons (CC0) sind nur beigelegt (§5 Aggregat).
 
 == BEKANNTE FALLSTRICKE ==
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,

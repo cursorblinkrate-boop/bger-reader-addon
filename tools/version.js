@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Versionsnummer der Extension anzeigen und ändern.
  *
  * extension/manifest.json ist die EINZIGE Stelle, an der die Version steht.

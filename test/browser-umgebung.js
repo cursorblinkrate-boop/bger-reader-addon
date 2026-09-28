@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Gemeinsame Browser-Umgebung für test/browser-smoke.js und tools/screenshots.js.
  *
  * Zwei Bausteine:

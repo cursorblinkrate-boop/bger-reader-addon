@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Stephanie Blaettler
+
 /* Klammer-Report: zeigt für ECHTE Entscheidseiten jede Klammer und die
  * Entscheidung der Heuristik samt Begründung. Das ist das Werkzeug, mit dem
  * sich die Trefferquote an echtem Text prüfen lässt – nicht an konstruierten

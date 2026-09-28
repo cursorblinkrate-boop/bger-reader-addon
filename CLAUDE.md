@@ -14,6 +14,9 @@ Ohne ausdrückliche Freigabe der Autorin nie ändern:
   Handarbeit der Autorin und Alleinstellungsmerkmal, funktioniert und bleibt so.
   test/klammern-baseline.json friert ihr Ergebnis auf den echten Seiten ein.
 
+Lizenz GNU GPLv3 (GPL-3.0-only): jede neue Quelldatei bekommt den SPDX-Kopf
+(STARTPROMPT Regel 12).
+
 Vor jedem Push: bash tools/fetch-fixtures.sh, (cd test && npm ci),
 node test/test-runner.js – Ergebnis „0 fehlgeschlagen".
 Arbeiten auf einem Branch claude_code/… mit Draft-Pull-Request gegen main,
