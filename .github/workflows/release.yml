@@ -40,9 +40,9 @@ jobs:
       # checkout v5 / setup-node v5 sind die ersten Versionen, die auf Node 24
       # laufen (v4 löste auf den Runnern eine Deprecation-Warnung aus).
       # Node 22 = aktuelles LTS.
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
       - name: Neuester Cache-Stand der Fixtures
-        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: test/fixtures
           key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
@@ -96,7 +96,7 @@ jobs:
 
       - name: Cache-Stand sichern, wenn etwas neu geladen wurde
         if: steps.laden.outputs.geladen == 'true'
-        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: test/fixtures
           key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
@@ -116,16 +116,16 @@ jobs:
     needs: fixtures
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: test/package-lock.json
 
       - name: Fixtures vom Job "fixtures" (Artefakt)
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: fixtures
           path: test/fixtures
@@ -144,7 +144,7 @@ jobs:
       - name: Klammer-Report erzeugen
         run: node tools/klammern-report.js | tee klammern-report.txt
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: klammern-report
           path: klammern-report.txt
@@ -173,9 +173,9 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -184,7 +184,7 @@ jobs:
       # Fixtures vom Job "fixtures" – kein eigener Zugriff auf bger.ch aus
       # sechs Jobs zugleich.
       - name: Fixtures vom Job "fixtures" (Artefakt)
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: fixtures
           path: test/fixtures
@@ -203,7 +203,7 @@ jobs:
       - name: Smoke-Test
         run: node test/browser-smoke.js ${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: smoke-${{ matrix.os }}-${{ matrix.browser }}
@@ -216,7 +216,7 @@ jobs:
         continue-on-error: true
         run: node tools/screenshots.js ${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: screenshots-${{ matrix.os }}-${{ matrix.browser }}
@@ -237,7 +237,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Das ZIP entsteht direkt aus dem Commit (git archive): reproduzierbar –
       # gleicher Commit, gleiche Bytes, gleiche Prüfsumme, auch lokal
