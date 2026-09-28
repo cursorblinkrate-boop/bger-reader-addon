@@ -64,14 +64,56 @@ jobs:
       - name: Paket baut und bleibt unter der Groessengrenze
         run: bash tools/release.sh
 
+  # Fixtures einmal je Lauf: dieser Job nimmt den neuesten Cache-Stand, lädt
+  # nur, was darin fehlt, und gibt den Ordner als Artefakt an die Jobs mit
+  # Fixtures weiter (die warten auf ihn). Vorher lud jeder der sieben Jobs
+  # selbst – siebenfacher Zugriff auf bger.ch in derselben Sekunde, und im
+  # Lauf 94 (28.09.2026) bekamen sechs davon für bger_aza.html die Bot-
+  # Schutzseite statt des Entscheids. Cache-Schlüssel: Skript-Hash plus
+  # Lauf-ID, gelesen wird per Präfix der neueste Stand (GitHub-Caches sind
+  # unveränderlich; so kann eine später doch geladene optionale Datei
+  # nachrücken); gespeichert wird nur, wenn etwas neu geladen wurde. GitHub
+  # trennt Caches nach Branch: der erste Lauf auf main nach einem Merge lädt
+  # einmal neu, alle weiteren nehmen den Cache. Weitergabe als Artefakt statt
+  # Cache, weil ein Artefakt in jedem Job desselben Laufs sicher da ist –
+  # auf Windows wie auf Linux, auch wenn eine optionale Datei fehlt.
+  fixtures:
+    name: Fixtures (echte Entscheidseiten, einmal je Lauf)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Neuester Cache-Stand der Fixtures
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: test/fixtures
+          key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
+          restore-keys: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-
+
+      - name: Fehlende Fixtures laden (Seiten und Site-CSS)
+        id: laden
+        run: bash tools/fetch-fixtures.sh
+
+      - name: Cache-Stand sichern, wenn etwas neu geladen wurde
+        if: steps.laden.outputs.geladen == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: test/fixtures
+          key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
+
+      - name: Fixtures an die anderen Jobs weitergeben (Artefakt)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fixtures
+          path: test/fixtures/
+          retention-days: 1
+
   # Lauf mit echten Entscheidseiten: Block [3] samt Klammer-Baseline
   # (test/klammern-baseline.json) – die Prüfung, ob die Heuristik auf echtem
-  # Text noch dieselben Klammern einklappt. Blockierend. Die Fixtures liegen
-  # im Cache (gleicher Schlüssel wie im Smoke-Test, wird geteilt), der Lauf
-  # hängt also nur beim ersten Mal an der Erreichbarkeit von bger.ch; ändert
-  # sich die Fixture-Liste, holt ein neuer Schlüssel die Seiten neu.
+  # Text noch dieselben Klammern einklappt. Blockierend.
   suite-fixtures:
     name: Test-Suite (mit echten Entscheidseiten, Klammer-Baseline)
+    needs: fixtures
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -82,13 +124,11 @@ jobs:
           cache: npm
           cache-dependency-path: test/package-lock.json
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Fixtures vom Job "fixtures" (Artefakt)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
+          name: fixtures
           path: test/fixtures
-          key: fixtures-${{ runner.os }}-${{ hashFiles('tools/fetch-fixtures.sh') }}
-
-      - name: Fixtures laden (Seiten und Site-CSS, übersprungen wenn vorhanden)
-        run: bash tools/fetch-fixtures.sh
 
       - name: Test-Abhängigkeiten installieren (npm ci, Lockfile)
         working-directory: test
@@ -121,6 +161,7 @@ jobs:
   # Die Smoke-Screenshots liegen unter "smoke-<os>-<browser>".
   smoke:
     name: Browser-Smoke-Test (${{ matrix.browser }}, ${{ matrix.os }})
+    needs: fixtures
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -140,16 +181,13 @@ jobs:
           cache: npm
           cache-dependency-path: test/package-lock.json
 
-      # Fixtures zwischenspeichern: nach dem ersten Lauf hängt der Job nicht
-      # mehr an der Erreichbarkeit von bger.ch, und die Site wird geschont.
-      # Neuer Schlüssel, sobald sich die Fixture-Liste ändert.
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # Fixtures vom Job "fixtures" – kein eigener Zugriff auf bger.ch aus
+      # sechs Jobs zugleich.
+      - name: Fixtures vom Job "fixtures" (Artefakt)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
+          name: fixtures
           path: test/fixtures
-          key: fixtures-${{ runner.os }}-${{ hashFiles('tools/fetch-fixtures.sh') }}
-
-      - name: Fixtures laden (Seiten und Site-CSS, übersprungen wenn vorhanden)
-        run: bash tools/fetch-fixtures.sh
 
       # Playwright (Chromium, Edge) und Selenium (Firefox) kommen zusammen aus
       # dem Lockfile; Browser lädt das nicht (nur der nächste Schritt).

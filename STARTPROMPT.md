@@ -157,10 +157,15 @@ CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           der Abschnitt der aktuellen Version wird zur
                           Release-Notiz auf GitHub
 .github/workflows/        CI bei jedem Pull Request und jedem Push auf main:
-                          Suite ohne Fixtures, Suite mit Fixtures (gecacht,
-                          blockierend, prüft die Klammer-Baseline) und der
-                          Browser-Smoke-Test auf windows-latest und
-                          ubuntu-latest, je in Chromium, Edge und Firefox
+                          ein Job "fixtures" holt die echten Entscheidseiten
+                          einmal je Lauf (Cache; bger_aza.html optional, weil
+                          der Bot-Schutz von bger.ch sie oft verweigert) und
+                          reicht sie als Artefakt weiter – nie sieben Jobs
+                          zugleich auf bger.ch; dann Suite ohne Fixtures,
+                          Suite mit Fixtures (blockierend, prüft die
+                          Klammer-Baseline) und der Browser-Smoke-Test auf
+                          windows-latest und ubuntu-latest, je in Chromium,
+                          Edge und Firefox
                           (Artefakte smoke-<os>-<browser> und
                           screenshots-<os>-<browser>). Bei Push auf main mit
                           allem grün zudem GitHub-Release v<version>: das ZIP
