@@ -1,0 +1,28 @@
+{
+  "_hinweis": "Entscheidung der Einklapp-Heuristik je Klammer oberster Ebene auf den echten Entscheidseiten (test/fixtures/), in Dokumentreihenfolge: E = eingeklappt, o = offen. Erzeugt mit: node tools/klammern-report.js --baseline. Block [3] der Suite vergleicht damit; eine gewollte Änderung der Heuristik schreibt die Baseline im selben Commit neu.",
+  "bger_frauenstimmrecht.html": {
+    "klammern": 96,
+    "eingeklappt": 49,
+    "muster": "oooooooooooooEEEEEEEEEEEEoooEEEEEEEEEEEEEEEoEEoEoEEEoooooooEoooEoooooooEoEEEEoooooooEooEEEEEEEEo"
+  },
+  "bger_aza.html": {
+    "klammern": 1,
+    "eingeklappt": 1,
+    "muster": "E"
+  },
+  "bger_frauenstimmrecht_relevancy.html": {
+    "klammern": 96,
+    "eingeklappt": 49,
+    "muster": "oooooooooooooEEEEEEEEEEEEoooEEEEEEEEEEEEEEEoEEoEoEEEoooooooEoooEoooooooEoEEEEoooooooEooEEEEEEEEo"
+  },
+  "bger_heiratsstrafe_fr.html": {
+    "klammern": 110,
+    "eingeklappt": 38,
+    "muster": "oooooooooooooooooooooooooooEEEEooEoEEoEoEoEEEEoooooooooEooEEEoooooooooooooEEoooEEEEEEEEEoEoEEEoEEEooooooooEEEo"
+  },
+  "bvger_test.json": {
+    "klammern": 112,
+    "eingeklappt": 21,
+    "muster": "ooooooooooooooEoooEoEEEEoEoooEEEooEEEoooooooooooooooooooooooEoooooooooooooooEooooooooEoooEEoooEEooEooooooooooooo"
+  }
+}

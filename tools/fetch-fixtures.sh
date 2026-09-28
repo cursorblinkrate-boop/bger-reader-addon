@@ -55,7 +55,10 @@ for eintrag in "${FIXTURES[@]}"; do
 
   echo "  lade: $name"
   tmp="$ziel.tmp"
-  if ! curl -sL --max-time 60 -A "$UA" -o "$tmp" "$url"; then
+  # Bis zu drei Wiederholungen: ein einzelner Timeout (bvger.weblaw.ch, CI-Lauf
+  # vom 27.09.2026) darf den Lauf nicht kippen, die Nachbarjobs bekamen die
+  # Datei zur selben Zeit.
+  if ! curl -sL --max-time 60 --retry 3 --retry-delay 5 --retry-all-errors -A "$UA" -o "$tmp" "$url"; then
     echo "  FEHLER: Download fehlgeschlagen: $url" >&2
     rm -f "$tmp"
     fehler=1
@@ -94,7 +97,7 @@ for eintrag in "${CSS_FAMILIEN[@]}"; do
     if [ "$FORCE" = "0" ] && [ -f "$ziel" ]; then continue; fi
     tmp="$ziel.tmp"
     # Error-Pages kommen als HTML mit 200 zurück – kein CSS.
-    if curl -sL --max-time 60 -A "$UA" -o "$tmp" "$basis$datei" && ! grep -q -i "<html" "$tmp"; then
+    if curl -sL --max-time 60 --retry 3 --retry-delay 5 --retry-all-errors -A "$UA" -o "$tmp" "$basis$datei" && ! grep -q -i "<html" "$tmp"; then
       mv "$tmp" "$ziel"
       echo "  ok: css/$familie/$datei"
     else
@@ -113,5 +116,5 @@ if [ "$fehler" = "1" ]; then
 fi
 
 echo ""
-echo "Alle Fixtures bereit. Testlauf:  cd test && npm install jsdom@30.1.0 && node test-runner.js"
+echo "Alle Fixtures bereit. Testlauf:  (cd test && npm ci) && node test/test-runner.js"
 echo "Browser-Smoke-Test:              node test/browser-smoke.js chromium|firefox"

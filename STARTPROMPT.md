@@ -58,7 +58,7 @@ tools/sprachen-tabelle.js erzeugt SPRACHEN.md aus sprachen.js (ohne Argument),
 extension/manifest.json   Manifest V3 – EINZIGE Stelle mit der Versionsnummer,
                           nie von Hand ändern (siehe tools/version.js). Name,
                           Kurzbeschreibung und Symbol-Titel sind Platzhalter
-                          (__MSG_appName__ …), default_locale de
+                          (__MSG_appName__ …), default_locale en
 extension/_locales/en/    messages.json: appName („accessibility add-on for
                           bger.ch and bvger.ch"), appDescription, actionTitle –
                           nur Englisch, überall gleich (Vorgabe der Autorin).
@@ -135,7 +135,14 @@ tools/fetch-fixtures.sh   lädt fehlende Fixtures und das Site-CSS per curl,
                           idempotent, mit Plausibilitätscheck
 tools/klammern-report.js  jede Klammer der echten Fixtures mit Entscheidung
                           und Begründung – DAS Werkzeug für die Trefferquote;
-                          läuft auch in der CI (Artefakt "klammern-report")
+                          läuft auch in der CI (Artefakt "klammern-report").
+                          --baseline schreibt test/klammern-baseline.json
+test/klammern-baseline.json  Ergebnis der Heuristik auf den echten Seiten,
+                          eingefroren: je Fixture eine Zeichenkette (E =
+                          eingeklappt, o = offen, Dokumentreihenfolge) samt
+                          Zählern. Block [3] vergleicht; eine gewollte Änderung
+                          der Heuristik schreibt die Baseline im selben Commit
+                          neu, jede andere Abweichung ist ein Fehler
 tools/version.js          Version anzeigen/erhöhen (patch|minor|major|x.y.z),
                           ergänzt zugleich einen CHANGELOG-Eintrag
 tools/release.sh          baut dist/bger-reader-<version>.zip aus extension/,
@@ -149,24 +156,38 @@ tools/edge-paket.js       baut aus dem Hauptpaket das Edge-Paket
 CHANGELOG.md              Versionsverlauf, wird gegen das Manifest geprüft;
                           der Abschnitt der aktuellen Version wird zur
                           Release-Notiz auf GitHub
-.github/workflows/        CI bei jedem Push: Pflichtlauf der Suite (ohne
-                          Fixtures), Zusatzlauf mit Fixtures (nicht
-                          blockierend) und der Browser-Smoke-Test auf
-                          windows-latest und ubuntu-latest, je in Chromium,
-                          Edge und Firefox (Artefakte smoke-<os>-<browser>
-                          und screenshots-<os>-<browser>). Bei Push auf main mit grüner
-                          Suite und grünem Smoke-Test zudem GitHub-Release
-                          v<version>: das ZIP entsteht dort direkt aus dem
-                          Commit (git archive, reproduzierbar, ohne npm in dem
-                          Job, der Schreibrechte hat), dazu das Edge-Paket
+.github/workflows/        CI bei jedem Pull Request und jedem Push auf main:
+                          Suite ohne Fixtures, Suite mit Fixtures (gecacht,
+                          blockierend, prüft die Klammer-Baseline) und der
+                          Browser-Smoke-Test auf windows-latest und
+                          ubuntu-latest, je in Chromium, Edge und Firefox
+                          (Artefakte smoke-<os>-<browser> und
+                          screenshots-<os>-<browser>). Bei Push auf main mit
+                          allem grün zudem GitHub-Release v<version>: das ZIP
+                          entsteht dort direkt aus dem Commit (git archive,
+                          reproduzierbar, ohne npm in dem Job, der
+                          Schreibrechte hat), dazu das Edge-Paket
                           bger-reader-<version>-edge.zip (tools/edge-paket.js,
                           aus dem Release-Anhang) und je die volle SHA-256
                           als .sha256-Datei – DER Download-Ort für die
                           Store-Pakete (github.com/…/releases), nie „Download
                           ZIP" des Repos (heisst immer gleich, enthält alles).
-                          Test-Abhängigkeiten sind dort festgenagelt (jsdom,
-                          Playwright, Selenium): neue Versionen bewusst
-                          hochsetzen, im Workflow und im Setup unten.
+                          Actions sind per Commit-Hash gepinnt (ein Tag lässt
+                          sich verschieben, ein Hash nicht); Updates dafür und
+                          für test/package.json schlägt Dependabot monatlich
+                          als Pull Request vor (.github/dependabot.yml):
+                          grüner Haken, mergen.
+test/package.json         Test-Abhängigkeiten (landen nie im Paket): jsdom für
+                          die Suite, Playwright und Selenium für den
+                          Smoke-Test, exakt gepinnt; package-lock.json fixiert
+                          auch alle indirekten Pakete samt Prüfsummen. Immer
+                          `npm ci` (installiert genau diesen Stand), nie
+                          `npm install <paket>@<version>` von Hand
+CLAUDE.md                 Kurzfassung der Regeln, die Claude Code beim Start
+                          automatisch lädt: Verweis auf diese Datei, Sperren
+                          (README, Nutzertexte, Heuristik), Prüflauf vor dem
+                          Push. Keine zweite Doku – Regeln ändern sich hier,
+                          CLAUDE.md wird nur nachgezogen
 PRIVACY.md                Datenschutzerklärung (englisch), die Datenschutz-URL
                           der drei Stores (GitHub-Link auf main). README.md
                           pflegt die Autorin selbst – nicht anfassen
@@ -195,34 +216,38 @@ store/                    Store-Einreichung, kommt NICHT ins Paket (release.sh
 Kein Wiki, keine weitere Doku ausser README und CHANGELOG – bewusst.
 (SPRACHEN.md ist keine Doku, sondern die Arbeitstabelle der Übersetzungen;
 PRIVACY.md und store/ haben einen festen Zweck für die Stores und sind
-keine Anleitungen darüber hinaus.)
+keine Anleitungen darüber hinaus; CLAUDE.md ist der automatisch geladene
+Verweis auf diese Datei.)
 
 == SETUP AUF FRISCHEM KLON ==
   git clone https://github.com/cursorblinkrate-boop/bger-reader-addon.git
   cd bger-reader-addon
   bash tools/fetch-fixtures.sh
-  cd test && npm install jsdom@30.1.0 && node test-runner.js
+  (cd test && npm ci) && node test/test-runner.js
 Erwartung: „0 fehlgeschlagen". Die Gesamtzahl wächst mit jedem neuen Test
 und ist bewusst nirgends festgeschrieben — Massstab ist immer nur, dass
-nichts fehlschlägt. Ohne Fixtures wird Block [3] übersprungen, also immer
-erst Fixtures laden. Die Suite bleibt klein (Ziel: unter 150 Prüfungen) —
-neue Prüfungen zusammenfassen, nicht je Detail eine eigene.
-Test-Abhängigkeiten (landen nie im Paket): jsdom für die Suite; für den
-Browser-Smoke-Test zusätzlich Playwright und Selenium – lokal nur bei Bedarf,
-die CI führt ihn bei jedem Push aus:
-  cd test && npm install --no-save jsdom@30.1.0 playwright@1.56.1 selenium-webdriver@4.49.0
+nichts fehlschlägt. Ohne Fixtures werden Block [3] und die Klammer-Baseline
+übersprungen, also immer erst Fixtures laden. Die Suite bleibt klein (Ziel:
+unter 150 Prüfungen) — neue Prüfungen zusammenfassen, nicht je Detail eine
+eigene.
+npm ci installiert aus test/package.json und package-lock.json genau die
+gepinnten Versionen von jsdom, Playwright und Selenium (landen nie im Paket).
+Browser-Smoke-Test lokal nur bei Bedarf, die CI führt ihn bei jedem Pull
+Request aus:
   (cd test && npx playwright install chromium)       einmalig
   node test/browser-smoke.js chromium                bzw. edge (installiertes Edge)
                                                      oder firefox (Firefox und
                                                      geckodriver holt Selenium selbst)
   node tools/screenshots.js chromium                 Bilder für Store und Doku
-Achtung: npm install ohne package.json entfernt nicht genannte Pakete – immer
-alle zusammen installieren.
+Versionen der Test-Abhängigkeiten nur über test/package.json ändern (Dependabot
+schlägt sie als PR vor); danach im Ordner test `npm install`, damit das
+Lockfile folgt, und Suite plus Smoke-Test laufen lassen.
 
 == REGELN ==
-1. Vor jedem Push: volle Suite ohne Fehlschlag. GitHub führt die Suite
-   nach dem Push nochmals aus (.github/workflows/release.yml); das ersetzt
-   den lokalen Lauf nicht, sondern sichert ihn ab.
+1. Vor jedem Push: volle Suite ohne Fehlschlag, mit Fixtures (damit Block [3]
+   und die Klammer-Baseline mitlaufen). GitHub führt Suite und Smoke-Test im
+   Pull Request nochmals aus (.github/workflows/release.yml); das ersetzt den
+   lokalen Lauf nicht, sondern sichert ihn ab.
 2. Nutzersichtbare Änderung = Version erhöhen, IMMER mit
    `node tools/version.js patch` (bzw. minor/major) — nie von Hand im
    Manifest. Das Werkzeug legt zugleich den CHANGELOG-Eintrag an, dessen
@@ -242,10 +267,13 @@ alle zusammen installieren.
    brauchen eine neue Version.
 3. Commits auf Deutsch, bisheriger Stil: Kurzzeile, Leerzeile, Bullet-Details
    mit Begründung und Verifikationshinweis (siehe git log).
-4. Push: git push origin main — direkt auf main, keine Feature-Branches,
-   keine Pull Requests, keine Drafts. Credentials liegen im macOS-Keychain,
-   non-interaktiv. `gh` ist NICHT installiert; für GitHub-Verifikation nach
-   dem Push die GitHub-MCP-Tools nutzen (z. B. list_commits).
+4. Push: auf einem Branch claude_code/<name> arbeiten und einen Draft-Pull-
+   Request gegen main öffnen; die Autorin merged, sobald alle Prüfungen grün
+   sind. Nie direkt auf main pushen – das Release entsteht nur aus main, die
+   CI läuft für Pull Requests und main. Gilt für Claude Code Web wie für die
+   CLI auf dem Mac (Credentials dort im macOS-Keychain, non-interaktiv).
+   `gh` ist NICHT installiert; für GitHub-Verifikation die GitHub-MCP-Tools
+   nutzen (z. B. list_commits, pull_request_read).
 5. Visuelle Änderungen (Panel, Icons, CSS) vor dem Push per Chrome-Headless-
    Screenshot prüfen:
    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new
@@ -294,6 +322,14 @@ alle zusammen installieren.
    sind. Nicht nur Urteilskopf und Regeste. Nur die Store-Szenen
    (store: true in SZENEN) bleiben 1280 x 800, ebenfalls zu den
    Erwägungen gescrollt; Urteilskopf nur bei Szenen mit kopf: true.
+11. Gesperrt ohne ausdrückliche Freigabe der Autorin: README.md (gar nicht
+   anfassen, pflegt sie selbst); die Texte für Nutzer und Stores – PRIVACY.md,
+   store/listing.en.md, store/reviewer-notes.md, extension/_locales – nur als
+   Vorschlag (Diff) im Pull Request; die Einklapp-Heuristik in content.js
+   (Regelkern von POLITIK bis begruendung, die RegEx-Konstanten und die
+   Punktetabelle LITERATUR_SIGNALE) – Handarbeit der Autorin und
+   Alleinstellungsmerkmal, funktioniert und bleibt so. Block [1] (Korpus) und
+   die Klammer-Baseline (Block [3]) schlagen bei jeder Abweichung an.
 
 == BEKANNTE FALLSTRICKE ==
 - Panel läuft im Shadow DOM (attachShadow open) — Seiten-CSS greift nicht,

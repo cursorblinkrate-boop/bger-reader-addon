@@ -4,7 +4,7 @@
  *
  * Aufruf (aus dem Repo-Wurzelverzeichnis):   node store/promo/render.js
  * Voraussetzung wie beim Smoke-Test (test/browser-umgebung.js):
- *   cd test && npm install --no-save jsdom@30.1.0 playwright@1.56.1 && npx playwright install chromium
+ *   cd test && npm ci && npx playwright install chromium
  *
  * Ergebnis (in diesem Ordner):
  *   kachel-klein-440x280.png      Chrome Web Store: kleine Promo-Kachel (Pflicht); Edge optional

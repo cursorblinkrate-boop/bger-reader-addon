@@ -441,6 +441,42 @@ if (fs.existsSync(BVGER_FIXTURE)) {
 } else {
   console.log('  ⚠️  bvger_test.json nicht gefunden, übersprungen.');
 }
+// Klammer-Baseline: die Entscheidung der Heuristik je Klammer oberster Ebene auf
+// den echten Seiten, eingefroren in test/klammern-baseline.json (E = eingeklappt,
+// o = offen, Dokumentreihenfolge; `node tools/klammern-report.js --baseline`
+// schreibt sie neu). Die Heuristik ist Handarbeit der Autorin: jede Abweichung
+// ist entweder ein Fehler oder eine gewollte Änderung, die die Baseline im
+// selben Commit anpasst. Der Fehlschlag nennt die ersten abweichenden Klammern.
+{
+  const KR = require(path.join(WURZEL, 'tools', 'klammern-report.js'));
+  const vorhanden = KR.STANDARD.filter(fs.existsSync);
+  if (vorhanden.length) {
+    const baseline = JSON.parse(fs.readFileSync(KR.BASELINE, 'utf8'));
+    const abweichungen = [];
+    let klammern = 0;
+    vorhanden.forEach(function (datei) {
+      const name = path.basename(datei);
+      const ist = KR.analysiere(datei);
+      klammern += ist.klammern.length;
+      const soll = baseline[name];
+      if (!soll) { abweichungen.push(name + ': nicht in der Baseline (node tools/klammern-report.js --baseline)'); return; }
+      const muster = KR.muster(ist.klammern);
+      if (muster === soll.muster) return;
+      const details = [];
+      for (let i = 0; i < Math.max(muster.length, soll.muster.length) && details.length < 5; i++) {
+        if (muster[i] === soll.muster[i]) continue;
+        const k = ist.klammern[i];
+        details.push('#' + i + ' ' + (soll.muster[i] || '–') + '->' + (muster[i] || '–') +
+          (k ? ' „' + k.inhalt.slice(0, 50) + '" (' + k.grund + ')' : ''));
+      }
+      abweichungen.push(name + ': ' + muster.length + ' statt ' + soll.muster.length + ' Klammern; ' + details.join('; '));
+    });
+    pruefe('Klammer-Baseline: Entscheidungen der Heuristik auf ' + vorhanden.length + ' echten Seiten unverändert (' + klammern + ' Klammern)',
+      abweichungen.length === 0, abweichungen.join(' | '));
+  } else {
+    console.log('  ⚠️  keine Fixtures für die Klammer-Baseline, übersprungen.');
+  }
+}
 
 /* ---------- 4. Panel: Bedienung, Stile, Layout-Neutralität ---------- */
 console.log('\n[4] Panel und Stile');
