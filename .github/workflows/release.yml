@@ -1,13 +1,20 @@
-# Führt bei jedem Push die Test-Suite, den Browser-Smoke-Test und den Paketbau aus.
-# Ergebnis erscheint als grüner Haken bzw. rotes Kreuz neben dem Commit
-# auf github.com – die Regel "vor dem Push muss die Suite grün sein" hängt
-# damit nicht mehr allein an Disziplin.
+# Führt bei jedem Pull Request und bei jedem Push auf main die Test-Suite, den
+# Browser-Smoke-Test und den Paketbau aus. Ergebnis erscheint als grüner Haken
+# bzw. rotes Kreuz neben dem Commit auf github.com – die Regel "vor dem Push
+# muss die Suite grün sein" hängt damit nicht mehr allein an Disziplin.
 name: Prüfung und Paket
 
 on:
   push:
+    branches: [main] # Arbeitsbranches laufen über ihren Pull Request, nicht doppelt
   pull_request:
   workflow_dispatch: # erlaubt manuelles Starten über die GitHub-Oberfläche
+
+# Überholte Läufe desselben Branches abbrechen (schneller Folge-Push). Auf main
+# nie: dort hängt das Release am Lauf.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Grundrecht für alle Jobs: nur lesen. Der Release-Job unten hebt das für
 # sich auf contents: write an. Ohne diesen Block warnt CodeQL (CWE-275),
@@ -15,33 +22,35 @@ on:
 permissions:
   contents: read
 
-# Test-Abhängigkeiten festgenagelt: ein neues Release von jsdom, Playwright
-# oder Selenium darf die Tests nicht ohne eigene Änderung rot färben, und in
-# der CI läuft genau die Version, die lokal geprüft wurde (STARTPROMPT.md
-# nennt dieselben). Neue Versionen bewusst hier hochsetzen.
-env:
-  JSDOM: jsdom@30.1.0
-  PLAYWRIGHT: playwright@1.56.1
-  SELENIUM: selenium-webdriver@4.49.0
+# Test-Abhängigkeiten (jsdom, Playwright, Selenium) stehen exakt gepinnt in
+# test/package.json; package-lock.json fixiert auch alle indirekten Pakete samt
+# Prüfsummen, und `npm ci` installiert genau diesen Stand – ein neues Release
+# eines Pakets kann die Tests nicht ohne eigene Änderung rot färben, und in der
+# CI läuft dieselbe Version wie lokal. Die Actions unten sind per Commit-Hash
+# gepinnt (ein Tag lässt sich verschieben, ein Hash nicht; der Release-Job hat
+# Schreibrechte und erzeugt die Store-Pakete). Updates für beides schlägt
+# Dependabot monatlich als Pull Request vor (.github/dependabot.yml).
 
 jobs:
-  # Pflichtlauf: ohne Fixtures, damit das Ergebnis nicht von der
-  # Erreichbarkeit von bger.ch abhängt. Deckt alle Blöcke ausser [3] (echte Entscheidseiten) ab.
+  # Pflichtlauf ohne Fixtures: deckt alle Blöcke ausser [3] (echte Entscheidseiten) ab.
   suite:
     name: Test-Suite (ohne Fixtures)
     runs-on: ubuntu-latest
     steps:
-      # v5 ist die erste Version, die auf Node 24 läuft; v4 löst auf den
-      # Runnern eine Deprecation-Warnung aus. Node 22 = aktuelles LTS.
-      - uses: actions/checkout@v5
+      # checkout v5 / setup-node v5 sind die ersten Versionen, die auf Node 24
+      # laufen (v4 löste auf den Runnern eine Deprecation-Warnung aus).
+      # Node 22 = aktuelles LTS.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: test/package-lock.json
 
-      - name: jsdom installieren (einzige Abhängigkeit der Suite)
+      - name: Test-Abhängigkeiten installieren (npm ci, Lockfile)
         working-directory: test
-        run: npm install --no-save --no-audit --no-fund "$JSDOM"
+        run: npm ci --no-audit --no-fund
 
       - name: Syntaxprüfung der ausgelieferten Skripte
         run: for f in extension/sprachen.js extension/content.js extension/popup.js extension/background.js; do node --check "$f"; done
@@ -55,38 +64,87 @@ jobs:
       - name: Paket baut und bleibt unter der Groessengrenze
         run: bash tools/release.sh
 
-  # Zusatzlauf: mit echten Entscheidseiten. Schlägt fehl, sobald bger.ch nicht
-  # erreichbar ist oder sein HTML ändert – das ist wertvolle Information, darf
-  # aber den Pflichtlauf nicht blockieren, deshalb continue-on-error.
-  suite-fixtures:
-    name: Test-Suite (mit echten Entscheidseiten, nicht blockierend)
+  # Fixtures einmal je Lauf: dieser Job nimmt den neuesten Cache-Stand, lädt
+  # nur, was darin fehlt, und gibt den Ordner als Artefakt an die Jobs mit
+  # Fixtures weiter (die warten auf ihn). Vorher lud jeder der sieben Jobs
+  # selbst – siebenfacher Zugriff auf bger.ch in derselben Sekunde, und im
+  # Lauf 94 (28.09.2026) bekamen sechs davon für bger_aza.html die Bot-
+  # Schutzseite statt des Entscheids. Cache-Schlüssel: Skript-Hash plus
+  # Lauf-ID, gelesen wird per Präfix der neueste Stand (GitHub-Caches sind
+  # unveränderlich; so kann eine später doch geladene optionale Datei
+  # nachrücken); gespeichert wird nur, wenn etwas neu geladen wurde. GitHub
+  # trennt Caches nach Branch: der erste Lauf auf main nach einem Merge lädt
+  # einmal neu, alle weiteren nehmen den Cache. Weitergabe als Artefakt statt
+  # Cache, weil ein Artefakt in jedem Job desselben Laufs sicher da ist –
+  # auf Windows wie auf Linux, auch wenn eine optionale Datei fehlt.
+  fixtures:
+    name: Fixtures (echte Entscheidseiten, einmal je Lauf)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v5
+      - name: Neuester Cache-Stand der Fixtures
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          node-version: '22'
+          path: test/fixtures
+          key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
+          restore-keys: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-
 
-      - name: jsdom installieren
-        working-directory: test
-        run: npm install --no-save --no-audit --no-fund "$JSDOM"
-
-      - name: Fixtures laden
+      - name: Fehlende Fixtures laden (Seiten und Site-CSS)
+        id: laden
         run: bash tools/fetch-fixtures.sh
 
-      - name: Test-Suite mit Fixtures
+      - name: Cache-Stand sichern, wenn etwas neu geladen wurde
+        if: steps.laden.outputs.geladen == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: test/fixtures
+          key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
+
+      - name: Fixtures an die anderen Jobs weitergeben (Artefakt)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fixtures
+          path: test/fixtures/
+          retention-days: 1
+
+  # Lauf mit echten Entscheidseiten: Block [3] samt Klammer-Baseline
+  # (test/klammern-baseline.json) – die Prüfung, ob die Heuristik auf echtem
+  # Text noch dieselben Klammern einklappt. Blockierend.
+  suite-fixtures:
+    name: Test-Suite (mit echten Entscheidseiten, Klammer-Baseline)
+    needs: fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: test/package-lock.json
+
+      - name: Fixtures vom Job "fixtures" (Artefakt)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: fixtures
+          path: test/fixtures
+
+      - name: Test-Abhängigkeiten installieren (npm ci, Lockfile)
+        working-directory: test
+        run: npm ci --no-audit --no-fund
+
+      - name: Test-Suite mit Fixtures (Block [3] und Klammer-Baseline)
         run: node test/test-runner.js
 
       # Klammer-Report: jede Klammer der echten Entscheidseiten mit der
       # Entscheidung der Heuristik. Liegt nach dem Lauf unter "Artifacts"
       # zum Herunterladen und steht vollständig im Job-Log – die Prüfung an
-      # echtem Text.
+      # echtem Text zum Nachlesen; die Baseline oben ist die automatische.
       - name: Klammer-Report erzeugen
         run: node tools/klammern-report.js | tee klammern-report.txt
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: klammern-report
           path: klammern-report.txt
@@ -103,60 +161,49 @@ jobs:
   # Die Smoke-Screenshots liegen unter "smoke-<os>-<browser>".
   smoke:
     name: Browser-Smoke-Test (${{ matrix.browser }}, ${{ matrix.os }})
+    needs: fixtures
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
         browser: [chromium, edge, firefox]
-    # Auch auf Windows in bash (Git for Windows): PowerShell kennt "$JSDOM"
-    # als Umgebungsvariable nicht, die Installationsschritte liefen dort leer.
+    # Auch auf Windows in bash (Git for Windows): gleiche Befehle wie auf Linux.
     defaults:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: test/package-lock.json
 
-      # Fixtures zwischenspeichern: nach dem ersten Lauf hängt der Job nicht
-      # mehr an der Erreichbarkeit von bger.ch, und die Site wird geschont.
-      # Neuer Schlüssel, sobald sich die Fixture-Liste ändert. restore-keys:
-      # bei neuem Schlüssel den letzten Stand übernehmen, fetch-fixtures.sh
-      # lädt dann nur Fehlendes – sonst müsste jede Änderung am Skript (1.1.0:
-      # nur der Lizenz-Header) alles neu von bger.ch laden, und dessen
-      # Bot-Schutz weist die Runner unregelmässig ab (alle sechs Smoke-Jobs
-      # rot, 27.09.2026).
-      - uses: actions/cache@v4
+      # Fixtures vom Job "fixtures" – kein eigener Zugriff auf bger.ch aus
+      # sechs Jobs zugleich.
+      - name: Fixtures vom Job "fixtures" (Artefakt)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
+          name: fixtures
           path: test/fixtures
-          key: fixtures-${{ runner.os }}-${{ hashFiles('tools/fetch-fixtures.sh') }}
-          restore-keys: fixtures-${{ runner.os }}-
 
-      - name: Fixtures laden (Seiten und Site-CSS, übersprungen wenn vorhanden)
-        run: bash tools/fetch-fixtures.sh
-
-      - name: Playwright installieren (Chromium und Edge)
-        if: matrix.browser != 'firefox'
+      # Playwright (Chromium, Edge) und Selenium (Firefox) kommen zusammen aus
+      # dem Lockfile; Browser lädt das nicht (nur der nächste Schritt).
+      - name: Test-Abhängigkeiten installieren (npm ci, Lockfile)
         working-directory: test
-        run: npm install --no-save --no-audit --no-fund "$PLAYWRIGHT"
+        run: npm ci --no-audit --no-fund
 
       - name: Chromium herunterladen (Edge ist auf den Runnern installiert)
         if: matrix.browser == 'chromium'
         working-directory: test
         run: npx playwright install chromium
 
-      - name: Selenium installieren
-        if: matrix.browser == 'firefox'
-        working-directory: test
-        run: npm install --no-save --no-audit --no-fund "$SELENIUM"
-
       - name: Smoke-Test
         run: node test/browser-smoke.js ${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: smoke-${{ matrix.os }}-${{ matrix.browser }}
@@ -169,35 +216,35 @@ jobs:
         continue-on-error: true
         run: node tools/screenshots.js ${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: screenshots-${{ matrix.os }}-${{ matrix.browser }}
           path: test/screenshots/
           retention-days: 90
 
-  # Paket veröffentlichen: nach jedem Push auf main, aber nur wenn Suite und
-  # Smoke-Test grün sind und die Version im Manifest noch kein Release hat.
-  # Ergebnis: github.com/<repo>/releases mit bger-reader-<version>.zip und
-  # der Prüfsumme als Anhang – ein fester Download-Ort, an dem jede Datei
-  # ihre Version im Namen trägt. Das Release-Tag (v0.9.2) markiert zugleich
-  # den Commit.
+  # Paket veröffentlichen: nach jedem Push auf main, aber nur wenn beide
+  # Suite-Läufe und der Smoke-Test grün sind und die Version im Manifest noch
+  # kein Release hat. Ergebnis: github.com/<repo>/releases mit
+  # bger-reader-<version>.zip und der Prüfsumme als Anhang – ein fester
+  # Download-Ort, an dem jede Datei ihre Version im Namen trägt. Das
+  # Release-Tag (v0.9.2) markiert zugleich den Commit.
   release:
     name: Paket als GitHub-Release veröffentlichen
-    needs: [suite, smoke]
+    needs: [suite, suite-fixtures, smoke]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Das ZIP entsteht direkt aus dem Commit (git archive): reproduzierbar –
       # gleicher Commit, gleiche Bytes, gleiche Prüfsumme, auch lokal
       # nachbaubar – und ohne npm-Installation in dem einzigen Job, der
       # Schreibrechte hat. Ein manipuliertes Paket aus npm käme hier also
-      # nicht ins Release. Die Tests liefen davor in "suite" und "smoke"
-      # auf genau diesem Commit. Node ist auf dem Runner vorinstalliert.
+      # nicht ins Release. Die Tests liefen davor in "suite", "suite-fixtures"
+      # und "smoke" auf genau diesem Commit. Node ist auf dem Runner vorinstalliert.
       - name: Paket aus dem Commit bauen, Prüfsumme bilden, Grösse prüfen
         run: |
           VERSION="$(node tools/version.js)"

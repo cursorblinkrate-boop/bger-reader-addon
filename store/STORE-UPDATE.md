@@ -30,7 +30,7 @@ AMO (erledigt am 26.09.2026): erste Version wie Schritt 4 (`web-ext sign` legt d
 
 ## Kennungen
 
-- Chrome Web Store, Element-ID (`CHROME_EXTENSION_ID`): `kobgnclomglmgafhellfbdbfjfedokdf` / Publisher-ID (`CHROME_PUBLISHER_ID`): … (Dashboard → „Konto")
+- Chrome Web Store, Element-ID (`CHROME_EXTENSION_ID`): `kobgnclomglmgafhellfbdbfjfedokdf` / Publisher-ID (`CHROME_PUBLISHER_ID`): … (Dashboard → „Konto") – Listing: https://chromewebstore.google.com/detail/kobgnclomglmgafhellfbdbfjfedokdf
 - AMO, Slug / Add-on-ID: `accessibility-add-on-for-bgerc` / `bger-reader@bge.reader` – https://addons.mozilla.org/en-US/firefox/addon/accessibility-add-on-for-bgerc/
 - Edge Add-ons, Produkt-ID: … (nach der Erstveröffentlichung)
 
@@ -39,4 +39,6 @@ AMO (erledigt am 26.09.2026): erste Version wie Schritt 4 (`web-ext sign` legt d
 - 2026-09-26 AMO: 1.0.0 eingereicht (`web-ext sign`, automatische Prüfung), Freigabe ausstehend.
 - 2026-09-26 Chrome: 1.0.0 eingereicht und abgelehnt („Keyword-Spam", Referenz „Yellow Argon": die beiden Schriftarten-Listen der Beschreibung). Beschreibung ohne Listen, Paket unverändert, Neueinreichung im Dashboard.
 - 2026-09-26 Edge: Partner-Center-Konto registriert. Upload von `bger-reader-1.0.0.zip` abgelehnt („The background.scripts field cannot be used with manifest version 3"); seither eigenes Edge-Paket (`tools/edge-paket.js`), Einreichung mit `bger-reader-1.0.0-edge.zip` offen.
-- 2026-09-27 Lizenzwechsel MIT → GNU GPLv3 (1.1.0). AMO: Beschreibung von der Autorin ersetzt; das Lizenzfeld gilt pro Version und wechselt mit dem Upload von 1.1.0 (`amo-metadata.json`, `GPL-3.0-or-later`). Chrome: Eintrag während der laufenden Prüfung gesperrt, Text nach der Freigabe ersetzen, dann 1.1.0 einreichen. Edge: Text mit der Erstveröffentlichung.
+- 2026-09-27 Chrome: Neueinreichung (Beschreibung ohne Schriftarten-Listen) freigegeben, 1.0.0 öffentlich seit 13:20 UTC (Mail „Artikel erfolgreich veröffentlicht"). Listing-URL oben.
+- 2026-09-27 AMO: Freigabe noch ausstehend, Listing-Seite noch nicht öffentlich (404).
+- 2026-09-27 Lizenzwechsel MIT → GNU GPLv3 (1.1.0). AMO: Beschreibung von der Autorin ersetzt; das Lizenzfeld gilt pro Version und wechselt mit dem Upload von 1.1.0 (`amo-metadata.json`; Entscheid der Autorin vom 28.09.2026: GPL-3.0-only – AMO kennt in seiner Liste nur die or-later-Fassung, deshalb dort als eigene Lizenz `custom_license` mit vollem Text). Chrome: Eintrag während der laufenden Prüfung gesperrt, Text nach der Freigabe ersetzen, dann 1.1.0 einreichen. Edge: Text mit der Erstveröffentlichung.

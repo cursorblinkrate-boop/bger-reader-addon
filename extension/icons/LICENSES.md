@@ -3,7 +3,7 @@
 ## Extension-Icon (icon16/48/128.png, Marken-Icon in der Kopfzeile)
 
 Eigenes Werk (pinkes Buch mit Smiley), Lizenz wie das Projekt (GNU GPLv3,
-GPL-3.0-or-later, siehe LICENSE).
+GPL-3.0-only, siehe LICENSE).
 Das Marken-Icon in der Kopfzeile von Panel und Pop-up ist eine Inline-SVG-
 Nachzeichnung davon (`ICON_MARKE` in content.js, gleicher String in popup.html).
 

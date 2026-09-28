@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2026 Stephanie Blaettler
 
 /* Erzeugt store/amo-metadata.json für die Einreichung bei Firefox Add-ons:
@@ -153,7 +153,14 @@ const metadaten = {
   is_experimental: false,
   requires_payment: false,
   version: {
-    license: 'GPL-3.0-or-later', // AMO-Slug aus der festen Liste: „GNU General Public License, version 3.0"
+    /* Lizenz GPL-3.0-only (Entscheid der Autorin, 28.09.2026). Die feste
+       Lizenzliste von AMO kennt GPLv3 nur als or-later-Fassung; deshalb eine
+       eigene Lizenz mit Namen und dem vollen Text aus LICENSE (API-Feld
+       custom_license, schliesst das Feld license aus; gilt pro Version). */
+    custom_license: {
+      name: { 'en-US': 'GNU General Public License v3.0 only (GPL-3.0-only)' },
+      text: { 'en-US': fs.readFileSync(path.join(WURZEL, 'LICENSE'), 'utf8') }
+    },
     release_notes: releaseNotes,
     approval_notes: notizen.text
   }

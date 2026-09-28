@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2026 Stephanie Blaettler
 
 /* Tests für den bger reader – Kernlogik gegen echte und synthetische Seiten.
@@ -443,6 +443,42 @@ if (fs.existsSync(BVGER_FIXTURE)) {
     folds.length + ' Folds');
 } else {
   console.log('  ⚠️  bvger_test.json nicht gefunden, übersprungen.');
+}
+// Klammer-Baseline: die Entscheidung der Heuristik je Klammer oberster Ebene auf
+// den echten Seiten, eingefroren in test/klammern-baseline.json (E = eingeklappt,
+// o = offen, Dokumentreihenfolge; `node tools/klammern-report.js --baseline`
+// schreibt sie neu). Die Heuristik ist Handarbeit der Autorin: jede Abweichung
+// ist entweder ein Fehler oder eine gewollte Änderung, die die Baseline im
+// selben Commit anpasst. Der Fehlschlag nennt die ersten abweichenden Klammern.
+{
+  const KR = require(path.join(WURZEL, 'tools', 'klammern-report.js'));
+  const vorhanden = KR.STANDARD.filter(fs.existsSync);
+  if (vorhanden.length) {
+    const baseline = JSON.parse(fs.readFileSync(KR.BASELINE, 'utf8'));
+    const abweichungen = [];
+    let klammern = 0;
+    vorhanden.forEach(function (datei) {
+      const name = path.basename(datei);
+      const ist = KR.analysiere(datei);
+      klammern += ist.klammern.length;
+      const soll = baseline[name];
+      if (!soll) { abweichungen.push(name + ': nicht in der Baseline (node tools/klammern-report.js --baseline)'); return; }
+      const muster = KR.muster(ist.klammern);
+      if (muster === soll.muster) return;
+      const details = [];
+      for (let i = 0; i < Math.max(muster.length, soll.muster.length) && details.length < 5; i++) {
+        if (muster[i] === soll.muster[i]) continue;
+        const k = ist.klammern[i];
+        details.push('#' + i + ' ' + (soll.muster[i] || '–') + '->' + (muster[i] || '–') +
+          (k ? ' „' + k.inhalt.slice(0, 50) + '" (' + k.grund + ')' : ''));
+      }
+      abweichungen.push(name + ': ' + muster.length + ' statt ' + soll.muster.length + ' Klammern; ' + details.join('; '));
+    });
+    pruefe('Klammer-Baseline: Entscheidungen der Heuristik auf ' + vorhanden.length + ' echten Seiten unverändert (' + klammern + ' Klammern)',
+      abweichungen.length === 0, abweichungen.join(' | '));
+  } else {
+    console.log('  ⚠️  keine Fixtures für die Klammer-Baseline, übersprungen.');
+  }
 }
 
 /* ---------- 4. Panel: Bedienung, Stile, Layout-Neutralität ---------- */
@@ -936,7 +972,7 @@ console.log('\n[6] Paket');
     eintraege.length === new Set(eintraege).size && changelog.indexOf('TODO: Änderung hier beschreiben') === -1 &&
     !/@version|"version"\s*:/.test(SCRIPT),
     'Changelog: ' + eintraege[0] + ', Manifest: ' + manifest.version);
-  // Lizenz: GNU GPLv3 (GPL-3.0-or-later, seit 1.1.0, Regel 11). LICENSE ist der
+  // Lizenz: GNU GPLv3 (GPL-3.0-only, seit 1.1.0, Regel 11). LICENSE ist der
   // unveränderte FSF-Text (GitHub erkennt die Lizenz daran), extension/LICENSE
   // die Kopie im Paket (GPLv3 §4), jede Quelldatei trägt den SPDX-Header.
   const GPL3_SHA256 = '3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986';
@@ -949,9 +985,9 @@ console.log('\n[6] Paket');
     });
   });
   const ohneHeader = quelldateien.filter(function (p) {
-    return fs.readFileSync(path.join(WURZEL, p), 'utf8').indexOf('SPDX-License-Identifier: GPL-3.0-or-later') === -1;
+    return fs.readFileSync(path.join(WURZEL, p), 'utf8').indexOf('SPDX-License-Identifier: GPL-3.0-only') === -1;
   });
-  pruefe('Lizenz: LICENSE = unveränderter GPLv3-Text (SHA-256), extension/LICENSE identisch, SPDX-Header GPL-3.0-or-later in jeder Quelldatei (extension, tools, test, store)',
+  pruefe('Lizenz: LICENSE = unveränderter GPLv3-Text (SHA-256), extension/LICENSE identisch, SPDX-Header GPL-3.0-only in jeder Quelldatei (extension, tools, test, store)',
     require('crypto').createHash('sha256').update(lizenz).digest('hex') === GPL3_SHA256 &&
     lizenz.equals(fs.readFileSync(path.join(EXT, 'LICENSE'))) &&
     quelldateien.length >= 20 && ohneHeader.length === 0,

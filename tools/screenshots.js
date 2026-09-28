@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2026 Stephanie Blaettler
 
 /* Screenshots für Store und Doku: jede Funktion der Extension einmal im Bild,
