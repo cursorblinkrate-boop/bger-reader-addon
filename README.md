@@ -1,6 +1,6 @@
 <img width="1400" height="560" alt="kachel-marquee-1400x560" src="https://github.com/user-attachments/assets/0ef2587b-6528-41a5-ac7c-813f1052a83e" />
 
-# accessibility extension for bger.ch and bvger.ch 
+# ACCESSABILITY EXTENSION FOR BGER.CH AND BVGER.CH 
 
 | Browser | Install from … | Status |
 |:-:|---|---|
@@ -11,17 +11,17 @@
 | ![Firefox](https://img.shields.io/badge/Firefox-FF7139?logo=firefox&logoColor=white) | Firefox Add-ons | waiting for release |
 | ![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white) | [Releases](https://github.com/cursorblinkrate-boop/bger-reader-addon/releases) | ZIP for manual installation (Chrome, Firefox: `bger-reader-*.zip`; Edge: `bger-reader-*-edge.zip`), SHA-256 next to each file |
 
-Open-Source Browser-Erweiterung für BGEs (ATF / DTF) und Bundesverwaltungsgerichtsentscheide (experimentell). Die Erweiterung verbessert die Lesbarkeit durch anpassbare Typografie, Schriftstärke, Zeilen, Absatz, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten und einklappbare Fundstellen-Klammern usw.
+Open-Source Browser-Erweiterung für BGEs (ATF / DFT) und Bundesverwaltungsgerichtsentscheide (experimentell). Die Erweiterung verbessert die Lesbarkeit durch anpassbare Typografie, Schriftstärke, Zeilen, Absatz, Buchstaben- und Wortabstand, Zeilenlänge, Silbentrennung, Ausrichtung, Spalten, einklappbare Fundstellen- und Literaturverweise usw.
 
 
-## Gallerie
+## GALLERIE
 <img width="1280" height="800" alt="52-luciole-nacht-francais" src="https://github.com/user-attachments/assets/aac24234-4add-493c-b18e-406f450c3368" />
 <img width="1280" height="800" alt="50-garamond-zwei-spalten-italiano" src="https://github.com/user-attachments/assets/00b89b00-4adc-4203-ad2e-d15e00612ded" />
 <img width="1280" height="800" alt="51-system-sans-dunkel-deutsch" src="https://github.com/user-attachments/assets/121f4499-c297-47ae-86e8-3e33fc5716bf" />
 <img width="1280" height="800" alt="03-panel-erweitert" src="https://github.com/user-attachments/assets/7a497564-c27d-4254-ac0a-72d4c2680938" />
 
 
-# Unterstützte Seiten:
+# UNTERSTÜTZE SEITEN:
 - https://search.bger.ch/*
 - https://relevancy.bger.ch/*
 - http://relevancy.bger.ch/*
@@ -36,10 +36,10 @@ bge (punkt) reader (at) gmail (punkt) com
 
 Das add-on ist ein privates Projekt und weder mit dem Bundesgericht noch mit dem Bundesverwaltungsgericht oder mit Weblaw verbunden.
 
-- # Schriftarten:
-Schriften, die für Menschen mit Legasthenie oder Sehbeeinträchtigung entworfen wurden, dazu Serifen- und serifenlose Schriften sowie die Systemschriften; 
+# SCHRIFTARTEN:
+Schriften, die für Menschen mit Legasthenie oder Sehbeeinträchtigung entworfen wurden, dazu Serifen- und serifenlose Schriften sowie natürlich Systemschrifarten; 
 
-Dateien werden mitgeliefert - lokal komprimiert und eingebunden. Keine davon wird online gehostet oder runtergeladen. 
+Die Schriftarten werden automatisch mitinstalliert - lokal komprimiert und eingebunden. Keine davon wird online gehostet oder runtergeladen. 
 - Atkinson Hyperlegible Next ([Braille Institute](https://www.brailleinstitute.org), SIL Open Font License 1.1)
 - Luciole ([luciole-vision.com](https://www.luciole-vision.com), CC BY 4.0)
 - OpenDyslexic ([opendyslexic.org](https://opendyslexic.org), SIL Open Font License 1.1)
@@ -53,7 +53,7 @@ Schriften: SIL Open Font License 1.1 bzw. CC BY 4.0 ([extension/fonts/LICENSES.m
 
 ---
 
-# accessibility extension for bger.ch and bvger.ch 
+# ENGLISH 
 FOSS accessibility add-on for Swiss Federal Supreme Court decisions (BGE / ATF / DTF). Adds adjustable typography, fonts designed for low vision and dyslexia, colour schemes (dark mode, sepia). Advanced settings: weight, line, paragraph, letter and word spacing, line length, hyphenation, alignment, columns.
 
 Runs entirely offline: no frameworks, no tracking, no external requests, no data collected, transmitted or stored outside your browser. Stores only the display settings locally in the browser (storage.local). Not affiliated with any courts, governments or Weblaw.
@@ -62,12 +62,12 @@ The fonts are bundled with the extension under open licences (SIL Open Font Lice
 
 Source code (GNU GPLv3) is public: https://github.com/cursorblinkrate-boop/bger-reader-addon
 
-# Supported pages:
+# SUPPORTED PAGES:
 https://search.bger.ch/*
 https://relevancy.bger.ch/*
 http://relevancy.bger.ch/*
 https://bvger.weblaw.ch/*
 
-## Sicherheit
+## REPORTING BUGS AND SAFETY ISSUES
 
 Sicherheitsprobleme bitte nicht öffentlich melden, sondern wie in [SECURITY.md](SECURITY.md) beschrieben. Unterstützt wird immer nur die neueste Version von der Releases-Seite.
