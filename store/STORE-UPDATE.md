@@ -31,7 +31,7 @@ AMO (erledigt am 26.09.2026): erste Version wie Schritt 4 (`web-ext sign` legt d
 ## Kennungen
 
 - Chrome Web Store, Element-ID (`CHROME_EXTENSION_ID`): `kobgnclomglmgafhellfbdbfjfedokdf` / Publisher-ID (`CHROME_PUBLISHER_ID`): … (Dashboard → „Konto") – Listing: https://chromewebstore.google.com/detail/kobgnclomglmgafhellfbdbfjfedokdf
-- AMO, Slug / Add-on-ID: `accessibility-add-on-for-bgerc` / `bger-reader@bge.reader` – https://addons.mozilla.org/en-US/firefox/addon/accessibility-add-on-for-bgerc/
+- AMO, Slug / Add-on-ID: `accessibility-addon-bger-bvger` / `bger-reader@bge.reader` – https://addons.mozilla.org/en-US/firefox/addon/accessibility-addon-bger-bvger/ (bis 28.09.2026 Slug `accessibility-add-on-for-bgerc`)
 - Edge Add-ons, Produkt-ID: … (nach der Erstveröffentlichung)
 
 ## Verlauf
@@ -42,3 +42,6 @@ AMO (erledigt am 26.09.2026): erste Version wie Schritt 4 (`web-ext sign` legt d
 - 2026-09-27 Chrome: Neueinreichung (Beschreibung ohne Schriftarten-Listen) freigegeben, 1.0.0 öffentlich seit 13:20 UTC (Mail „Artikel erfolgreich veröffentlicht"). Listing-URL oben.
 - 2026-09-27 AMO: Freigabe noch ausstehend, Listing-Seite noch nicht öffentlich (404).
 - 2026-09-27 Lizenzwechsel MIT → GNU GPLv3 (1.1.0). AMO: Beschreibung von der Autorin ersetzt; das Lizenzfeld gilt pro Version und wechselt mit dem Upload von 1.1.0 (`amo-metadata.json`; Entscheid der Autorin vom 28.09.2026: GPL-3.0-only – AMO kennt in seiner Liste nur die or-later-Fassung, deshalb dort als eigene Lizenz `custom_license` mit vollem Text). Chrome: Eintrag während der laufenden Prüfung gesperrt, Text nach der Freigabe ersetzen, dann 1.1.0 einreichen. Edge: Text mit der Erstveröffentlichung.
+- 2026-09-28 Edge: Paket von der Autorin im Partner Center hochgeladen, Zertifizierung läuft (bis zu 7 Werktage). Microsoft schreibt nicht an bge.reader@gmail.com, sondern an die Kontaktadresse des Microsoft-Kontos.
+- 2026-09-29 Chrome: erneut „Artikel erfolgreich veröffentlicht" (04:43 UTC), Version 1.0.0 öffentlich.
+- 2026-09-29 AMO: 1.0.0 nach der automatischen Prüfung freigegeben und öffentlich (Mail 14:05 UTC, „tentatively approved"; eine menschliche Prüfung kann folgen). Slug jetzt `accessibility-addon-bger-bvger`, Adresse oben.
