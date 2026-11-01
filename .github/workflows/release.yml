@@ -42,7 +42,7 @@ jobs:
       # Node 22 = aktuelles LTS.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
           cache: npm
@@ -102,7 +102,7 @@ jobs:
           key: fixtures-${{ hashFiles('tools/fetch-fixtures.sh') }}-${{ github.run_id }}
 
       - name: Fixtures an die anderen Jobs weitergeben (Artefakt)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: fixtures
           path: test/fixtures/
@@ -118,14 +118,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: test/package-lock.json
 
       - name: Fixtures vom Job "fixtures" (Artefakt)
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: fixtures
           path: test/fixtures
@@ -144,7 +144,7 @@ jobs:
       - name: Klammer-Report erzeugen
         run: node tools/klammern-report.js | tee klammern-report.txt
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: klammern-report
           path: klammern-report.txt
@@ -175,7 +175,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
           cache: npm
@@ -184,7 +184,7 @@ jobs:
       # Fixtures vom Job "fixtures" – kein eigener Zugriff auf bger.ch aus
       # sechs Jobs zugleich.
       - name: Fixtures vom Job "fixtures" (Artefakt)
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: fixtures
           path: test/fixtures
@@ -203,7 +203,7 @@ jobs:
       - name: Smoke-Test
         run: node test/browser-smoke.js ${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: smoke-${{ matrix.os }}-${{ matrix.browser }}
@@ -216,7 +216,7 @@ jobs:
         continue-on-error: true
         run: node tools/screenshots.js ${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: screenshots-${{ matrix.os }}-${{ matrix.browser }}
